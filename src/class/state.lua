@@ -18,7 +18,7 @@ function state:load(state_name, data)
     if self.state_list[state_name] then
         self.loadedStateName = state_name
         self.state = fs.load(self.state_list[state_name])()
-        if type(self.state.load) == "function" then
+        if type(self.state.load) == "function" and self.state then
             self.state:load(data)
         end
     else
