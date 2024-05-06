@@ -14,11 +14,6 @@ cos = math.cos
 f = string.format
 floor = math.floor
 
--- Limiting the max seed to the highets 32-bit integer minus 1000 because the world generation offsets the seed by up to 1000.
--- Negative seeds are not allowed. At least for now.
-maxSeed = 2147483647 - 1000
-
-
 function love.load()
     -- Loaidng classes
     require("src.class.util")
@@ -35,7 +30,7 @@ function love.load()
     state:define_state("src/state/menu.lua", "menu")
 
     --Config
-    default_config = {
+    local default_config = {
         window = {
             width = 1024,
             height = 576,
@@ -82,7 +77,6 @@ function love.load()
     love.window.setMode(config.window.width, config.window.height, {fullscreen=config.window.fullscreen})
     love.window.setTitle(config.window.title)
 
-
     -- POSTER
     poster = require("src.lib.poster")
 
@@ -113,15 +107,13 @@ function love.load()
 
     console:init(0, 0, lg.getWidth(), lg.getHeight(), false, font.regular)
     console:setVisible(false)
-
-
 end
 
-function save_config()
+local function save_config()
     ttf.save(config, "config.lua")
 end
 
-function clear_config()
+local function clear_config()
     fs.remove("config.lua")
 end
 

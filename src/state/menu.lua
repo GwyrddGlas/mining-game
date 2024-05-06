@@ -18,26 +18,33 @@ local function exitButton()
 end
 
 local function createButton()
-    if #menu.screen.new.worldName.text < 1 then
-        note:new("Please enter a world name!", "danger") 
-    else
-        local seed = menu.screen.new.seed.text
-        -- If no seed is provided, Use the current time
-        if #seed < 1 then
-            seed = os.time()
-        end
-        if tonumber(seed) then 
-            seed = tonumber(seed) 
-        else
-            seed = hashcode(seed)
-        end
+    -- Limiting the max seed to the highest 32-bit integer minus 1000 because the world generation offsets the seed by up to 1000.
+    -- Negative seeds are not allowed. At least for now.
+    local maxSeed = 2147483647 - 1000
+    local worldName = menu.screen.new.worldName.text
 
-        if seed > maxSeed then
-            seed = maxSeed
-        end
-
-        state:load("game", {type = "new", worldName = menu.screen.new.worldName.text, seed = tonumber(seed)})
+    if #worldName < 1 then
+        worldName = "Untitled Game"
     end
+
+    local seed = menu.screen.new.seed.text
+
+    -- If no seed is provided, use the current time
+    if #seed < 1 then
+        seed = os.time()
+    end
+
+    if tonumber(seed) then
+        seed = tonumber(seed)
+    else
+        seed = hashcode(seed)
+    end
+
+    if seed > maxSeed then
+        seed = maxSeed
+    end
+
+    state:load("game", {type = "new", worldName = worldName, seed = tonumber(seed)})
 end
 
 local function load()
@@ -89,7 +96,6 @@ local function delete()
             note:new("World '"..selected.text.."' deleted.", "success")
         end
     end
-
 end
 
 function menu:load()
@@ -137,9 +143,6 @@ function menu:load()
     end
 
     self.deleteConfirmed = false
-
-
-
 end
 
 function menu:update(dt)
