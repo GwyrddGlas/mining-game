@@ -139,41 +139,49 @@ end
 
 function game:drawHud()
     local iconScale = 50 * scale_x
+    local width, height = lg.getWidth(), lg.getHeight()
+
+    -- Function to draw an icon and its value
+    local function drawIconValue(icon, value, x, y)
+        lg.setColor(1, 1, 1, 1)
+        lg.draw(tileAtlas, tiles[self.icon[icon]], x, y, 0, iconScale / config.graphics.assetSize, iconScale / config.graphics.assetSize)
+        lg.setFont(font.large)
+        local formattedValue = math.floor(value * 100) / 100
+        lg.print(formattedValue, x * 6, y)
+    end
+
     -- Health
-    local x = lg.getWidth() * 0.01
-    local y = lg.getHeight() * 0.01
-    lg.setColor(1, 1, 1, 1)
-    lg.draw(tileAtlas, tiles[self.icon["health"]], x, y, 0,  iconScale / config.graphics.assetSize, iconScale / config.graphics.assetSize)
-    lg.setFont(font.large)
-    local health = math.floor(self.player.health * 100) / 100
-    lg.print(health, x * 6, y * 0.1)
+    drawIconValue("health", self.player.health, width * 0.01, height * 0.01)
+
     -- Radiation
-    local x = lg.getWidth() * 0.01
-    local y = lg.getHeight() * 0.1
-    lg.setColor(1, 1, 1, 1)
-    lg.draw(tileAtlas, tiles[self.icon["radiation"]], x, y, 0,  iconScale / config.graphics.assetSize, iconScale / config.graphics.assetSize)
-    lg.setFont(font.large)
-    local rad = math.floor(self.player.radiation * 100) / 100
-    lg.print(rad, x * 6, y * 0.9)
-    -- PLAYER INVENTORY
+    drawIconValue("radiation", self.player.radiation, width * 0.01, height * 0.1)
+
+    -- Player Inventory
+    local inventoryX = width * 0.95
+    local inventoryY = height - height * 0.08
+    local inventoryOffset = height * 0.08
     local i = 0
-    for k, v in pairs(self.player.inventory) do
-        local x = lg.getWidth() * 0.95
-        local y = lg.getHeight() - (lg.getHeight() * 0.08) * i
+
+    for k, quantity in pairs(self.player.inventory) do
+        local y = inventoryY - inventoryOffset * i
         lg.setColor(color.white)
-        lg.draw(tileAtlas, tiles[self.icon[k]], x, y - 70 , 0, (config.graphics.tileSize * scale_x) / config.graphics.assetSize, (config.graphics.tileSize * scale_x) / config.graphics.assetSize)
+        lg.draw(tileAtlas, tiles[self.icon[k]], inventoryX, y - 70, 0, (config.graphics.tileSize * scale_x) / config.graphics.assetSize, (config.graphics.tileSize * scale_x) / config.graphics.assetSize)
 
-        local r, g, b = unpack(color[k:lower()]) 
+        local r, g, b = unpack(color[k:lower()])
         lg.setFont(font.regular)
-        
-        setColor(0, 0, 0)
-        lg.printf(v, -lg.getWidth() * 0.06, y * 0.92 + 1, lg.getWidth(), "right")
-        lg.printf(v, -lg.getWidth() * 0.06, y * 0.92 - 1, lg.getWidth(), "right")
-        lg.printf(v, -lg.getWidth() * 0.06 + 1, y * 0.92, lg.getWidth(), "right")
-        lg.printf(v, -lg.getWidth() * 0.06 - 1, y * 0.92, lg.getWidth(), "right")
 
-        setColor(255, 255, 255)
-        lg.printf(v, -lg.getWidth() * 0.06, y * 0.92, lg.getWidth(), "right")
+        local function drawOutlinedText(text, x, y)
+            setColor(0, 0, 0)
+            lg.printf(text, x, y + 1, -width * 0.06, "right")
+            lg.printf(text, x, y - 1, -width * 0.06, "right")
+            lg.printf(text, x + 1, y, -width * 0.06, "right")
+            lg.printf(text, x - 1, y, -width * 0.06, "right")
+            setColor(255, 255, 255)
+            lg.printf(text, x, y, -width * 0.06, "right")
+        end
+
+        lg.printf(quantity, -lg.getWidth() * 0.06, y * 0.92, lg.getWidth(), "right")
+
         i = i + 1
     end
 end

@@ -26,7 +26,6 @@ function worldGen:load(data)
     worldGen:saveWorld()
     worldGen:updateChunks(self.player.chunkX, self.player.chunkY)
 
-
     self.worldTick = 0
     self.worldTickRate = 2 -- Ticks per second
     print("WorldGen loaded")
@@ -52,7 +51,6 @@ function worldGen:iterateChunks(func)
         end
     end
 end
-
 
 function worldGen:iterateTiles(func)
     for y, row in pairs(self.tiles) do

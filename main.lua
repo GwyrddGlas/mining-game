@@ -1,5 +1,5 @@
 NAME = "Cave game"
-VERSION = "v0.02"
+VERSION = "v0.03"
  
 -- GLOBALS
 lg = love.graphics
