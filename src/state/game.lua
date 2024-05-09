@@ -138,52 +138,73 @@ function game:update(dt)
 end
 
 function game:drawHud()
-    local iconScale = 50 * scale_x
+    local iconScale = 40 * scale_x
     local width, height = lg.getWidth(), lg.getHeight()
 
-    -- Function to draw an icon and its value
+    -- Player Inventory (Hotbar)
+    local maxHotbarItems = 5
+    local hotbarX = width * 0.5
+    local hotbarY = height - height * 0.07
+    local hotbarWidth = width * 0.3
+    local hotbarHeight = height * 0.07
+    local itemSize = hotbarHeight * 0.8
+    local itemSpacing = (hotbarWidth - itemSize * maxHotbarItems) / (maxHotbarItems - 1)
+    local itemX = hotbarX - (hotbarWidth * 0.5)
+    local itemY = hotbarY + (hotbarHeight - itemSize) * 0.5
+    local i = 0
+
+    -- Draw hotbar background
+    lg.setColor(0.4, 0.4, 0.4)
+    lg.rectangle("fill", hotbarX - hotbarWidth * 0.5, hotbarY, hotbarWidth, hotbarHeight)
+
+    for k, quantity in pairs(self.player.inventory) do
+        if i < maxHotbarItems then
+            local x = itemX + i * (itemSize + itemSpacing)
+            local y = itemY
+
+            -- Draw item slot
+            lg.setColor(0.2, 0.2, 0.2)
+            lg.rectangle("fill", x, y, itemSize, itemSize)
+            lg.setColor(0.4, 0.4, 0.4)
+            lg.rectangle("line", x, y, itemSize, itemSize)
+
+            -- Draw item icon
+            lg.setColor(1, 1, 1)
+            lg.draw(tileAtlas, tiles[self.icon[k]], x + itemSize * 0.1, y + itemSize * 0.1, 0, itemSize * 0.8 / config.graphics.assetSize, itemSize * 0.8 / config.graphics.assetSize)
+
+            -- Draw item quantity
+            local r, g, b = unpack(color[k:lower()])
+            lg.setFont(font.regular)
+
+            local function drawOutlinedText(text, x, y)
+                setColor(0, 0, 0)
+                lg.printf(text, x, y + 1, itemSize, "right")
+                lg.printf(text, x, y - 1, itemSize, "right")
+                lg.printf(text, x + 1, y, itemSize, "right")
+                lg.printf(text, x - 1, y, itemSize, "right")
+                setColor(255, 255, 255)
+                lg.printf(text, x, y, itemSize, "right")
+            end
+
+            drawOutlinedText(quantity, x + itemSize - itemSpacing * 0.1, y + itemSize - font.regular:getHeight() * 1.2)
+
+            i = i + 1
+        end
+    end
+
     local function drawIconValue(icon, value, x, y)
         lg.setColor(1, 1, 1, 1)
         lg.draw(tileAtlas, tiles[self.icon[icon]], x, y, 0, iconScale / config.graphics.assetSize, iconScale / config.graphics.assetSize)
-        lg.setFont(font.large)
+        lg.setFont(font.regular)
         local formattedValue = math.floor(value * 100) / 100
-        lg.print(formattedValue, x * 6, y)
+        lg.print(formattedValue, x + iconScale, y + iconScale * 0.2)
     end
 
     -- Health
-    drawIconValue("health", self.player.health, width * 0.01, height * 0.01)
+    drawIconValue("health", self.player.health, hotbarX - hotbarWidth * 0.4, hotbarY - hotbarHeight * 1.2)
 
     -- Radiation
-    drawIconValue("radiation", self.player.radiation, width * 0.01, height * 0.1)
-
-    -- Player Inventory
-    local inventoryX = width * 0.95
-    local inventoryY = height - height * 0.08
-    local inventoryOffset = height * 0.08
-    local i = 0
-
-    for k, quantity in pairs(self.player.inventory) do
-        local y = inventoryY - inventoryOffset * i
-        lg.setColor(color.white)
-        lg.draw(tileAtlas, tiles[self.icon[k]], inventoryX, y - 70, 0, (config.graphics.tileSize * scale_x) / config.graphics.assetSize, (config.graphics.tileSize * scale_x) / config.graphics.assetSize)
-
-        local r, g, b = unpack(color[k:lower()])
-        lg.setFont(font.regular)
-
-        local function drawOutlinedText(text, x, y)
-            setColor(0, 0, 0)
-            lg.printf(text, x, y + 1, -width * 0.06, "right")
-            lg.printf(text, x, y - 1, -width * 0.06, "right")
-            lg.printf(text, x + 1, y, -width * 0.06, "right")
-            lg.printf(text, x - 1, y, -width * 0.06, "right")
-            setColor(255, 255, 255)
-            lg.printf(text, x, y, -width * 0.06, "right")
-        end
-
-        lg.printf(quantity, -lg.getWidth() * 0.06, y * 0.92, lg.getWidth(), "right")
-
-        i = i + 1
-    end
+    drawIconValue("radiation", self.player.radiation, hotbarX + hotbarWidth * 0.1, hotbarY - hotbarHeight * 1.2)
 end
 
 function game:draw()
@@ -209,7 +230,6 @@ function game:draw()
     end
    
     self:drawHud()
-
 
     if config.debug.enabled then
         lg.setColor(1, 0, 0)
