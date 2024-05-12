@@ -15,14 +15,13 @@ local preset = {
 tileData[#tileData+1] = {
     type = "Wall",
     textureID = 17, 
-    maxHP = 2,
+    maxHP = 5,
     drop = {0, 0}, 
     destructible = true, 
     solid = true,
     item = false,
     itemTextureID = 0,
 }
- 
     
 tileData[#tileData+1] = {
     type = "Floor",
@@ -36,10 +35,21 @@ tileData[#tileData+1] = {
 }
 
 tileData[#tileData+1] = {
+    type = "Shrub",
+    textureID = 18, 
+    maxHP = 3,
+    drop = {0, 2}, 
+    destructible = true, 
+    solid = false,
+    item = "Shrub",
+    itemTextureID = 50,
+}
+
+tileData[#tileData+1] = {
     type = "Coal",
     textureID = 19, 
-    maxHP = 2,
-    drop = {2, 6}, 
+    maxHP = 10,
+    drop = {2, 6},
     destructible = true, 
     solid = false,
     item = false,
@@ -49,7 +59,7 @@ tileData[#tileData+1] = {
 tileData[#tileData+1] = {
     type = "Iron",
     textureID = 20, 
-    maxHP = 10,
+    maxHP = 12,
     drop = {1, 3}, 
     destructible = true, 
     solid = false,
@@ -60,7 +70,7 @@ tileData[#tileData+1] = {
 tileData[#tileData+1] = {
     type = "Gold",
     textureID = 21, 
-    maxHP = 5,
+    maxHP = 15,
     drop = {1, 2}, 
     destructible = true, 
     solid = false,
@@ -82,7 +92,7 @@ tileData[#tileData+1] = {
 tileData[#tileData+1] = {
     type = "Diamond",
     textureID = 23, 
-    maxHP = 15,
+    maxHP = 20,
     drop = {1, 2}, 
     destructible = true, 
     solid = false,
@@ -113,14 +123,14 @@ tileData[#tileData+1] = {
 }
 
 tileData[#tileData+1] = {
-    type = "Shrub",
-    textureID = 18, 
-    maxHP = 2,
-    drop = {0, 2}, 
+    type = "Copper",
+    textureID = 26, 
+    maxHP = 15,
+    drop = {1, 3}, 
     destructible = true, 
     solid = false,
-    item = "Shrub",
-    itemTextureID = 50,
+    item = false,
+    itemTextureID = 0,
 }
 
 return tileData

@@ -38,11 +38,13 @@ function game:load(data)
 
     -- Initializing worldGen
     worldGen:load({player = self.player, world = self.world, worldName = self.worldName, seed = self.seed})
-
     
     self.renderBuffer = worldGen.tileSize * 2
     self.hoverEntity = false -- Contains the entity the mouse is over, Used for mining
     self.time = 0 -- Timer used for shader animations
+
+    self.inventoryOpen = false
+    self.selectedItem = nil
 
     -- Icon tile id's
     self.icon = {
@@ -53,6 +55,7 @@ function game:load(data)
         Diamond = 5,
         Ruby = 6,
         Tanzenite = 7,
+        copper = 8,
         health = 41,
         radiation = 42,
         Shrub = 9
@@ -94,7 +97,9 @@ function game:load(data)
         {"horizontalBlur", "amount", 3},
     })
 
-
+    -- TODO: Replace with better method
+    gameAudio["background"]:setVolume(0.2)
+    gameAudio["background"]:play()
 end
 
 function game:unload()
@@ -110,11 +115,10 @@ function game:update(dt)
     local mx, my = camera:getMouse()
     for i,v in ipairs(self.visibleEntities) do
         v.hover = false
-        if fmath.pointInRect(mx, my, v.x, v.y, v.width, v.height) and fmath.distance(v.gridX, v.gridY, self.player.gridX, self.player.gridY) < self.player.reach then
+        if fmath.pointInRect(mx, my, v.x, v.y, v.width, v.height) and fmath.distance(v.gridX, v.gridY, self.player.gridX, self.player.gridY) < self.player.reach and not self.inventoryOpen then
             v.hover = true
             self.hoverEntity = v
         end
-
     end
     
     -- Updating camera
@@ -132,17 +136,24 @@ function game:update(dt)
     self.shaders:setMacro("time", self.time)
 
     -- Mining
-    if lm.isDown(1) and self.hoverEntity then
+    if lm.isDown(1) and self.hoverEntity and not self.inventoryOpen then
         self.player:mine(self.hoverEntity) 
+    end
+
+    -- Inventory
+    if kb.isDown("i") then
+        print("inventory: "..tostring(self.inventoryOpen))
+        self.inventoryOpen = not self.inventoryOpen
     end
 end
 
 function game:drawHud()
     local iconScale = 40 * scale_x
+    local radiationScale = 34 * scale_x
     local width, height = lg.getWidth(), lg.getHeight()
 
     -- Player Inventory (Hotbar)
-    local maxHotbarItems = 5
+    local maxHotbarItems = 6
     local hotbarX = width * 0.5
     local hotbarY = height - height * 0.07
     local hotbarWidth = width * 0.3
@@ -151,60 +162,114 @@ function game:drawHud()
     local itemSpacing = (hotbarWidth - itemSize * maxHotbarItems) / (maxHotbarItems - 1)
     local itemX = hotbarX - (hotbarWidth * 0.5)
     local itemY = hotbarY + (hotbarHeight - itemSize) * 0.5
-    local i = 0
+    local cornerRadius = itemSize * 0.2
 
     -- Draw hotbar background
-    lg.setColor(0.4, 0.4, 0.4)
-    lg.rectangle("fill", hotbarX - hotbarWidth * 0.5, hotbarY, hotbarWidth, hotbarHeight)
+    lg.setColor(0.2, 0.2, 0.2, 0.8)
+    lg.rectangle("fill", hotbarX - hotbarWidth * 0.5, hotbarY, hotbarWidth, hotbarHeight, cornerRadius, cornerRadius)
 
-    for k, quantity in pairs(self.player.inventory) do
-        if i < maxHotbarItems then
-            local x = itemX + i * (itemSize + itemSpacing)
-            local y = itemY
+    for i = 1, maxHotbarItems do
+        local x = itemX + (i - 1) * (itemSize + itemSpacing)
+        local y = itemY
 
-            -- Draw item slot
-            lg.setColor(0.2, 0.2, 0.2)
-            lg.rectangle("fill", x, y, itemSize, itemSize)
-            lg.setColor(0.4, 0.4, 0.4)
-            lg.rectangle("line", x, y, itemSize, itemSize)
+        -- Draw item slot
+        lg.setColor(0.3, 0.3, 0.3, 0.9)
+        lg.rectangle("fill", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
+        lg.setColor(0.5, 0.5, 0.5, 0.9)
+        lg.rectangle("line", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
 
-            -- Draw item icon
-            lg.setColor(1, 1, 1)
-            lg.draw(tileAtlas, tiles[self.icon[k]], x + itemSize * 0.1, y + itemSize * 0.1, 0, itemSize * 0.8 / config.graphics.assetSize, itemSize * 0.8 / config.graphics.assetSize)
+        -- Draw item icon and quantity
+        for item, quantity in pairs(self.player.inventory) do
+            if self.icon[item] == i then
+                lg.setColor(1, 1, 1)
+                if tileAtlas and tiles[self.icon[item]] then
+                    lg.draw(tileAtlas, tiles[self.icon[item]], x + itemSize * 0.1, y + itemSize * 0.1, 0, itemSize * 0.8 / config.graphics.assetSize, itemSize * 0.8 / config.graphics.assetSize)
 
-            -- Draw item quantity
-            local r, g, b = unpack(color[k:lower()])
-            lg.setFont(font.regular)
+                    lg.setFont(font.regular)
+                    local quantityText = tostring(quantity)
+                    local textWidth = font.regular:getWidth(quantityText)
+                    local textHeight = font.regular:getHeight()
+                    local textX = x + itemSize - textWidth - itemSize * 0.1
+                    local textY = y + itemSize - textHeight - itemSize * 0.1
 
-            local function drawOutlinedText(text, x, y)
-                setColor(0, 0, 0)
-                lg.printf(text, x, y + 1, itemSize, "right")
-                lg.printf(text, x, y - 1, itemSize, "right")
-                lg.printf(text, x + 1, y, itemSize, "right")
-                lg.printf(text, x - 1, y, itemSize, "right")
-                setColor(255, 255, 255)
-                lg.printf(text, x, y, itemSize, "right")
+                    lg.setColor(1, 1, 1)
+                    lg.print(quantityText, textX, textY)
+                end
+                break
             end
-
-            drawOutlinedText(quantity, x + itemSize - itemSpacing * 0.1, y + itemSize - font.regular:getHeight() * 1.2)
-
-            i = i + 1
         end
     end
 
-    local function drawIconValue(icon, value, x, y)
+    if self.inventoryOpen then
+        local inventoryRows = 3
+        local inventoryColumns = maxHotbarItems
+        local inventoryPadding = itemSize * 0.2
+        local inventoryWidth = inventoryColumns * (itemSize + itemSpacing) - itemSpacing + inventoryPadding * 2
+        local inventoryHeight = inventoryRows * (itemSize + itemSpacing) - itemSpacing + inventoryPadding * 2
+        local inventoryX = width * 0.5 - inventoryWidth * 0.5
+        local inventoryY = height * 0.5 - inventoryHeight * 0.5
+
+        lg.setColor(0.2, 0.2, 0.2, 0.8)
+        lg.rectangle("fill", inventoryX, inventoryY, inventoryWidth, inventoryHeight, cornerRadius, cornerRadius)
+
+        local index = 0
+        for row = 1, inventoryRows do
+            for col = 1, inventoryColumns do
+                local x = inventoryX + inventoryPadding + (col - 1) * (itemSize + itemSpacing)
+                local y = inventoryY + inventoryPadding + (row - 1) * (itemSize + itemSpacing)
+
+                lg.setColor(0.3, 0.3, 0.3, 0.9)
+                lg.rectangle("fill", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
+                lg.setColor(0.5, 0.5, 0.5, 0.9)
+                lg.rectangle("line", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
+
+                index = index + 1
+                local item = self:getInventoryItemAtIndex(index)
+                print(tostring(item))
+                if item then
+                    if self.selectedItem == item then
+                        lg.setColor(1, 1, 0, 0.5)
+                        lg.rectangle("fill", x, y, itemSize, itemSize)
+                    end
+                end
+
+                for item, quantity in pairs(self.player.inventory) do
+                    if self.icon[item] == index then
+                        lg.setColor(1, 1, 1)
+                        if tileAtlas and tiles[self.icon[item]] then
+                            lg.draw(tileAtlas, tiles[self.icon[item]], x + itemSize * 0.1, y + itemSize * 0.1, 0, itemSize * 0.8 / config.graphics.assetSize, itemSize * 0.8 / config.graphics.assetSize)
+
+                            lg.setFont(font.regular)
+                            local quantityText = tostring(quantity)
+                            local textWidth = font.regular:getWidth(quantityText)
+                            local textHeight = font.regular:getHeight()
+                            local textX = x + itemSize - textWidth - itemSize * 0.1
+                            local textY = y + itemSize - textHeight - itemSize * 0.1
+
+                            lg.setColor(1, 1, 1)
+                            lg.print(quantityText, textX, textY)
+                        end
+                        break
+                    end
+                end
+            end
+        end
+    end
+    
+    local function drawIconValue(icon, value, x, y, sizeScale)
+        sizeScale = sizeScale or iconScale
         lg.setColor(1, 1, 1, 1)
-        lg.draw(tileAtlas, tiles[self.icon[icon]], x, y, 0, iconScale / config.graphics.assetSize, iconScale / config.graphics.assetSize)
+        lg.draw(tileAtlas, tiles[self.icon[icon]], x, y, 0, sizeScale / config.graphics.assetSize, sizeScale / config.graphics.assetSize)
         lg.setFont(font.regular)
         local formattedValue = math.floor(value * 100) / 100
-        lg.print(formattedValue, x + iconScale, y + iconScale * 0.2)
+        lg.print(formattedValue, x + sizeScale, y + sizeScale * 0.2)
     end
 
     -- Health
     drawIconValue("health", self.player.health, hotbarX - hotbarWidth * 0.4, hotbarY - hotbarHeight * 1.2)
 
     -- Radiation
-    drawIconValue("radiation", self.player.radiation, hotbarX + hotbarWidth * 0.1, hotbarY - hotbarHeight * 1.2)
+    drawIconValue("radiation", self.player.radiation, hotbarX + hotbarWidth * 0.1, hotbarY - hotbarHeight * 1.2, radiationScale)
 end
 
 function game:draw()
@@ -245,7 +310,6 @@ function game:draw()
         "\nWorld name: "..self.worldName.." World seed: "..tostring(self.seed), -12, 12, lg.getWidth(), "center")
         worldGen:draw()
     end
-
 
     -- DEBUG BUMP WORLD
     if config.debug.showCollision then
@@ -307,18 +371,95 @@ function game:drawMinimap(all)
             lg.rectangle("fill", minimapX + v.gridX * minimapScale - (self.player.gridX * minimapScale), minimapY + v.gridY * minimapScale - (self.player.gridY * minimapScale), minimapScale, minimapScale)
         end
     end
+end
 
+function game:getInventoryBounds()
+    local width, height = lg.getWidth(), lg.getHeight()
+    local inventoryRows, inventoryColumns = 3, 6
+    local itemSize = self:getInventoryItemSize()
+    local itemSpacing = self:getInventoryItemSpacing()
+    local inventoryWidth = inventoryColumns * (itemSize + itemSpacing) - itemSpacing
+    local inventoryHeight = inventoryRows * (itemSize + itemSpacing) - itemSpacing
+    local inventoryX = width * 0.5 - inventoryWidth * 0.5
+    local inventoryY = height * 0.5 - inventoryHeight * 0.5
+    return inventoryX, inventoryY, inventoryWidth, inventoryHeight
+end
+
+function game:getInventoryItemSize()
+    return 50 * scale_x
+end
+
+function game:getInventoryItemSpacing()
+    return 10 * scale_x
+end
+
+function game:getInventoryColumns()
+    return 6
+end
+
+function game:getInventoryItemAtIndex(index)
+    local i = 1
+    for item, _ in pairs(self.player.inventory) do
+        if i == index then
+            return item
+        end
+        i = i + 1
+    end
+    return nil
+end
+
+function game:swapInventoryItems(item1, item2)
+    local inventory = self.player.inventory
+    local quantity1 = inventory[item1]
+    local quantity2 = inventory[item2]
+    inventory[item1] = quantity2
+    inventory[item2] = quantity1
+end
+
+function game:moveInventoryItemToIndex(item, index)
+    local inventory = self.player.inventory
+    local quantity = inventory[item]
+    inventory[item] = nil
+    local i = 1
+    for existingItem, _ in pairs(inventory) do
+        if i == index then
+            inventory[item] = quantity
+            return
+        end
+        i = i + 1
+    end
+    inventory[item] = quantity
 end
 
 function game:mousepressed(x, y, k)
-    --local entity_list, len = self.world:queryRect(camera.x - self.renderBuffer, camera.y - self.renderBuffer, lg.getWidth() + self.renderBuffer * 2, lg.getHeight() + self.renderBuffer * 2)
-    --for i,v in ipairs(entity_list) do
-    --    if tonumber(v.type) then
-    --        if v.maxHP and v.hover then
-    --            v:mine()
-    --        end
-    --    end
-    --end
+    if self.inventoryOpen then
+        local inventoryX, inventoryY, inventoryWidth, inventoryHeight = self:getInventoryBounds()
+        local itemSize = self:getInventoryItemSize()
+        local itemSpacing = self:getInventoryItemSpacing()
+        local inventoryColumns = self:getInventoryColumns()
+        local inventoryPadding = itemSize * 0.2
+
+        if x >= inventoryX and x <= inventoryX + inventoryWidth and y >= inventoryY and y <= inventoryY + inventoryHeight then
+            local col = math.floor((x - inventoryX - inventoryPadding) / (itemSize + itemSpacing))
+            local row = math.floor((y - inventoryY - inventoryPadding) / (itemSize + itemSpacing))
+            local index = row * inventoryColumns + col + 1
+
+            if self.selectedItem then
+                local itemToSwap = self:getInventoryItemAtIndex(index)
+                if itemToSwap then
+                    self:swapInventoryItems(self.selectedItem, itemToSwap)
+                else
+                    self:moveInventoryItemToIndex(self.selectedItem, index)
+                end
+                self.selectedItem = nil
+            else
+                self.selectedItem = self:getInventoryItemAtIndex(index)
+            end
+            
+        else
+            self.selectedItem = nil
+        end
+    end
 end
 
 function game:keypressed(key)

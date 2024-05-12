@@ -6,8 +6,8 @@ return {
     diamond = {115, 186, 221},
     ruby = {172, 50, 50},
     tanzenite = {39, 85, 165},
+    copper = {192, 85, 63},
     black = {0, 0, 0},
     white = {255, 255, 255},
     shrub = {99, 76, 60},
-
 }

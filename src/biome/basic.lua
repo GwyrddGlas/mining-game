@@ -86,6 +86,17 @@ return {
             seedOffset = 700
         },
         {
+            -- Copper
+            type = "Copper",
+            scaleBase = 1,
+            scaleDetail = 0.18,
+            thresh = 0.8,
+            ratio1 = 0.4,
+            ratio2 = 0.6,
+            spawnProbability = 1,
+            seedOffset = 100
+        },
+        {
             -- Shrub
             type = "Shrub",
             scaleBase = 0.5,

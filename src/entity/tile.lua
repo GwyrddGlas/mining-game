@@ -16,7 +16,6 @@ function entity:load(data, ecs)
     self:setType(data.type)
 
     self.color = {1, 1, 1}
-
 end
 
 function entity:setType(type)
@@ -102,7 +101,10 @@ function entity:draw()
 
         -- Drawing tile
         lg.setColor(self.color)
-        lg.draw(tileAtlas, tiles[self.tileData.textureID], self.x, self.y, 0, self.width / config.graphics.assetSize, self.height / config.graphics.assetSize)
+        
+        if self.tileData.textureID then
+            lg.draw(tileAtlas, tiles[self.tileData.textureID], self.x, self.y, 0, self.width / config.graphics.assetSize, self.height / config.graphics.assetSize)
+        end
     
         -- Drawing tile item
         if self.tileData.item then

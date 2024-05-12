@@ -29,6 +29,7 @@ function entity:draw()
             self.threadFinished = true
         end
     end
+    
     lg.setColor(1, 0, 1)
     --lg.rectangle("line", self.worldX, self.worldY, self.width, self.height)
     if self._REMOVE then

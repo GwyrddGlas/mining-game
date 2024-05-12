@@ -101,6 +101,9 @@ function love.load()
     tileAtlas, tiles = loadAtlas("src/assets/tileset.png", 16, 16, 0)
     tileBreakImg, tileBreak = loadAtlas("src/assets/tileBreak.png", 16, 16, 0)
 
+    -- loading audio
+    gameAudio = {}
+    gameAudio["background"] = love.audio.newSource("src/assets/audio/serenity.mp3", "static")
 
     state:load("menu", {worldName = "test"})
     --state:load("game", {type = "load", worldName = "test"})
