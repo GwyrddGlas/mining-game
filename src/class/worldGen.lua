@@ -145,7 +145,7 @@ function worldGen:saveChunkToFile(chunk)
         end
 
         ttf.save(output, outputName)
-        print("Saving chunk "..chunk.x.."x"..chunk.y.." to disk.")
+        --print("Saving chunk "..chunk.x.."x"..chunk.y.." to disk.")
     end
 end
 

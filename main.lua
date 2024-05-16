@@ -1,5 +1,5 @@
 NAME = "Cave game"
-VERSION = "v0.05"
+VERSION = "v0.05.1"
  
 -- GLOBALS
 lg = love.graphics
@@ -157,6 +157,7 @@ function love.keypressed(key)
     keybind:trigger("keypressed", key)
     state:keypressed(key)
     console:keypressed(key)
+    
     if key == "escape" then
         if console:getVisible() then
             console:setVisible(false) 

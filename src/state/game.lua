@@ -80,10 +80,11 @@ function game:load(data)
         Diamond = 5,
         Ruby = 6,
         Tanzenite = 7,
-        copper = 8,
+        Copper = 8,
+        Shrub = 9,
+        Wall = 18,
         health = 41,
         radiation = 42,
-        Shrub = 9
     }
 
     -- Poster stuff
@@ -205,10 +206,10 @@ function game:drawHud()
         if item then
             local quantity = self.player.inventory[item]
             if self.icon[item] then
-                lg.setColor(1, 1, 1)
                 if tileAtlas and tiles[self.icon[item]] then
+                    lg.setColor(1, 1, 1)
                     lg.draw(tileAtlas, tiles[self.icon[item]], x + itemSize * 0.1, y + itemSize * 0.1, 0, itemSize * 0.8 / config.graphics.assetSize, itemSize * 0.8 / config.graphics.assetSize)
-    
+                    
                     lg.setFont(font.regular)
                     local quantityText = tostring(quantity)
                     local textWidth = font.regular:getWidth(quantityText)
@@ -232,6 +233,7 @@ function game:drawHud()
         local inventoryX = width * 0.5 - inventoryWidth * 0.5
         local inventoryY = height * 0.5 - inventoryHeight * 0.5
     
+        --invetory background
         lg.setColor(0.2, 0.2, 0.2, 0.8)
         lg.rectangle("fill", inventoryX, inventoryY, inventoryWidth, inventoryHeight, cornerRadius, cornerRadius)
     
@@ -241,6 +243,7 @@ function game:drawHud()
                 local x = inventoryX + inventoryPadding + (col - 1) * (itemSize + itemSpacing)
                 local y = inventoryY + inventoryPadding + (row - 1) * (itemSize + itemSpacing)
     
+                --inventory slots
                 lg.setColor(0.3, 0.3, 0.3, 0.9)
                 lg.rectangle("fill", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
                 lg.setColor(0.5, 0.5, 0.5, 0.9)
@@ -249,12 +252,14 @@ function game:drawHud()
                 local item = self.player.inventoryOrder[index]
                 if item then
                     local quantity = self.player.inventory[item]
-    
+                    
+                    --selected 
                     if self.selectedItem == item then
-                        lg.setColor(1, 1, 0, 0.5)
+                        lg.setColor(1, 1, 1, 0.5)
                         lg.rectangle("fill", x, y, itemSize, itemSize)
                     end
     
+                    --hover
                     local mouseX, mouseY = love.mouse.getPosition()
                     if mouseX >= x and mouseX <= x + itemSize and mouseY >= y and mouseY <= y + itemSize then
                         lg.setBlendMode("add")
@@ -265,6 +270,7 @@ function game:drawHud()
                         lg.setBlendMode("alpha")
                     end
 
+                    --print(tostring(item).."  "..tostring(self.icon[item]))
                     if self.icon[item] then
                         lg.setColor(1, 1, 1)
                         if tileAtlas and tiles[self.icon[item]] then
@@ -280,6 +286,8 @@ function game:drawHud()
                             lg.setColor(1, 1, 1)
                             lg.print(quantityText, textX, textY)
                         end
+                    else
+                        print("Failed to load "..tostring(item))
                     end
                 end
             end
@@ -428,14 +436,7 @@ function game:getInventoryColumns()
 end
 
 function game:getInventoryItemAtIndex(index)
-    local i = 1
-    for item, _ in pairs(self.player.inventory) do
-        if i == index then
-            return item
-        end
-        i = i + 1
-    end
-    return nil
+    return self.player.inventoryOrder[index]
 end
 
 function game:swapInventoryItems(item1, item2)

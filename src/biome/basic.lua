@@ -60,7 +60,7 @@ return {
             thresh = 0.74,
             ratio1 = 0.7,
             ratio2 = 0.3,
-            spawnProbability = 0.2,
+            spawnProbability = 0.3,
             seedOffset = 500
         },
         {
