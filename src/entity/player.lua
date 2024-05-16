@@ -111,8 +111,9 @@ function entity:draw()
         end
 
         if self.radiation > 5 then
-            if math.random() < 0.1 then
-                self.health = self.health - (self.radiation * 0.01)
+            if math.random() < 0.1 and self.health > 0 then
+                local healthLoss = self.radiation * 0.01
+                self.health = math.max(0, self.health - healthLoss)
             end
         end
 

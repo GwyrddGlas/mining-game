@@ -52,8 +52,8 @@ end
 -- Determines the biome, at x & y
 local biomeCount = #biomes
 local function biomeNoise(x, y, scale)
-    local scaleBase = 0.1 * scale
-    local scaleDetail = 0.09 * scale
+    local scaleBase = 0.05 * scale
+    local scaleDetail = 0.04 * scale
     return math.floor((noise(x * scaleBase, y * scaleBase, seed + 100) * 0.8 + noise(x * scaleDetail, y * scaleDetail, seed + 100) * 0.2) * biomeCount + 1)
 end
 

@@ -1,5 +1,25 @@
 local game = {}
 
+local currentIndex = 1
+local currentTrack = gameAudio.background[currentIndex]
+
+local function playNextTrack()
+    currentIndex = currentIndex + 1
+    if currentIndex > #gameAudio.background then
+        currentIndex = 1
+    end
+    
+    currentTrack = gameAudio.background[currentIndex]
+    if currentTrack then
+        currentTrack:setVolume(0.2)
+        currentTrack:play()
+    end
+end
+
+local function playBackgroundMusic()
+    playNextTrack()
+end
+
 function game:load(data)
     lg.setBackgroundColor(0, 0, 0)
     local playerX, playerY = 0, 0 -- Grid coordinates!
@@ -45,6 +65,11 @@ function game:load(data)
 
     self.inventoryOpen = false
     self.selectedItem = nil
+    self.player.inventoryOrder = {}
+    
+    for item, _ in pairs(self.player.inventory) do
+        self.player.inventoryOrder[#self.player.inventoryOrder+1] = item
+    end
 
     -- Icon tile id's
     self.icon = {
@@ -97,9 +122,7 @@ function game:load(data)
         {"horizontalBlur", "amount", 3},
     })
 
-    -- TODO: Replace with better method
-    gameAudio["background"]:setVolume(0.2)
-    gameAudio["background"]:play()
+    playBackgroundMusic()
 end
 
 function game:unload()
@@ -135,15 +158,14 @@ function game:update(dt)
     self.shaders:setMacro("rad", self.player.radiation)
     self.shaders:setMacro("time", self.time)
 
+    -- Handle music transitioning 
+    if gameAudio.background[currentIndex] and not gameAudio.background[currentIndex]:isPlaying() then
+        playNextTrack()
+    end
+
     -- Mining
     if lm.isDown(1) and self.hoverEntity and not self.inventoryOpen then
         self.player:mine(self.hoverEntity) 
-    end
-
-    -- Inventory
-    if kb.isDown("i") then
-        print("inventory: "..tostring(self.inventoryOpen))
-        self.inventoryOpen = not self.inventoryOpen
     end
 end
 
@@ -171,31 +193,32 @@ function game:drawHud()
     for i = 1, maxHotbarItems do
         local x = itemX + (i - 1) * (itemSize + itemSpacing)
         local y = itemY
-
+    
         -- Draw item slot
         lg.setColor(0.3, 0.3, 0.3, 0.9)
         lg.rectangle("fill", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
         lg.setColor(0.5, 0.5, 0.5, 0.9)
         lg.rectangle("line", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
-
+    
         -- Draw item icon and quantity
-        for item, quantity in pairs(self.player.inventory) do
-            if self.icon[item] == i then
+        local item = self.player.inventoryOrder[i]
+        if item then
+            local quantity = self.player.inventory[item]
+            if self.icon[item] then
                 lg.setColor(1, 1, 1)
                 if tileAtlas and tiles[self.icon[item]] then
                     lg.draw(tileAtlas, tiles[self.icon[item]], x + itemSize * 0.1, y + itemSize * 0.1, 0, itemSize * 0.8 / config.graphics.assetSize, itemSize * 0.8 / config.graphics.assetSize)
-
+    
                     lg.setFont(font.regular)
                     local quantityText = tostring(quantity)
                     local textWidth = font.regular:getWidth(quantityText)
                     local textHeight = font.regular:getHeight()
                     local textX = x + itemSize - textWidth - itemSize * 0.1
                     local textY = y + itemSize - textHeight - itemSize * 0.1
-
+    
                     lg.setColor(1, 1, 1)
                     lg.print(quantityText, textX, textY)
                 end
-                break
             end
         end
     end
@@ -208,54 +231,61 @@ function game:drawHud()
         local inventoryHeight = inventoryRows * (itemSize + itemSpacing) - itemSpacing + inventoryPadding * 2
         local inventoryX = width * 0.5 - inventoryWidth * 0.5
         local inventoryY = height * 0.5 - inventoryHeight * 0.5
-
+    
         lg.setColor(0.2, 0.2, 0.2, 0.8)
         lg.rectangle("fill", inventoryX, inventoryY, inventoryWidth, inventoryHeight, cornerRadius, cornerRadius)
-
-        local index = 0
+    
         for row = 1, inventoryRows do
             for col = 1, inventoryColumns do
+                local index = (row - 1) * inventoryColumns + col
                 local x = inventoryX + inventoryPadding + (col - 1) * (itemSize + itemSpacing)
                 local y = inventoryY + inventoryPadding + (row - 1) * (itemSize + itemSpacing)
-
+    
                 lg.setColor(0.3, 0.3, 0.3, 0.9)
                 lg.rectangle("fill", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
                 lg.setColor(0.5, 0.5, 0.5, 0.9)
                 lg.rectangle("line", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
-
-                index = index + 1
-                local item = self:getInventoryItemAtIndex(index)
-                print(tostring(item))
+    
+                local item = self.player.inventoryOrder[index]
                 if item then
+                    local quantity = self.player.inventory[item]
+    
                     if self.selectedItem == item then
                         lg.setColor(1, 1, 0, 0.5)
                         lg.rectangle("fill", x, y, itemSize, itemSize)
                     end
-                end
+    
+                    local mouseX, mouseY = love.mouse.getPosition()
+                    if mouseX >= x and mouseX <= x + itemSize and mouseY >= y and mouseY <= y + itemSize then
+                        lg.setBlendMode("add")
+                        lg.setColor(1, 1, 1, 1)
+                        lg.rectangle("line", x + 1, y + 1, itemSize - 2, itemSize - 2)
+                        lg.setColor(1, 1, 1, 0.1)
+                        lg.rectangle("fill", x + 1, y + 1, itemSize - 2, itemSize - 2)
+                        lg.setBlendMode("alpha")
+                    end
 
-                for item, quantity in pairs(self.player.inventory) do
-                    if self.icon[item] == index then
+                    if self.icon[item] then
                         lg.setColor(1, 1, 1)
                         if tileAtlas and tiles[self.icon[item]] then
                             lg.draw(tileAtlas, tiles[self.icon[item]], x + itemSize * 0.1, y + itemSize * 0.1, 0, itemSize * 0.8 / config.graphics.assetSize, itemSize * 0.8 / config.graphics.assetSize)
-
+    
                             lg.setFont(font.regular)
                             local quantityText = tostring(quantity)
                             local textWidth = font.regular:getWidth(quantityText)
                             local textHeight = font.regular:getHeight()
                             local textX = x + itemSize - textWidth - itemSize * 0.1
                             local textY = y + itemSize - textHeight - itemSize * 0.1
-
+    
                             lg.setColor(1, 1, 1)
                             lg.print(quantityText, textX, textY)
                         end
-                        break
                     end
                 end
             end
         end
     end
-    
+
     local function drawIconValue(icon, value, x, y, sizeScale)
         sizeScale = sizeScale or iconScale
         lg.setColor(1, 1, 1, 1)
@@ -266,7 +296,7 @@ function game:drawHud()
     end
 
     -- Health
-    drawIconValue("health", self.player.health, hotbarX - hotbarWidth * 0.4, hotbarY - hotbarHeight * 1.2)
+    drawIconValue("health", math.floor(self.player.health), hotbarX - hotbarWidth * 0.4, hotbarY - hotbarHeight * 1.2)
 
     -- Radiation
     drawIconValue("radiation", self.player.radiation, hotbarX + hotbarWidth * 0.1, hotbarY - hotbarHeight * 1.2, radiationScale)
@@ -437,25 +467,34 @@ function game:mousepressed(x, y, k)
         local itemSize = self:getInventoryItemSize()
         local itemSpacing = self:getInventoryItemSpacing()
         local inventoryColumns = self:getInventoryColumns()
+        local inventoryRows = 3
         local inventoryPadding = itemSize * 0.2
 
         if x >= inventoryX and x <= inventoryX + inventoryWidth and y >= inventoryY and y <= inventoryY + inventoryHeight then
-            local col = math.floor((x - inventoryX - inventoryPadding) / (itemSize + itemSpacing))
-            local row = math.floor((y - inventoryY - inventoryPadding) / (itemSize + itemSpacing))
-            local index = row * inventoryColumns + col + 1
+            for row = 1, inventoryRows do
+                for col = 1, inventoryColumns do
+                    local slotX = inventoryX + inventoryPadding + (col - 1) * (itemSize + itemSpacing)
+                    local slotY = inventoryY + inventoryPadding + (row - 1) * (itemSize + itemSpacing)
 
-            if self.selectedItem then
-                local itemToSwap = self:getInventoryItemAtIndex(index)
-                if itemToSwap then
-                    self:swapInventoryItems(self.selectedItem, itemToSwap)
-                else
-                    self:moveInventoryItemToIndex(self.selectedItem, index)
+                    if x >= slotX and x <= slotX + itemSize and y >= slotY and y <= slotY + itemSize then
+                        local index = (row - 1) * inventoryColumns + col
+                        local clickedItem = self:getInventoryItemAtIndex(index)
+
+                        if self.selectedItem then
+                            if clickedItem then
+                                self:swapInventoryItems(self.selectedItem, clickedItem)
+                            else
+                                self:moveInventoryItemToIndex(self.selectedItem, index)
+                            end
+                            self.selectedItem = nil
+                        else
+                            self.selectedItem = clickedItem
+                        end
+
+                        return
+                    end
                 end
-                self.selectedItem = nil
-            else
-                self.selectedItem = self:getInventoryItemAtIndex(index)
             end
-            
         else
             self.selectedItem = nil
         end
@@ -465,6 +504,11 @@ end
 function game:keypressed(key)
     if key == "f5" then
         worldGen:saveWorld()
+    end
+
+    -- Inventory
+    if key == "i" then
+        self.inventoryOpen = not self.inventoryOpen
     end
 end
 

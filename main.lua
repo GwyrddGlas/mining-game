@@ -1,5 +1,5 @@
 NAME = "Cave game"
-VERSION = "v0.03"
+VERSION = "v0.05"
  
 -- GLOBALS
 lg = love.graphics
@@ -102,8 +102,16 @@ function love.load()
     tileBreakImg, tileBreak = loadAtlas("src/assets/tileBreak.png", 16, 16, 0)
 
     -- loading audio
-    gameAudio = {}
-    gameAudio["background"] = love.audio.newSource("src/assets/audio/serenity.mp3", "static")
+    gameAudio = {background = {}}
+
+    local backgroundMusic = {
+        "serenity",
+        "dreaming"
+    }
+
+    for _, v in ipairs(backgroundMusic) do --TODO: use newQueueableSource
+        gameAudio.background[#gameAudio.background+1] = love.audio.newSource("src/assets/audio/"..tostring(v)..".mp3", "stream")
+    end
 
     state:load("menu", {worldName = "test"})
     --state:load("game", {type = "load", worldName = "test"})
