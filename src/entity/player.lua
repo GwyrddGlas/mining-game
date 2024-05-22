@@ -30,6 +30,7 @@ function entity:load(data, ecs)
     self.health = 100
     self.radiation = 0
     self.inventory = data.inventory
+    self.inventoryOrder = {}
     self.playerLoaded = data.playerLoaded
     self.inRangeOfRadiation = false
 
@@ -87,6 +88,10 @@ function entity:mine(tile)
     end
 end
 
+function entity:place(tile)
+    tileL:place(tile)
+end
+
 function entity:draw()
     if self.control then
         -- Facing the player
@@ -126,10 +131,10 @@ function entity:draw()
             self.animation[self.direction]:reset()
             self.animation[self.direction]:stop()
         end
+        
         local x = self.x - (self.tileSize / 2)
         local y = self.y - (self.tileSize / 2)
         self.animation[self.direction]:draw(x, y, self.tileSize / config.graphics.assetSize, self.tileSize / config.graphics.assetSize)
-
     end
 end
 

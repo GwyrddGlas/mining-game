@@ -1,3 +1,4 @@
+local inventory = require("src/class/inventory")
 local game = {}
 
 local currentIndex = 1
@@ -63,13 +64,7 @@ function game:load(data)
     self.hoverEntity = false -- Contains the entity the mouse is over, Used for mining
     self.time = 0 -- Timer used for shader animations
 
-    self.inventoryOpen = false
-    self.selectedItem = nil
-    self.player.inventoryOrder = {}
-    
-    for item, _ in pairs(self.player.inventory) do
-        self.player.inventoryOrder[#self.player.inventoryOrder+1] = item
-    end
+    self.inventory = inventory:new(self.player)
 
     -- Icon tile id's
     self.icon = {
@@ -83,6 +78,8 @@ function game:load(data)
         Copper = 8,
         Shrub = 9,
         Wall = 18,
+        Crafting = 28,
+        Furnace = 29,
         health = 41,
         radiation = 42,
     }
@@ -168,6 +165,11 @@ function game:update(dt)
     if lm.isDown(1) and self.hoverEntity and not self.inventoryOpen then
         self.player:mine(self.hoverEntity) 
     end
+
+    -- Block Placing
+    if lm.isDown(2) and  not self.inventoryOpen then
+
+    end
 end
 
 function game:drawHud()
@@ -224,76 +226,6 @@ function game:drawHud()
         end
     end
 
-    if self.inventoryOpen then
-        local inventoryRows = 3
-        local inventoryColumns = maxHotbarItems
-        local inventoryPadding = itemSize * 0.2
-        local inventoryWidth = inventoryColumns * (itemSize + itemSpacing) - itemSpacing + inventoryPadding * 2
-        local inventoryHeight = inventoryRows * (itemSize + itemSpacing) - itemSpacing + inventoryPadding * 2
-        local inventoryX = width * 0.5 - inventoryWidth * 0.5
-        local inventoryY = height * 0.5 - inventoryHeight * 0.5
-    
-        --invetory background
-        lg.setColor(0.2, 0.2, 0.2, 0.8)
-        lg.rectangle("fill", inventoryX, inventoryY, inventoryWidth, inventoryHeight, cornerRadius, cornerRadius)
-    
-        for row = 1, inventoryRows do
-            for col = 1, inventoryColumns do
-                local index = (row - 1) * inventoryColumns + col
-                local x = inventoryX + inventoryPadding + (col - 1) * (itemSize + itemSpacing)
-                local y = inventoryY + inventoryPadding + (row - 1) * (itemSize + itemSpacing)
-    
-                --inventory slots
-                lg.setColor(0.3, 0.3, 0.3, 0.9)
-                lg.rectangle("fill", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
-                lg.setColor(0.5, 0.5, 0.5, 0.9)
-                lg.rectangle("line", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
-    
-                local item = self.player.inventoryOrder[index]
-                if item then
-                    local quantity = self.player.inventory[item]
-                    
-                    --selected 
-                    if self.selectedItem == item then
-                        lg.setColor(1, 1, 1, 0.5)
-                        lg.rectangle("fill", x, y, itemSize, itemSize)
-                    end
-    
-                    --hover
-                    local mouseX, mouseY = love.mouse.getPosition()
-                    if mouseX >= x and mouseX <= x + itemSize and mouseY >= y and mouseY <= y + itemSize then
-                        lg.setBlendMode("add")
-                        lg.setColor(1, 1, 1, 1)
-                        lg.rectangle("line", x + 1, y + 1, itemSize - 2, itemSize - 2)
-                        lg.setColor(1, 1, 1, 0.1)
-                        lg.rectangle("fill", x + 1, y + 1, itemSize - 2, itemSize - 2)
-                        lg.setBlendMode("alpha")
-                    end
-
-                    --print(tostring(item).."  "..tostring(self.icon[item]))
-                    if self.icon[item] then
-                        lg.setColor(1, 1, 1)
-                        if tileAtlas and tiles[self.icon[item]] then
-                            lg.draw(tileAtlas, tiles[self.icon[item]], x + itemSize * 0.1, y + itemSize * 0.1, 0, itemSize * 0.8 / config.graphics.assetSize, itemSize * 0.8 / config.graphics.assetSize)
-    
-                            lg.setFont(font.regular)
-                            local quantityText = tostring(quantity)
-                            local textWidth = font.regular:getWidth(quantityText)
-                            local textHeight = font.regular:getHeight()
-                            local textX = x + itemSize - textWidth - itemSize * 0.1
-                            local textY = y + itemSize - textHeight - itemSize * 0.1
-    
-                            lg.setColor(1, 1, 1)
-                            lg.print(quantityText, textX, textY)
-                        end
-                    else
-                        print("Failed to load "..tostring(item))
-                    end
-                end
-            end
-        end
-    end
-
     local function drawIconValue(icon, value, x, y, sizeScale)
         sizeScale = sizeScale or iconScale
         lg.setColor(1, 1, 1, 1)
@@ -302,6 +234,8 @@ function game:drawHud()
         local formattedValue = math.floor(value * 100) / 100
         lg.print(formattedValue, x + sizeScale, y + sizeScale * 0.2)
     end
+
+    self.inventory:draw(self.icon, itemSize, itemSpacing, cornerRadius, maxHotbarItems)
 
     -- Health
     drawIconValue("health", math.floor(self.player.health), hotbarX - hotbarWidth * 0.4, hotbarY - hotbarHeight * 1.2)
@@ -411,105 +345,18 @@ function game:drawMinimap(all)
     end
 end
 
-function game:getInventoryBounds()
-    local width, height = lg.getWidth(), lg.getHeight()
-    local inventoryRows, inventoryColumns = 3, 6
-    local itemSize = self:getInventoryItemSize()
-    local itemSpacing = self:getInventoryItemSpacing()
-    local inventoryWidth = inventoryColumns * (itemSize + itemSpacing) - itemSpacing
-    local inventoryHeight = inventoryRows * (itemSize + itemSpacing) - itemSpacing
-    local inventoryX = width * 0.5 - inventoryWidth * 0.5
-    local inventoryY = height * 0.5 - inventoryHeight * 0.5
-    return inventoryX, inventoryY, inventoryWidth, inventoryHeight
-end
-
-function game:getInventoryItemSize()
-    return 50 * scale_x
-end
-
-function game:getInventoryItemSpacing()
-    return 10 * scale_x
-end
-
-function game:getInventoryColumns()
-    return 6
-end
-
-function game:getInventoryItemAtIndex(index)
-    return self.player.inventoryOrder[index]
-end
-
-function game:swapInventoryItems(item1, item2)
-    local inventory = self.player.inventory
-    local quantity1 = inventory[item1]
-    local quantity2 = inventory[item2]
-    inventory[item1] = quantity2
-    inventory[item2] = quantity1
-end
-
-function game:moveInventoryItemToIndex(item, index)
-    local inventory = self.player.inventory
-    local quantity = inventory[item]
-    inventory[item] = nil
-    local i = 1
-    for existingItem, _ in pairs(inventory) do
-        if i == index then
-            inventory[item] = quantity
-            return
-        end
-        i = i + 1
-    end
-    inventory[item] = quantity
-end
-
-function game:mousepressed(x, y, k)
-    if self.inventoryOpen then
-        local inventoryX, inventoryY, inventoryWidth, inventoryHeight = self:getInventoryBounds()
-        local itemSize = self:getInventoryItemSize()
-        local itemSpacing = self:getInventoryItemSpacing()
-        local inventoryColumns = self:getInventoryColumns()
-        local inventoryRows = 3
-        local inventoryPadding = itemSize * 0.2
-
-        if x >= inventoryX and x <= inventoryX + inventoryWidth and y >= inventoryY and y <= inventoryY + inventoryHeight then
-            for row = 1, inventoryRows do
-                for col = 1, inventoryColumns do
-                    local slotX = inventoryX + inventoryPadding + (col - 1) * (itemSize + itemSpacing)
-                    local slotY = inventoryY + inventoryPadding + (row - 1) * (itemSize + itemSpacing)
-
-                    if x >= slotX and x <= slotX + itemSize and y >= slotY and y <= slotY + itemSize then
-                        local index = (row - 1) * inventoryColumns + col
-                        local clickedItem = self:getInventoryItemAtIndex(index)
-
-                        if self.selectedItem then
-                            if clickedItem then
-                                self:swapInventoryItems(self.selectedItem, clickedItem)
-                            else
-                                self:moveInventoryItemToIndex(self.selectedItem, index)
-                            end
-                            self.selectedItem = nil
-                        else
-                            self.selectedItem = clickedItem
-                        end
-
-                        return
-                    end
-                end
-            end
-        else
-            self.selectedItem = nil
-        end
-    end
-end
-
 function game:keypressed(key)
     if key == "f5" then
         worldGen:saveWorld()
     end
 
     -- Inventory
-    if key == "i" then
-        self.inventoryOpen = not self.inventoryOpen
+    inventory:keypressed(key)
+end
+
+function game:mousepressed(x, y, k)
+    if inventory.inventoryOpen then
+        inventory:mousepressed(x, y, button)
     end
 end
 

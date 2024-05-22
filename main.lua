@@ -1,5 +1,5 @@
-NAME = "Cave game"
-VERSION = "v0.05.1"
+NAME = "Cave Game"
+VERSION = "v0.06"
  
 -- GLOBALS
 lg = love.graphics
@@ -106,11 +106,17 @@ function love.load()
 
     local backgroundMusic = {
         "serenity",
-        "dreaming"
+        "dreaming",
+        "silent_echoes"
     }
 
     for _, v in ipairs(backgroundMusic) do --TODO: use newQueueableSource
-        gameAudio.background[#gameAudio.background+1] = love.audio.newSource("src/assets/audio/"..tostring(v)..".mp3", "stream")
+        local path = "src/assets/audio/"
+        if love.filesystem.exists(path..v..".mp3") then
+            gameAudio.background[#gameAudio.background+1] = love.audio.newSource(path..tostring(v)..".mp3", "stream")
+        else 
+            print(v.." not found at path "..path)
+        end
     end
 
     state:load("menu", {worldName = "test"})
@@ -157,7 +163,7 @@ function love.keypressed(key)
     keybind:trigger("keypressed", key)
     state:keypressed(key)
     console:keypressed(key)
-    
+
     if key == "escape" then
         if console:getVisible() then
             console:setVisible(false) 
