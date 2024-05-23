@@ -42,6 +42,10 @@ function inventory:getInventoryItemAtIndex(index)
 end
 
 function inventory:swapInventoryItems(item1, item2)
+    if not item1 or not item2 then
+        return
+    end
+
     local inventory = self.player.inventory
     local inventoryOrder = self.player.inventoryOrder
     local index1, index2
@@ -94,6 +98,7 @@ function inventory:moveInventoryItemToIndex(item, index)
         inventory[item] = quantity
     end
 end
+
 function inventory:mousepressed(x, y, k)
     local inventoryX, inventoryY, inventoryWidth, inventoryHeight = self:getInventoryBounds()
     local itemSize = self:getInventoryItemSize()
@@ -120,7 +125,7 @@ function inventory:mousepressed(x, y, k)
                     else
                         self.selectedItem = clickedItem
                     end
-                    return
+                    --return
                 end
             end
         end

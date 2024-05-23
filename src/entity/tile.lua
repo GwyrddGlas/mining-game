@@ -53,6 +53,7 @@ function entity:mine()
                 end
                 if not _PLAYER.inventory[dropType] then
                     _PLAYER.inventory[dropType] = 0
+                    _PLAYER.inventoryOrder[#_PLAYER.inventoryOrder + 1] = dropType 
                 end
                 _PLAYER.inventory[dropType] = _PLAYER.inventory[dropType] + dropCount
                 floatText:new("+"..dropCount, self.x, self.y, font.regular, color[ self.tileData.type:lower() ])

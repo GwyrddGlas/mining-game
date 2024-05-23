@@ -120,7 +120,6 @@ function ecs:update(entity_list, dt)
         end
     end
 
-
     -- Removing _REMOVE entities
     for i,v in ipairs(self:query()) do
         if v._REMOVE then
