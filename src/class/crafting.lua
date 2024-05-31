@@ -16,23 +16,23 @@ function crafting:new(player)
 end
 
 function crafting:getCraftingBounds()
-    local width, height = lg.getWidth(), lg.getHeight()
+    local inventoryX, inventoryY, inventoryWidth, inventoryHeight = inventory:getInventoryBounds()
     local craftingRows, craftingColumns = 3, 3
     local itemSize = self:getCraftingItemSize()
     local itemSpacing = self:getCraftingItemSpacing()
     local craftingWidth = craftingColumns * (itemSize + itemSpacing) - itemSpacing
     local craftingHeight = craftingRows * (itemSize + itemSpacing) - itemSpacing
-    local craftingX = width * 0.5 - craftingWidth * 0.5
-    local craftingY = height * 0.5 - craftingHeight * 0.5
+    local craftingX = inventoryX + inventoryWidth + itemSpacing
+    local craftingY = inventoryY
     return craftingX, craftingY, craftingWidth, craftingHeight
 end
 
 function crafting:getCraftingItemSize()
-    return inventory:getInventoryItemSize()
+    return inventory:getInventoryItemSize() * 0.8
 end
 
 function crafting:getCraftingItemSpacing()
-    return inventory:getInventoryItemSpacing()
+    return inventory:getInventoryItemSpacing() * 0.8
 end
 
 function crafting:getCraftingColumns()
@@ -65,7 +65,6 @@ function crafting:mousepressed(x, y, button)
                 if x >= slotX and x <= slotX + itemSize and y >= slotY and y <= slotY + itemSize then
                     local index = (row - 1) * craftingColumns + col
                     -- Handle crafting grid interaction
-                    -- Add or remove items from the crafting grid based on the clicked slot
                 end
             end
         end
@@ -76,7 +75,6 @@ function crafting:mousepressed(x, y, button)
     local resultSlotY = craftingY + craftingHeight / 2 - itemSize / 2
     if x >= resultSlotX and x <= resultSlotX + itemSize and y >= resultSlotY and y <= resultSlotY + itemSize then
         -- Handle crafting result interaction
-        -- If a valid recipe is selected, add the result item to the player's inventory
     end
 end
 
@@ -135,9 +133,9 @@ function crafting:draw()
             local item = self.craftingGrid[index]
             if item then
                 -- Draw item icon
-                -- You can replace this with your own item drawing logic
+                -- Adjust the position and size of the item icon to fit within the smaller slot
                 lg.setColor(1, 1, 1)
-                lg.print(item, slotX + 5, slotY + 5)
+                lg.print(item, slotX + itemSize * 0.1, slotY + itemSize * 0.1)
             end
         end
     end
@@ -153,9 +151,9 @@ function crafting:draw()
     -- Draw crafting result item
     if self.craftingResult then
         -- Draw result item icon
-        -- You can replace this with your own item drawing logic
+        -- Adjust the position and size of the result item icon to fit within the smaller slot
         lg.setColor(1, 1, 1)
-        lg.print(self.craftingResult, resultSlotX + 5, resultSlotY + 5)
+        lg.print(self.craftingResult, resultSlotX + itemSize * 0.1, resultSlotY + itemSize * 0.1)
     end
 end
 

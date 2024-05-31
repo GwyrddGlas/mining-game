@@ -1,4 +1,6 @@
 local inventory = require("src/class/inventory")
+local crafting = require("src/class/crafting")
+
 local game = {}
 
 local currentIndex = 1
@@ -65,6 +67,7 @@ function game:load(data)
     self.time = 0 -- Timer used for shader animations
 
     self.inventory = inventory:new(self.player)
+    self.crafting = crafting:new(self.player)
 
     -- Icon tile id's
     self.icon = {
@@ -250,13 +253,16 @@ function game:drawHud()
             local formattedValue = math.floor(value * 100) / 100
             lg.print(formattedValue, x + sizeScale, y + sizeScale * 0.2)
         end
-    end
+    end 
 
-    self.inventory:draw(self.icon, itemSize, itemSpacing, cornerRadius, maxHotbarItems)
+    if self.inventory.inventoryOpen then
+        self.inventory:draw(self.icon, itemSize, itemSpacing, cornerRadius, maxHotbarItems)
+        self.crafting:draw()
+    end
 
     -- Health
     local healthX = hotbarX - hotbarWidth * 0.5 + itemSize * 0.2
-    local healthY = hotbarY + (hotbarHeight - itemSize) * 0.5
+    local healthY = hotbarY + (hotbarHeight - itemSize) * 0.5 - 75
     drawIconValue("health", math.floor(self.player.health), healthX, healthY, nil, true)
 
     -- Radiation
@@ -373,11 +379,16 @@ function game:keypressed(key)
 
     -- Inventory
     inventory:keypressed(key)
+
+    --Crafting
+    self.crafting:keypressed(key)
 end
 
 function game:mousepressed(x, y, k)
-    if inventory.inventoryOpen then
-        inventory:mousepressed(x, y, button)
+    if self.inventory.inventoryOpen then
+        self.inventory:mousepressed(x, y, button)
+    elseif self.crafting.craftingOpen then
+        self.crafting:mousepressed(x, y, button)
     end
 end
 
