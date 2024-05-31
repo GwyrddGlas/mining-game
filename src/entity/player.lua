@@ -27,7 +27,7 @@ function entity:load(data, ecs)
     self.reach = 6
     self.mineSpeed = 10
     self.mineTick = 0
-    self.health = 100
+    self.health = 10
     self.radiation = 0
     self.inventory = data.inventory
     self.inventoryOrder = {}
@@ -89,7 +89,40 @@ function entity:mine(tile)
 end
 
 function entity:place(tile)
-    tileL:place(tile)
+    if tile.entityType == "tile" then
+        local inventory = self.inventory
+        local inventoryOrder = self.inventoryOrder
+        local highlightedItem = inventoryOrder[_INVENTORY.selectedIndex]
+        
+        if highlightedItem then
+            local itemType = highlightedItem
+            local itemQuantity = inventory[itemType]
+    
+            if itemQuantity > 0 and tileData[itemType].placeable then
+                local newTileData = {
+                    x = tile.gridX,
+                    y = tile.gridY,
+                    type = itemType
+                }
+    
+                local newTile = self.world:newEntity("src/entity/tile.lua", newTileData.x, newTileData.y, newTileData)
+                newTile:setType(itemType)
+    
+                inventory[itemType] = itemQuantity - 1
+                if inventory[itemType] <= 0 then
+                    inventory[itemType] = nil
+                    for i, item in ipairs(inventoryOrder) do
+                        if item == itemType then
+                            table.remove(inventoryOrder, i)
+                            break
+                        end
+                    end
+                end
+    
+                tile.chunk.modified = true
+            end
+        end
+    end
 end
 
 function entity:draw()
@@ -138,4 +171,4 @@ function entity:draw()
     end
 end
 
-return entity
+return entity 

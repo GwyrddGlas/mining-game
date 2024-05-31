@@ -4,8 +4,11 @@ function inventory:new(player)
     local inv = setmetatable({}, {__index = inventory})
     self.player = player -- Assign player to self.player
     inv.selectedItem = nil
+    inv.highlightedItem = nil
+    inv.selectedIndex = nil
+    
     player.inventoryOrder = player.inventoryOrder or {}
-
+    
     for item, _ in pairs(player.inventory) do
         player.inventoryOrder[#player.inventoryOrder + 1] = item
     end
@@ -213,4 +216,4 @@ function inventory:draw(icon, itemSize, itemSpacing, cornerRadius, maxHotbarItem
     end
 end
 
-return inventory
+return inventory 

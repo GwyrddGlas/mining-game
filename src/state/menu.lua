@@ -13,6 +13,10 @@ local function backButton()
     menu.currentScreen = "main"
 end
 
+local function optionsButton()
+    menu.currentScreen = "options"
+end
+
 local function exitButton()
     love.event.push("quit")
 end
@@ -116,8 +120,12 @@ function menu:load()
             label.new(VERSION, self.color.success, font.regular, 12, 12, "left"),
             button.new("New world", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.09, newButton),
             button.new("Load world", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, loadButton),
-            button.new("Options", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.7, self.width * 0.4, self.height * 0.09, startButton),
+            button.new("Options", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.7, self.width * 0.4, self.height * 0.09, optionsButton),
             button.new("Exit", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, exitButton),
+        },
+        options = {
+
+            button.new("Back", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, backButton),
         },
         new = {
             label.new("New world", self.color.success, font.large, 0, lg.getHeight() * 0.2, "center"),
@@ -179,4 +187,4 @@ function menu:mousepressed(x, y, k)
     end
 end
 
-return menu
+return menu 

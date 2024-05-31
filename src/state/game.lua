@@ -226,22 +226,43 @@ function game:drawHud()
         end
     end
 
-    local function drawIconValue(icon, value, x, y, sizeScale)
+    local function drawIconValue(icon, value, x, y, sizeScale, isHealth)
         sizeScale = sizeScale or iconScale
-        lg.setColor(1, 1, 1, 1)
-        lg.draw(tileAtlas, tiles[self.icon[icon]], x, y, 0, sizeScale / config.graphics.assetSize, sizeScale / config.graphics.assetSize)
-        lg.setFont(font.regular)
-        local formattedValue = math.floor(value * 100) / 100
-        lg.print(formattedValue, x + sizeScale, y + sizeScale * 0.2)
+        
+        if isHealth then
+            local heartCount = math.floor(value / 2)
+            local halfHeart = value % 2 ~= 0
+            local heartSpacing = 2
+
+            for i = 1, heartCount do
+                lg.setColor(1, 1, 1, 1)
+                lg.draw(tileAtlas, tiles[self.icon[icon]], x + (i - 1) * (sizeScale + heartSpacing), y, 0, sizeScale / config.graphics.assetSize, sizeScale / config.graphics.assetSize)
+            end
+
+            if halfHeart then
+                lg.setColor(1, 1, 1, 1)
+                lg.draw(tileAtlas, tiles[self.icon[icon] + 1], x + heartCount * (sizeScale + heartSpacing), y, 0, sizeScale / config.graphics.assetSize, sizeScale / config.graphics.assetSize)
+            end
+        else
+            lg.setColor(1, 1, 1, 1)
+            lg.draw(tileAtlas, tiles[self.icon[icon]], x, y, 0, sizeScale / config.graphics.assetSize, sizeScale / config.graphics.assetSize)
+            lg.setFont(font.regular)
+            local formattedValue = math.floor(value * 100) / 100
+            lg.print(formattedValue, x + sizeScale, y + sizeScale * 0.2)
+        end
     end
 
     self.inventory:draw(self.icon, itemSize, itemSpacing, cornerRadius, maxHotbarItems)
 
     -- Health
-    drawIconValue("health", math.floor(self.player.health), hotbarX - hotbarWidth * 0.4, hotbarY - hotbarHeight * 1.2)
+    local healthX = hotbarX - hotbarWidth * 0.5 + itemSize * 0.2
+    local healthY = hotbarY + (hotbarHeight - itemSize) * 0.5
+    drawIconValue("health", math.floor(self.player.health), healthX, healthY, nil, true)
 
     -- Radiation
-    drawIconValue("radiation", self.player.radiation, hotbarX + hotbarWidth * 0.1, hotbarY - hotbarHeight * 1.2, radiationScale)
+    local radiationX = healthX + 200 * scale_x
+    local radiationY = healthY
+    drawIconValue("radiation", math.floor(self.player.radiation), radiationX, radiationY, radiationScale)
 end
 
 function game:draw()
