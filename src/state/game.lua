@@ -173,7 +173,7 @@ function game:update(dt)
 end
 
 function game:drawHud() --optimise math later
-    local iconScale = 40 * scale_x
+    local iconScale = 30 * scale_x
     local radiationScale = 34 * scale_x
     local width, height = lg.getWidth(), lg.getHeight()
 
@@ -203,6 +203,14 @@ function game:drawHud() --optimise math later
         lg.rectangle("fill", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
         lg.rectangle("line", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
     
+        -- Draw item slot
+        if i == selectedIndex then
+            lg.setColor(1, 1, 0, 0.3) -- Bright yellow outline for the selected slot
+            lg.rectangle("fill", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
+        else
+            lg.setColor(0.5, 0.5, 0.5, 0.9) -- Gray outline for unselected slots
+        end
+
         -- Draw item icon and quantity
         local item = self.player.inventoryOrder[i]
         if item then
@@ -224,23 +232,16 @@ function game:drawHud() --optimise math later
                 end
             end
         end
-
-        -- Draw item slot
-        if i == selectedIndex then
-            lg.setColor(1, 1, 0, 0.1) -- Bright yellow outline for the selected slot
-            lg.rectangle("fill", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
-        else
-            lg.setColor(0.5, 0.5, 0.5, 0.9) -- Gray outline for unselected slots
-        end
     end
 
     local function drawIconValue(icon, value, x, y, sizeScale, isHealth)
         sizeScale = sizeScale or iconScale
-        
+        isHealth = isHealth or false
+
         if isHealth then
             local heartCount = math.floor(value / 2)
             local halfHeart = value % 2 ~= 0
-            local heartSpacing = 2
+            local heartSpacing = -10
 
             for i = 1, heartCount do
                 lg.setColor(1, 1, 1, 1)
@@ -273,7 +274,7 @@ function game:drawHud() --optimise math later
     -- Radiation
     local radiationX = healthX + 200 * scale_x
     local radiationY = healthY
-    drawIconValue("radiation", math.floor(self.player.radiation), radiationX, radiationY, radiationScale)
+    drawIconValue("radiation", math.floor(self.player.radiation), radiationX, radiationY, nil)
 end
 
 function game:draw()
