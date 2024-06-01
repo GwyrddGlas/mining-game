@@ -69,6 +69,8 @@ function game:load(data)
     self.inventory = inventory:new(self.player)
     self.crafting = crafting:new(self.player)
 
+    self.inventory.selectedIndex = 1
+
     -- Icon tile id's
     self.icon = {
         Coal = 1,
@@ -168,14 +170,9 @@ function game:update(dt)
     if lm.isDown(1) and self.hoverEntity and not self.inventoryOpen then
         self.player:mine(self.hoverEntity) 
     end
-
-    -- Block Placing
-    if lm.isDown(2) and  not self.inventoryOpen then
-
-    end
 end
 
-function game:drawHud()
+function game:drawHud() --optimise math later
     local iconScale = 40 * scale_x
     local radiationScale = 34 * scale_x
     local width, height = lg.getWidth(), lg.getHeight()
@@ -192,6 +189,8 @@ function game:drawHud()
     local itemY = hotbarY + (hotbarHeight - itemSize) * 0.5
     local cornerRadius = itemSize * 0.2
 
+    local selectedIndex = self.inventory.selectedIndex
+
     -- Draw hotbar background
     lg.setColor(0.2, 0.2, 0.2, 0.8)
     lg.rectangle("fill", hotbarX - hotbarWidth * 0.5, hotbarY, hotbarWidth, hotbarHeight, cornerRadius, cornerRadius)
@@ -200,10 +199,8 @@ function game:drawHud()
         local x = itemX + (i - 1) * (itemSize + itemSpacing)
         local y = itemY
     
-        -- Draw item slot
         lg.setColor(0.3, 0.3, 0.3, 0.9)
         lg.rectangle("fill", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
-        lg.setColor(0.5, 0.5, 0.5, 0.9)
         lg.rectangle("line", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
     
         -- Draw item icon and quantity
@@ -226,6 +223,14 @@ function game:drawHud()
                     lg.print(quantityText, textX, textY)
                 end
             end
+        end
+
+        -- Draw item slot
+        if i == selectedIndex then
+            lg.setColor(1, 1, 0, 0.1) -- Bright yellow outline for the selected slot
+            lg.rectangle("fill", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
+        else
+            lg.setColor(0.5, 0.5, 0.5, 0.9) -- Gray outline for unselected slots
         end
     end
 
@@ -295,9 +300,9 @@ function game:draw()
    
     self:drawHud()
 
+    local all, all_len = self.world:query()
     if config.debug.enabled then
         lg.setColor(1, 0, 0)
-        local all, all_len = self.world:query()
         local bumpItems = self.world:getBumpWorld():countItems()
         lg.setFont(font.tiny)
         lg.printf("FPS: "..love.timer.getFPS()..
@@ -324,52 +329,78 @@ function game:draw()
         camera:pop()
     end
 
-    --self:drawMinimap(all)
+    self:drawMinimap(all)
 end
 
 function game:drawMinimap(all)
-    -- Minimap
-    local minimapScale = 4
-    local minimapX = lg.getWidth() * 0.8
-    local minimapY = lg.getHeight() * 0.8
-
-    local miniMapColors = {
-        {0, 0, 0, 1},
-        {1, 1, 1, 1},
-        {0.5, 0.5, 0.5},
-        {0.8, 0.7, 0.5},
-        {0.9, 0.9, 0.1},
-        {0.1, 0.9, 0.1},
-        {0.1, 0.7, 0.9},
-        {0.9, 0.1, 0.1},
-        {0.1, 0.1, 0.9},
-        {0.1, 0.8, 0.9},
-        {0.3, 0.8, 0.9},
-        {0.3, 0.8, 0.9},
-    }
-
-    miniMapColors[0] = {1, 0, 0}
+    local minimapScale = 5
+    local minimapWidth = 250
+    local minimapHeight = 250
+    local minimapX = 20
+    local minimapY = 20
+    local minimapCenterX = minimapX + minimapWidth / 2
+    local minimapCenterY = minimapY + minimapHeight / 2
     
-    local biomes = {
-        {1, 0.6, 0.7},
-        {0.1, 0.6, 0.3},
-        {1, 0.3, 0.9},
-        {1, 0.2, 0.2},
+    -- Draw minimap background
+    lg.setColor(0.1, 0.1, 0.1, 0.8)
+    lg.rectangle("fill", minimapX, minimapY, minimapWidth, minimapHeight)
+    
+    -- Draw minimap outline
+    lg.setColor(1, 1, 1, 0.8)
+    lg.setLineWidth(2)
+    lg.rectangle("line", minimapX, minimapY, minimapWidth, minimapHeight)
+    lg.setLineWidth(1)
+    
+    lg.setScissor(minimapX, minimapY, minimapWidth, minimapHeight)
+    
+    local miniMapColors = {
+        {0.2, 0.2, 0.2, 1},    -- 0: Black (Wall)
+        {0.65, 0.65, 0.7, 1},    -- 1: Light Gray (Stone)
+        {0.7, 0.5, 0.3, 1},    -- 2: Brown (Shrub)
+        {0.1, 0.1, 0.1, 1},    -- 3: Brown (Coal)
+        {0.7529, 0.7529, 0.7529, 1},    -- 4: Silver (Tanzenite)
+        {1.0, 1.8, 0.2, 1},    -- 5: Yellow (Gold)
+        {0.2, 0.5, 0.8, 1},    -- 6: Blue (Sapphire)
+        {0.8, 0.2, 0.2, 1},    -- 7: Red (Ruby)
+        {1, 0.2, 0.8, 1},    -- 8: Purple (Unknown)
+        {0.2, 0.8, 0.8, 1},    -- 9: Cyan (Diamond)
+        {1.0, 0.5, 0.2, 1},    -- 10: Orange (Copper)
+        {0.8, 0.8, 0.2, 1},    -- 11: Yellow-Green (Uranium)
     }
-    for i,v in ipairs(all) do
+    
+    local playerColor = {0, 1, 0, 1}
+    local playerSize = minimapScale
+    
+    local startX = self.player.gridX * minimapScale - minimapWidth / 2
+    local startY = self.player.gridY * minimapScale - minimapHeight / 2
+    
+    for i, v in ipairs(all) do
         if v.entityType == "tile" then
-            if tonumber(v.type) then
-                lg.setColor(miniMapColors[v.type])
-                lg.rectangle("fill", minimapX + v.gridX * minimapScale - (self.player.gridX * minimapScale), minimapY + v.gridY * minimapScale - (self.player.gridY * minimapScale), minimapScale, minimapScale)
+            local tileType = tonumber(v.type)
+            if tileType and miniMapColors[tileType] then
+                local color = miniMapColors[tileType]
+                lg.setColor(color[1], color[2], color[3], color[4])
+                lg.rectangle(
+                    "fill",
+                    minimapCenterX + (v.gridX - self.player.gridX) * minimapScale,
+                    minimapCenterY + (v.gridY - self.player.gridY) * minimapScale,
+                    minimapScale,
+                    minimapScale
+                )
             end
-
-            --lg.setColor(biomes[v.biome], biomes[v.biome], biomes[v.biome], 0.1)
-            --lg.rectangle("line", minimapX + v.gridX * minimapScale - (self.player.gridX * minimapScale), minimapY + v.gridY * minimapScale - (self.player.gridY * minimapScale), minimapScale, minimapScale)
         elseif v.entityType == "player" then
-            lg.setColor(0, 1, 0)
-            lg.rectangle("fill", minimapX + v.gridX * minimapScale - (self.player.gridX * minimapScale), minimapY + v.gridY * minimapScale - (self.player.gridY * minimapScale), minimapScale, minimapScale)
+            lg.setColor(playerColor[1], playerColor[2], playerColor[3], playerColor[4])
+            lg.rectangle(
+                "fill",
+                minimapCenterX - playerSize / 2,
+                minimapCenterY - playerSize / 2,
+                playerSize,
+                playerSize
+            )
         end
     end
+    
+    lg.setScissor()
 end
 
 function game:keypressed(key)
@@ -382,6 +413,11 @@ function game:keypressed(key)
 
     --Crafting
     self.crafting:keypressed(key)
+
+    -- Hotbar selection
+    if tonumber(key) and tonumber(key) >= 1 and tonumber(key) <= 6 then
+        self.inventory.selectedIndex = tonumber(key)
+    end
 end
 
 function game:mousepressed(x, y, k)

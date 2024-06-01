@@ -83,4 +83,5 @@ function slider:draw()
     -- Draw label
     self:drawLabel()
 end
+
 return slider

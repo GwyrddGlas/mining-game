@@ -28,11 +28,11 @@ function crafting:getCraftingBounds()
 end
 
 function crafting:getCraftingItemSize()
-    return inventory:getInventoryItemSize() * 0.8
+    return 50 * scale_x
 end
 
 function crafting:getCraftingItemSpacing()
-    return inventory:getInventoryItemSpacing() * 0.8
+    return 10 * scale_x
 end
 
 function crafting:getCraftingColumns()
@@ -112,7 +112,7 @@ function crafting:draw()
     local itemSpacing = self:getCraftingItemSpacing()
     local craftingColumns = self:getCraftingColumns()
     local craftingRows = 3
-    local craftingPadding = itemSize * 0.2
+    local craftingPadding = itemSize * 0.5
 
     -- Draw crafting UI background
     lg.setColor(0.2, 0.2, 0.2, 0.8)
