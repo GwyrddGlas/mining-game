@@ -55,9 +55,12 @@ function game:load(data)
 
     -- Initializing player
     self.player = self.world:newEntity("src/entity/player.lua", playerX, playerY, {x = playerX, y = playerY, inventory = playerInventory, playerLoaded = playerLoaded})
+    self.inventory = inventory:new(self.player)
+    self.crafting = crafting:new(self.player)
 
-    -- Expsing self.player for debug purposes
+    -- Expsing for debug purposes
     _PLAYER = self.player
+    _INVENTORY = self.inventory
 
     -- Initializing worldGen
     worldGen:load({player = self.player, world = self.world, worldName = self.worldName, seed = self.seed})
@@ -66,10 +69,8 @@ function game:load(data)
     self.hoverEntity = false -- Contains the entity the mouse is over, Used for mining
     self.time = 0 -- Timer used for shader animations
 
-    self.inventory = inventory:new(self.player)
-    self.crafting = crafting:new(self.player)
-
     self.inventory.selectedIndex = 1
+    self.inventory.highlightedItem = self.inventory.inventoryOrder[self.inventory.selectedIndex]
 
     -- Icon tile id's
     self.icon = {
@@ -153,6 +154,8 @@ function game:update(dt)
     
     -- Updating world
     worldGen:update(dt)
+
+    crafting:update()
 
     -- Internal timer used for shaders
     self.time = self.time + dt
@@ -418,6 +421,8 @@ function game:keypressed(key)
     -- Hotbar selection
     if tonumber(key) and tonumber(key) >= 1 and tonumber(key) <= 6 then
         self.inventory.selectedIndex = tonumber(key)
+        print("hotbar: "..tostring(self.inventory.inventoryOrder[self.inventory.selectedIndex]))
+        self.inventory.highlightedItem = self.inventory.inventoryOrder[self.inventory.selectedIndex]
     end
 end
 
@@ -426,6 +431,11 @@ function game:mousepressed(x, y, k)
         self.inventory:mousepressed(x, y, button)
     elseif self.crafting.craftingOpen then
         self.crafting:mousepressed(x, y, button)
+    end
+
+    --Placing
+    if k == 2 and self.hoverEntity and not self.inventory.inventoryOpen then
+        self.player:place(self.hoverEntity) 
     end
 end
 

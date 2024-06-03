@@ -8,12 +8,9 @@ function crafting:new(player)
     craft.craftingOpen = false
     craft.selectedRecipe = nil
     craft.craftingGrid = {}
+    craft.craftingGridOrder = {}
     craft.craftingResult = nil
-    craft.recipes = {
-        --temp
-        {"Wood", "Wood", "Stick"},
-        {"Stone", "Stone", "Cobblestone"},
-    }
+    craft.recipes = {}
     return craft
 end
 
@@ -41,6 +38,63 @@ function crafting:getCraftingColumns()
     return 3
 end
 
+function crafting:getCraftingItemAtIndex(index)
+    return self.craftingGridOrder[index]
+end
+
+function crafting:swapCraftingItems(item1, item2)
+    if not item1 or not item2 then
+        return
+    end
+
+    local craftingGrid = self.craftingGrid
+    local craftingGridOrder = self.craftingGridOrder
+    local index1, index2
+
+    for i, item in ipairs(craftingGridOrder) do
+        if item == item1 then
+            index1 = i
+        elseif item == item2 then
+            index2 = i
+        end
+
+        if index1 and index2 then
+            break
+        end
+    end
+
+    if not index1 or not index2 then
+        return
+    end
+
+    craftingGridOrder[index1], craftingGridOrder[index2] = craftingGridOrder[index2], craftingGridOrder[index1]
+    craftingGrid[item1], craftingGrid[item2] = craftingGrid[item2], craftingGrid[item1]
+end
+
+function crafting:moveCraftingItemToIndex(item, index)
+    local craftingGrid = self.craftingGrid
+    local craftingGridOrder = self.craftingGridOrder
+
+    -- Find the current index of the item
+    local currentIndex
+    for i, existingItem in ipairs(craftingGridOrder) do
+        if existingItem == item then
+            currentIndex = i
+            break
+        end
+    end
+
+    if currentIndex then
+        -- Remove the item from its current slot
+        table.remove(craftingGridOrder, currentIndex)
+        craftingGrid[item] = nil
+
+        -- Insert the item at the desired index
+        table.insert(craftingGridOrder, index, item)
+        craftingGrid[item] = item
+    end
+end
+
 function crafting:keypressed(key)
     if key == "c" then
         self.craftingOpen = not self.craftingOpen
@@ -66,7 +120,17 @@ function crafting:mousepressed(x, y, button)
                 local slotY = craftingY + craftingPadding + (row - 1) * (itemSize + itemSpacing)
                 if x >= slotX and x <= slotX + itemSize and y >= slotY and y <= slotY + itemSize then
                     local index = (row - 1) * craftingColumns + col
-                    -- Handle crafting grid interaction
+                    local clickedItem = self:getCraftingItemAtIndex(index)
+                    if self.selectedItem then
+                        if clickedItem then
+                            self:swapCraftingItems(self.selectedItem, clickedItem)
+                        else
+                            self:moveCraftingItemToIndex(self.selectedItem, index)
+                        end
+                        self.selectedItem = nil
+                    else
+                        self.selectedItem = clickedItem
+                    end
                 end
             end
         end
@@ -108,7 +172,7 @@ function crafting:draw()
     if not self.craftingOpen then
         return
     end
-    --TODO: optimise and clean up
+
     local width, height = lg.getWidth(), lg.getHeight()
 
     local craftingRows = 3
@@ -117,7 +181,6 @@ function crafting:draw()
     local itemSize = hotbarHeight * 0.8
     local cornerRadius = itemSize * 0.2
     local craftingPadding = itemSize * 0.2
-    --local craftingX, craftingY, craftingWidth, craftingHeight = self:getCraftingBounds()
     local itemSpacing = (hotbarWidth - itemSize * craftingRows) / (craftingRows - 1)
     
     local inventoryPadding = itemSize * 0.2
@@ -148,7 +211,7 @@ function crafting:draw()
             
             -- Draw items in the crafting grid slots
             local index = (row - 1) * craftingColumns + col
-            local item = self.craftingGrid[index]
+            local item = self.craftingGridOrder[index]
             if item then
                 lg.setColor(1, 1, 1)
                 lg.print(item, slotX + itemSize * 0.1, slotY + itemSize * 0.1)

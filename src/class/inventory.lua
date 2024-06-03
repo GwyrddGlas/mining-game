@@ -3,11 +3,11 @@ local inventory = {}
 function inventory:new(player)
     local inv = setmetatable({}, {__index = inventory})
     self.player = player -- Assign player to self.player
-    inv.selectedItem = nil
-    inv.highlightedItem = nil
-    inv.selectedIndex = nil
-    
     player.inventoryOrder = player.inventoryOrder or {}
+    inv.highlightedItem = nil
+    inv.selectedItem = nil
+    inv.selectedIndex = nil
+    inv.inventoryOrder = player.inventoryOrder
     
     for item, _ in pairs(player.inventory) do
         player.inventoryOrder[#player.inventoryOrder + 1] = item

@@ -90,38 +90,8 @@ end
 
 function entity:place(tile)
     if tile.entityType == "tile" then
-        local inventory = self.inventory
-        local inventoryOrder = self.inventoryOrder
-        local highlightedItem = inventoryOrder[_INVENTORY.selectedIndex]
-        
-        if highlightedItem then
-            local itemType = highlightedItem
-            local itemQuantity = inventory[itemType]
-    
-            if itemQuantity > 0 and tileData[itemType].placeable then
-                local newTileData = {
-                    x = tile.gridX,
-                    y = tile.gridY,
-                    type = itemType
-                }
-    
-                local newTile = self.world:newEntity("src/entity/tile.lua", newTileData.x, newTileData.y, newTileData)
-                newTile:setType(itemType)
-    
-                inventory[itemType] = itemQuantity - 1
-                if inventory[itemType] <= 0 then
-                    inventory[itemType] = nil
-                    for i, item in ipairs(inventoryOrder) do
-                        if item == itemType then
-                            table.remove(inventoryOrder, i)
-                            break
-                        end
-                    end
-                end
-    
-                tile.chunk.modified = true
-            end
-        end
+        print("Tile")
+        tile:place(tile)
     end
 end
 

@@ -11,6 +11,9 @@ function worldGen:load(data)
 
     self.player = data.player
     self.world = data.world
+    --hopefully tempory
+    _WORLD = self.world
+    
     self.worldName = data.worldName
     self.seed = data.seed
 
