@@ -426,7 +426,7 @@ function game:keypressed(key)
     end
 end
 
-function game:mousepressed(x, y, k)
+function game:mousepressed(x, y, button)
     if self.inventory.inventoryOpen then
         self.inventory:mousepressed(x, y, button)
     elseif self.crafting.craftingOpen then

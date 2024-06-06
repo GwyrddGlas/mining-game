@@ -30,6 +30,7 @@ function entity:load(data, ecs)
     self.health = 10
     self.radiation = 0
     self.inventory = data.inventory
+    self.crafting = data.crafting
     self.inventoryOrder = {}
     self.playerLoaded = data.playerLoaded
     self.inRangeOfRadiation = false

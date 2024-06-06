@@ -1,0 +1,10 @@
+[
+    {
+      "input": [
+        " Coal ",
+        " Shrub ",
+        " Shrub "
+      ],
+      "output": "Torch"
+    }
+  ]

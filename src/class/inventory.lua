@@ -3,11 +3,15 @@ local inventory = {}
 function inventory:new(player)
     local inv = setmetatable({}, {__index = inventory})
     self.player = player -- Assign player to self.player
+
     player.inventoryOrder = player.inventoryOrder or {}
+    player.craftingGridOrder = player.craftingGridOrder or {}
+    
     inv.highlightedItem = nil
     inv.selectedItem = nil
     inv.selectedIndex = nil
     inv.inventoryOrder = player.inventoryOrder
+    inv.craftingGridOrder = inv.craftingGridOrder
     
     for item, _ in pairs(player.inventory) do
         player.inventoryOrder[#player.inventoryOrder + 1] = item
@@ -102,14 +106,30 @@ function inventory:moveInventoryItemToIndex(item, index)
     end
 end
 
-function inventory:mousepressed(x, y, k)
+function tprint (tbl, indent)
+    if not indent then indent = 0 end
+    for k, v in pairs(tbl) do
+      formatting = string.rep("  ", indent) .. k .. ": "
+      if type(v) == "table" then
+        print(formatting)
+        tprint(v, indent+1)
+      elseif type(v) == 'boolean' then
+        print(formatting .. tostring(v))      
+      else
+        print(formatting .. v)
+      end
+    end
+  end
+
+function inventory:mousepressed(x, y, button)
     local inventoryX, inventoryY, inventoryWidth, inventoryHeight = self:getInventoryBounds()
     local itemSize = self:getInventoryItemSize()
     local itemSpacing = self:getInventoryItemSpacing()
     local inventoryColumns = self:getInventoryColumns()
     local inventoryRows = 3
     local inventoryPadding = itemSize * 0.2
-   
+    local clickedItem = nil
+    
     if x >= inventoryX and x <= inventoryX + inventoryWidth and y >= inventoryY and y <= inventoryY + inventoryHeight then
         for row = 1, inventoryRows do
             for col = 1, inventoryColumns do
@@ -117,8 +137,8 @@ function inventory:mousepressed(x, y, k)
                 local slotY = inventoryY + inventoryPadding + (row - 1) * (itemSize + itemSpacing)
                 if x >= slotX and x <= slotX + itemSize and y >= slotY and y <= slotY + itemSize then
                     local index = (row - 1) * inventoryColumns + col
-                    local clickedItem = self:getInventoryItemAtIndex(index)
-                    if self.selectedItem then
+                    clickedItem = self:getInventoryItemAtIndex(index)
+                    if button == 1 and self.selectedItem then
                         if clickedItem then
                             self:swapInventoryItems(self.selectedItem, clickedItem)
                         else
@@ -134,6 +154,25 @@ function inventory:mousepressed(x, y, k)
         end
     else
         self.selectedItem = nil
+    end
+
+    if button == 2 and clickedItem then
+        print("right click")
+
+        -- Find the first available slot in the crafting grid
+        local craftingGrid = self.player.crafting.craftingGrid
+        local craftingGridOrder = self.player.crafting.craftingGridOrder
+        local index = 1
+        while craftingGrid[craftingGridOrder[index]] do
+            index = index + 1
+            if index > 9 then
+                break
+            end
+        end
+        if index <= 9 then
+            -- Move the item to the crafting grid
+            self.player.crafting:moveInventoryItemToCraftingGrid(clickedItem, index)
+        end
     end
 end
 

@@ -71,6 +71,26 @@ function crafting:swapCraftingItems(item1, item2)
     craftingGrid[item1], craftingGrid[item2] = craftingGrid[item2], craftingGrid[item1]
 end
 
+function crafting:moveInventoryItemToCraftingGrid(item, index)
+    local inventory = self.player.inventory
+    local craftingGrid = self.craftingGrid
+    local craftingGridOrder = self.craftingGridOrder
+    local quantity = inventory[item]
+    
+    -- Remove the item from the inventory
+    inventory[item] = nil
+    for i, existingItem in ipairs(self.player.inventoryOrder) do
+        if existingItem == item then
+            table.remove(self.player.inventoryOrder, i)
+            break
+        end
+    end
+    
+    -- Add the item to the crafting grid
+    table.insert(craftingGridOrder, index, item)
+    craftingGrid[item] = quantity
+end
+
 function crafting:moveCraftingItemToIndex(item, index)
     local craftingGrid = self.craftingGrid
     local craftingGridOrder = self.craftingGridOrder
