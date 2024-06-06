@@ -1,17 +1,18 @@
 local inventory = {}
+local crafting = require("src/class/crafting")
 
 function inventory:new(player)
     local inv = setmetatable({}, {__index = inventory})
     self.player = player -- Assign player to self.player
-
     player.inventoryOrder = player.inventoryOrder or {}
-    player.craftingGridOrder = player.craftingGridOrder or {}
+    player.craftingGrid = player.craftingGrid or {} 
+    player.craftingGridOrder = player.craftingGridOrder or {} 
+    player.crafting = player.crafting or crafting:new(player) 
     
     inv.highlightedItem = nil
     inv.selectedItem = nil
     inv.selectedIndex = nil
     inv.inventoryOrder = player.inventoryOrder
-    inv.craftingGridOrder = inv.craftingGridOrder
     
     for item, _ in pairs(player.inventory) do
         player.inventoryOrder[#player.inventoryOrder + 1] = item
@@ -160,8 +161,8 @@ function inventory:mousepressed(x, y, button)
         print("right click")
 
         -- Find the first available slot in the crafting grid
-        local craftingGrid = self.player.crafting.craftingGrid
-        local craftingGridOrder = self.player.crafting.craftingGridOrder
+        local craftingGrid = self.player.craftingGrid
+        local craftingGridOrder = self.player.craftingGridOrder
         local index = 1
         while craftingGrid[craftingGridOrder[index]] do
             index = index + 1

@@ -1,10 +1,11 @@
-local inventory = require("src.class.inventory")
 
 local crafting = {}
 
 function crafting:new(player)
     local craft = setmetatable({}, {__index = crafting})
-    craft.player = player
+    self.player = player
+    player.craftingGridOrder = player.craftingGridOrder or {}
+
     craft.craftingOpen = false
     craft.selectedRecipe = nil
     craft.craftingGrid = {}
@@ -39,7 +40,7 @@ function crafting:getCraftingColumns()
 end
 
 function crafting:getCraftingItemAtIndex(index)
-    return self.craftingGridOrder[index]
+    return self.player.craftingGridOrder[index]
 end
 
 function crafting:swapCraftingItems(item1, item2)
@@ -47,8 +48,8 @@ function crafting:swapCraftingItems(item1, item2)
         return
     end
 
-    local craftingGrid = self.craftingGrid
-    local craftingGridOrder = self.craftingGridOrder
+    local craftingGrid = self.player.craftingGrid
+    local craftingGridOrder = self.player.craftingGridOrder
     local index1, index2
 
     for i, item in ipairs(craftingGridOrder) do
@@ -73,8 +74,8 @@ end
 
 function crafting:moveInventoryItemToCraftingGrid(item, index)
     local inventory = self.player.inventory
-    local craftingGrid = self.craftingGrid
-    local craftingGridOrder = self.craftingGridOrder
+    local craftingGrid = self.player.craftingGrid
+    local craftingGridOrder = self.player.craftingGridOrder
     local quantity = inventory[item]
     
     -- Remove the item from the inventory
@@ -91,28 +92,24 @@ function crafting:moveInventoryItemToCraftingGrid(item, index)
     craftingGrid[item] = quantity
 end
 
-function crafting:moveCraftingItemToIndex(item, index)
-    local craftingGrid = self.craftingGrid
-    local craftingGridOrder = self.craftingGridOrder
-
-    -- Find the current index of the item
-    local currentIndex
-    for i, existingItem in ipairs(craftingGridOrder) do
+function crafting:moveInventoryItemToCraftingGrid(item, index)
+    local inventory = self.player.inventory
+    local craftingGrid = self.player.craftingGrid
+    local craftingGridOrder = self.player.craftingGridOrder
+    local quantity = inventory[item]
+    
+    -- Remove the item from the inventory
+    inventory[item] = nil
+    for i, existingItem in ipairs(self.player.inventoryOrder) do
         if existingItem == item then
-            currentIndex = i
+            table.remove(self.player.inventoryOrder, i)
             break
         end
     end
-
-    if currentIndex then
-        -- Remove the item from its current slot
-        table.remove(craftingGridOrder, currentIndex)
-        craftingGrid[item] = nil
-
-        -- Insert the item at the desired index
-        table.insert(craftingGridOrder, index, item)
-        craftingGrid[item] = item
-    end
+    
+    -- Add the item to the crafting grid
+    table.insert(craftingGridOrder, index, item)
+    craftingGrid[index] = {item = item, quantity = quantity} -- Store both the item and its quantity
 end
 
 function crafting:keypressed(key)
@@ -173,7 +170,7 @@ function crafting:update()
     for _, recipe in ipairs(self.recipes) do
         local matchCount = 0
         for i = 1, 9 do
-            if self.craftingGrid[i] == recipe[i] then
+            if self.player.craftingGrid[i] == recipe[i] then
                 matchCount = matchCount + 1
             end
         end
@@ -188,7 +185,7 @@ function crafting:update()
     end
 end
 
-function crafting:draw()
+function crafting:draw(icon)
     if not self.craftingOpen then
         return
     end
@@ -231,10 +228,21 @@ function crafting:draw()
             
             -- Draw items in the crafting grid slots
             local index = (row - 1) * craftingColumns + col
-            local item = self.craftingGridOrder[index]
-            if item then
+            local itemData = self.player.craftingGrid[index] -- Retrieve the item directly from craftingGrid using the index
+           
+            if itemData then
+                local item = itemData.item
+                local quantity = itemData.quantity
+                local quantityText = tostring(quantity)
+
+                local textWidth = font.regular:getWidth(quantityText)
+                local textHeight = font.regular:getHeight()
+                local textX = slotX + itemSize - textWidth - itemSize * 0.1
+                local textY = slotY + itemSize - textHeight - itemSize * 0.1
                 lg.setColor(1, 1, 1)
-                lg.print(item, slotX + itemSize * 0.1, slotY + itemSize * 0.1)
+                lg.draw(tileAtlas, tiles[icon[item]],  slotX + itemSize * 0.1, slotY + itemSize * 0.1, 0, itemSize * 0.8 / config.graphics.assetSize, itemSize * 0.8 / config.graphics.assetSize)
+                
+                lg.print(quantityText, textX, textY)
             end
         end
     end

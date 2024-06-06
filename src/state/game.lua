@@ -28,6 +28,7 @@ function game:load(data)
     local playerX, playerY = 0, 0 -- Grid coordinates!
     local playerLoaded = false -- True if player loaded from save file
     local playerInventory = {}
+   
     if data.type == "new" then
         self.worldName = data.worldName
         self.seed = data.seed
@@ -36,11 +37,11 @@ function game:load(data)
         local worldData = fs.load("worlds/"..data.worldName.."/config.lua")()
         self.worldName = worldData.name
         self.seed = worldData.seed
+        playerInventory = worldData.player.inventory
         playerX = worldData.player.x 
         playerY = worldData.player.y 
         playerLoaded = true
 
-        playerInventory = worldData.player.inventory
         note:new("Loaded world '"..self.worldName.."'", "success")
     end
 
@@ -58,7 +59,7 @@ function game:load(data)
     self.inventory = inventory:new(self.player)
     self.crafting = crafting:new(self.player)
 
-    -- Expsing for debug purposes
+    -- Exposing for debug purposes
     _PLAYER = self.player
     _INVENTORY = self.inventory
 
@@ -266,7 +267,7 @@ function game:drawHud() --optimise math later
 
     if self.inventory.inventoryOpen then
         self.inventory:draw(self.icon, itemSize, itemSpacing, cornerRadius, maxHotbarItems)
-        self.crafting:draw()
+        self.crafting:draw(self.icon)
     end
 
     -- Health
