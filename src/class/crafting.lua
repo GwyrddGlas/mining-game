@@ -6,7 +6,6 @@ function crafting:new(player)
     self.player = player
     player.craftingGridOrder = player.craftingGridOrder or {}
 
-    craft.craftingOpen = false
     craft.selectedRecipe = nil
     craft.craftingGrid = {}
     craft.craftingGridOrder = {}
@@ -87,48 +86,52 @@ function crafting:moveInventoryItemToCraftingGrid(item, index)
         end
     end
     
-    -- Add the item to the crafting grid
-    table.insert(craftingGridOrder, index, item)
-    craftingGrid[item] = quantity
-end
-
-function crafting:moveInventoryItemToCraftingGrid(item, index)
-    local inventory = self.player.inventory
-    local craftingGrid = self.player.craftingGrid
-    local craftingGridOrder = self.player.craftingGridOrder
-    local quantity = inventory[item]
-    
-    -- Remove the item from the inventory
-    inventory[item] = nil
-    for i, existingItem in ipairs(self.player.inventoryOrder) do
+    -- Check if the slot in the crafting grid is already occupied
+    if craftingGrid[index] then
+        local existingItem = craftingGrid[index].item
+        local existingQuantity = craftingGrid[index].quantity
+        
+        -- If the items are the same, combine the quantities
         if existingItem == item then
-            table.remove(self.player.inventoryOrder, i)
-            break
+            craftingGrid[index].quantity = existingQuantity + quantity
+        else
+            -- If the items are different, return the existing item to the inventory
+            inventory[existingItem] = existingQuantity
+            table.insert(self.player.inventoryOrder, existingItem)
+            
+            -- Remove the existing item from the crafting grid
+            for i, gridItem in ipairs(craftingGridOrder) do
+                if gridItem == existingItem then
+                    table.remove(craftingGridOrder, i)
+                    break
+                end
+            end
+            
+            -- Add the new item to the crafting grid
+            table.insert(craftingGridOrder, index, item)
+            craftingGrid[index] = {item = item, quantity = quantity}
         end
+    else
+        -- Add the item to the empty slot in the crafting grid
+        table.insert(craftingGridOrder, index, item)
+        craftingGrid[index] = {item = item, quantity = quantity}
     end
-    
-    -- Add the item to the crafting grid
-    table.insert(craftingGridOrder, index, item)
-    craftingGrid[index] = {item = item, quantity = quantity} -- Store both the item and its quantity
 end
 
 function crafting:keypressed(key)
-    if key == "c" then
-        self.craftingOpen = not self.craftingOpen
-    end
+    --if key == "c" then
+    --    self.craftingOpen = not self.craftingOpen
+    --end
 end
 
 function crafting:mousepressed(x, y, button)
-    if not self.craftingOpen then
-        return
-    end
-
     local craftingX, craftingY, craftingWidth, craftingHeight = self:getCraftingBounds()
     local itemSize = self:getCraftingItemSize()
     local itemSpacing = self:getCraftingItemSpacing()
     local craftingColumns = self:getCraftingColumns()
     local craftingRows = 3
     local craftingPadding = itemSize * 0.2
+    local clickedItem = nil
 
     if x >= craftingX and x <= craftingX + craftingWidth and y >= craftingY and y <= craftingY + craftingHeight then
         for row = 1, craftingRows do
@@ -137,20 +140,39 @@ function crafting:mousepressed(x, y, button)
                 local slotY = craftingY + craftingPadding + (row - 1) * (itemSize + itemSpacing)
                 if x >= slotX and x <= slotX + itemSize and y >= slotY and y <= slotY + itemSize then
                     local index = (row - 1) * craftingColumns + col
-                    local clickedItem = self:getCraftingItemAtIndex(index)
-                    if self.selectedItem then
-                        if clickedItem then
-                            self:swapCraftingItems(self.selectedItem, clickedItem)
+                    clickedItem = self.player.craftingGrid[index]
+                    if button == 1 then
+                        if self.selectedItem then
+                            if clickedItem then
+                                -- Swap the selected item with the clicked item
+                                local selectedIndex = self.selectedItem.index
+                                local selectedItem = self.player.craftingGrid[selectedIndex]
+                                self.player.craftingGrid[selectedIndex] = clickedItem
+                                self.player.craftingGrid[index] = selectedItem
+                                self.player.craftingGridOrder[selectedIndex] = clickedItem.item
+                                self.player.craftingGridOrder[index] = selectedItem.item
+                            else
+                                -- Move the selected item to the empty slot
+                                local selectedIndex = self.selectedItem.index
+                                local selectedItem = self.player.craftingGrid[selectedIndex]
+                                self.player.craftingGrid[selectedIndex] = nil
+                                self.player.craftingGrid[index] = selectedItem
+                                self.player.craftingGridOrder[selectedIndex] = nil
+                                self.player.craftingGridOrder[index] = selectedItem.item
+                            end
+                            self.selectedItem = nil
                         else
-                            self:moveCraftingItemToIndex(self.selectedItem, index)
+                            -- Select the clicked item
+                            if clickedItem then
+                                self.selectedItem = {item = clickedItem.item, index = index}
+                            end
                         end
-                        self.selectedItem = nil
-                    else
-                        self.selectedItem = clickedItem
                     end
                 end
             end
         end
+    else
+        self.selectedItem = nil
     end
 
     -- Check if the mouse is clicked on the crafting result slot
@@ -162,15 +184,11 @@ function crafting:mousepressed(x, y, button)
 end
 
 function crafting:update()
-    if not self.craftingOpen then
-        return
-    end
-
     -- Check if the items in the crafting grid match any recipe
     for _, recipe in ipairs(self.recipes) do
         local matchCount = 0
         for i = 1, 9 do
-            if self.player.craftingGrid[i] == recipe[i] then
+            if self.player.craftingGrid[i] and self.player.craftingGrid[i].item == recipe[i] then
                 matchCount = matchCount + 1
             end
         end
@@ -186,10 +204,6 @@ function crafting:update()
 end
 
 function crafting:draw(icon)
-    if not self.craftingOpen then
-        return
-    end
-
     local width, height = lg.getWidth(), lg.getHeight()
 
     local craftingRows = 3
@@ -221,13 +235,31 @@ function crafting:draw(icon)
             local slotX = craftingX + craftingPadding + (col - 1) * (itemSize + itemSpacing)
             local slotY = craftingY + craftingPadding + (row - 1) * (itemSize + itemSpacing)
             
+            local index = (row - 1) * craftingColumns + col -- Calculate the index here
+            
             lg.setColor(0.3, 0.3, 0.3, 0.9)
             lg.rectangle("fill", slotX, slotY, itemSize, itemSize, cornerRadius, cornerRadius)
             lg.setColor(0.5, 0.5, 0.5, 0.9)
             lg.rectangle("line", slotX, slotY, itemSize, itemSize, cornerRadius, cornerRadius)
             
+            --selected
+            if self.selectedItem and index == self.selectedItem.index then
+                lg.setColor(1, 1, 1, 0.5)
+                lg.rectangle("fill", slotX, slotY, itemSize, itemSize, cornerRadius, cornerRadius)
+            end
+
+            --hover
+            local mouseX, mouseY = love.mouse.getPosition()
+            if mouseX >= slotX and mouseX <= slotX + itemSize and mouseY >= slotY and mouseY <= slotY + itemSize then
+                lg.setBlendMode("add")
+                lg.setColor(1, 1, 1, 1)
+                lg.rectangle("line", slotX + 1, slotY + 1, itemSize - 2, itemSize - 2)
+                lg.setColor(1, 1, 1, 0.1)
+                lg.rectangle("fill", slotX + 1, slotY + 1, itemSize - 2, itemSize - 2)
+                lg.setBlendMode("alpha")
+            end
+            
             -- Draw items in the crafting grid slots
-            local index = (row - 1) * craftingColumns + col
             local itemData = self.player.craftingGrid[index] -- Retrieve the item directly from craftingGrid using the index
            
             if itemData then

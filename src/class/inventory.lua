@@ -164,14 +164,14 @@ function inventory:mousepressed(x, y, button)
         local craftingGrid = self.player.craftingGrid
         local craftingGridOrder = self.player.craftingGridOrder
         local index = 1
-        while craftingGrid[craftingGridOrder[index]] do
+        while craftingGrid[index] do
             index = index + 1
             if index > 9 then
                 break
             end
         end
         if index <= 9 then
-            -- Move the item to the crafting grid
+            -- Move the item to the next available slot in the crafting grid
             self.player.crafting:moveInventoryItemToCraftingGrid(clickedItem, index)
         end
     end
@@ -233,6 +233,7 @@ function inventory:draw(icon, itemSize, itemSpacing, cornerRadius, maxHotbarItem
                     lg.rectangle("fill", x + 1, y + 1, itemSize - 2, itemSize - 2)
                     lg.setBlendMode("alpha")
                 end
+                
                 --print(tostring(item).."  "..tostring(self.icon[item]))
                 if icon[item] then
                     lg.setColor(1, 1, 1)

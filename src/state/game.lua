@@ -156,7 +156,9 @@ function game:update(dt)
     -- Updating world
     worldGen:update(dt)
 
-    crafting:update()
+    if self.player.inventoryOpen then
+        crafting:update()
+    end
 
     -- Internal timer used for shaders
     self.time = self.time + dt
@@ -171,7 +173,7 @@ function game:update(dt)
     end
 
     -- Mining
-    if lm.isDown(1) and self.hoverEntity and not self.inventoryOpen then
+    if lm.isDown(1) and self.hoverEntity and not self.player.inventoryOpen then
         self.player:mine(self.hoverEntity) 
     end
 end
@@ -430,7 +432,6 @@ end
 function game:mousepressed(x, y, button)
     if self.inventory.inventoryOpen then
         self.inventory:mousepressed(x, y, button)
-    elseif self.crafting.craftingOpen then
         self.crafting:mousepressed(x, y, button)
     end
 

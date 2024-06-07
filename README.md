@@ -23,6 +23,10 @@ Embark on an exciting adventure in a vast 2D world, where you can mine resources
 - Press 'I' to open the inventory
 - Press 'ESC' to pause the game or access the menu
 
+### In Inventory
+- Left-click to highlight and move items
+- Right-click to move items to crafting grid
+
 ## Credits
 
 - Original "Untitled Mining Game" by VeeThree
