@@ -1,5 +1,8 @@
-
+local json = require("src.lib.dkjson")
 local crafting = {}
+
+local recipesFile = love.filesystem.read("src/assets/recipes/recipes.json")
+local recipes = json.decode(recipesFile)
 
 function crafting:new(player)
     local craft = setmetatable({}, {__index = crafting})
@@ -167,6 +170,21 @@ function crafting:mousepressed(x, y, button)
                                 self.selectedItem = {item = clickedItem.item, index = index}
                             end
                         end
+                    elseif button == 2 and clickedItem then
+                        -- Move the clicked item back to the inventory
+                        local inventory = self.player.inventory
+                        local inventoryOrder = self.player.inventoryOrder
+                        inventory[clickedItem.item] = clickedItem.quantity
+                        table.insert(inventoryOrder, clickedItem.item)
+
+                        -- Remove the item from the crafting grid
+                        self.player.craftingGrid[index] = nil
+                        for i, gridItem in ipairs(self.player.craftingGridOrder) do
+                            if gridItem == clickedItem.item then
+                                table.remove(self.player.craftingGridOrder, i)
+                                break
+                            end
+                        end
                     end
                 end
             end
@@ -184,25 +202,47 @@ function crafting:mousepressed(x, y, button)
 end
 
 function crafting:update()
-    -- Check if the items in the crafting grid match any recipe
-    for _, recipe in ipairs(self.recipes) do
-        local matchCount = 0
-        for i = 1, 9 do
-            if self.player.craftingGrid[i] and self.player.craftingGrid[i].item == recipe[i] then
-                matchCount = matchCount + 1
+    -- Convert the crafting grid items to a 2D array
+    local craftingItems = {}
+    for row = 1, 3 do
+        craftingItems[row] = {}
+        for col = 1, 3 do
+            local index = (row - 1) * 3 + col
+            local itemData = self.player.craftingGrid[index]
+            if itemData then
+                craftingItems[row][col] = itemData.item
+            else
+                craftingItems[row][col] = ""
             end
         end
-        if matchCount == 9 then
+    end
+
+    -- Check if the crafting grid items match any recipe
+    for _, recipe in ipairs(recipes) do
+        local match = true
+        for row = 1, 3 do
+            for col = 1, 3 do
+                local slotKey = "slot" .. ((row - 1) * 3 + col)
+                if craftingItems[row][col] ~= recipe.input[row][slotKey] then
+                    match = false
+                    break
+                end
+            end
+            if not match then
+                break
+            end
+        end
+        if match then
             self.selectedRecipe = recipe
-            self.craftingResult = recipe[10]
-            break
-        else
-            self.selectedRecipe = nil
-            self.craftingResult = nil
+            self.craftingResult = recipe.output
+            return
         end
     end
-end
 
+    -- No matching recipe found
+    self.selectedRecipe = nil
+    self.craftingResult = nil
+end
 function crafting:draw(icon)
     local width, height = lg.getWidth(), lg.getHeight()
 
@@ -290,8 +330,12 @@ function crafting:draw(icon)
     
     -- Draw crafting result item
     if self.craftingResult then
-        lg.setColor(1, 1, 1)
-        lg.print(self.craftingResult, resultSlotX + itemSize * 0.1, resultSlotY + itemSize * 0.1)
+--        local quantity = itemData.quantity
+        --local quantityText = tostring(quantity)
+        lg.setColor(1, 1, 1)   
+     
+        lg.draw(tileAtlas, tiles[icon[self.craftingResult]],  resultSlotX + itemSize * 0.1, resultSlotY + itemSize * 0.1, 0, itemSize * 0.8 / config.graphics.assetSize, itemSize * 0.8 / config.graphics.assetSize)
+       -- lg.print(quantityText, textX, textY)
     end
 end
 

@@ -87,6 +87,7 @@ function game:load(data)
         Wall = 18,
         Crafting = 28,
         Furnace = 29,
+        Torch = 33,
         health = 41,
         radiation = 42,
     }
@@ -143,7 +144,7 @@ function game:update(dt)
     local mx, my = camera:getMouse()
     for i,v in ipairs(self.visibleEntities) do
         v.hover = false
-        if fmath.pointInRect(mx, my, v.x, v.y, v.width, v.height) and fmath.distance(v.gridX, v.gridY, self.player.gridX, self.player.gridY) < self.player.reach and not self.inventoryOpen then
+        if fmath.pointInRect(mx, my, v.x, v.y, v.width, v.height) and fmath.distance(v.gridX, v.gridY, self.player.gridX, self.player.gridY) < self.player.reach and not self.inventory.inventoryOpen then
             v.hover = true
             self.hoverEntity = v
         end
@@ -156,7 +157,7 @@ function game:update(dt)
     -- Updating world
     worldGen:update(dt)
 
-    if self.player.inventoryOpen then
+    if self.inventory.inventoryOpen then
         crafting:update()
     end
 
@@ -173,7 +174,7 @@ function game:update(dt)
     end
 
     -- Mining
-    if lm.isDown(1) and self.hoverEntity and not self.player.inventoryOpen then
+    if lm.isDown(1) and self.hoverEntity and not self.inventory.inventoryOpen then
         self.player:mine(self.hoverEntity) 
     end
 end
@@ -436,9 +437,9 @@ function game:mousepressed(x, y, button)
     end
 
     --Placing
-    if k == 2 and self.hoverEntity and not self.inventory.inventoryOpen then
-        self.player:place(self.hoverEntity) 
-    end
+    --if k == 2 and self.hoverEntity and not self.inventory.inventoryOpen then
+    --    self.player:place(self.hoverEntity) 
+    --end
 end
 
 return game
