@@ -27,9 +27,10 @@ function entity:load(data, ecs)
     self.reach = 6
     self.mineSpeed = 10
     self.mineTick = 0
-    self.health = 100
+    self.health = 10
     self.radiation = 0
     self.inventory = data.inventory
+    self.crafting = data.crafting
     self.inventoryOrder = {}
     self.playerLoaded = data.playerLoaded
     self.inRangeOfRadiation = false
@@ -89,7 +90,10 @@ function entity:mine(tile)
 end
 
 function entity:place(tile)
-    tileL:place(tile)
+    if tile.entityType == "tile" then
+        print("Tile")
+        tile:place(tile)
+    end
 end
 
 function entity:draw()
@@ -138,4 +142,4 @@ function entity:draw()
     end
 end
 
-return entity
+return entity 

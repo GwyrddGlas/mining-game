@@ -1,4 +1,6 @@
 local inventory = require("src/class/inventory")
+local crafting = require("src/class/crafting")
+
 local game = {}
 
 local currentIndex = 1
@@ -26,6 +28,7 @@ function game:load(data)
     local playerX, playerY = 0, 0 -- Grid coordinates!
     local playerLoaded = false -- True if player loaded from save file
     local playerInventory = {}
+   
     if data.type == "new" then
         self.worldName = data.worldName
         self.seed = data.seed
@@ -34,11 +37,11 @@ function game:load(data)
         local worldData = fs.load("worlds/"..data.worldName.."/config.lua")()
         self.worldName = worldData.name
         self.seed = worldData.seed
+        playerInventory = worldData.player.inventory
         playerX = worldData.player.x 
         playerY = worldData.player.y 
         playerLoaded = true
 
-        playerInventory = worldData.player.inventory
         note:new("Loaded world '"..self.worldName.."'", "success")
     end
 
@@ -53,9 +56,12 @@ function game:load(data)
 
     -- Initializing player
     self.player = self.world:newEntity("src/entity/player.lua", playerX, playerY, {x = playerX, y = playerY, inventory = playerInventory, playerLoaded = playerLoaded})
+    self.inventory = inventory:new(self.player)
+    self.crafting = crafting:new(self.player)
 
-    -- Expsing self.player for debug purposes
+    -- Exposing for debug purposes
     _PLAYER = self.player
+    _INVENTORY = self.inventory
 
     -- Initializing worldGen
     worldGen:load({player = self.player, world = self.world, worldName = self.worldName, seed = self.seed})
@@ -64,7 +70,8 @@ function game:load(data)
     self.hoverEntity = false -- Contains the entity the mouse is over, Used for mining
     self.time = 0 -- Timer used for shader animations
 
-    self.inventory = inventory:new(self.player)
+    self.inventory.selectedIndex = 1
+    self.inventory.highlightedItem = self.inventory.inventoryOrder[self.inventory.selectedIndex]
 
     -- Icon tile id's
     self.icon = {
@@ -80,6 +87,7 @@ function game:load(data)
         Wall = 18,
         Crafting = 28,
         Furnace = 29,
+        Torch = 33,
         health = 41,
         radiation = 42,
     }
@@ -136,7 +144,7 @@ function game:update(dt)
     local mx, my = camera:getMouse()
     for i,v in ipairs(self.visibleEntities) do
         v.hover = false
-        if fmath.pointInRect(mx, my, v.x, v.y, v.width, v.height) and fmath.distance(v.gridX, v.gridY, self.player.gridX, self.player.gridY) < self.player.reach and not self.inventoryOpen then
+        if fmath.pointInRect(mx, my, v.x, v.y, v.width, v.height) and fmath.distance(v.gridX, v.gridY, self.player.gridX, self.player.gridY) < self.player.reach and not self.inventory.inventoryOpen then
             v.hover = true
             self.hoverEntity = v
         end
@@ -148,6 +156,10 @@ function game:update(dt)
     
     -- Updating world
     worldGen:update(dt)
+
+    if self.inventory.inventoryOpen then
+        crafting:update()
+    end
 
     -- Internal timer used for shaders
     self.time = self.time + dt
@@ -162,18 +174,13 @@ function game:update(dt)
     end
 
     -- Mining
-    if lm.isDown(1) and self.hoverEntity and not self.inventoryOpen then
+    if lm.isDown(1) and self.hoverEntity and not self.inventory.inventoryOpen then
         self.player:mine(self.hoverEntity) 
-    end
-
-    -- Block Placing
-    if lm.isDown(2) and  not self.inventoryOpen then
-
     end
 end
 
-function game:drawHud()
-    local iconScale = 40 * scale_x
+function game:drawHud() --optimise math later
+    local iconScale = 30 * scale_x
     local radiationScale = 34 * scale_x
     local width, height = lg.getWidth(), lg.getHeight()
 
@@ -189,6 +196,8 @@ function game:drawHud()
     local itemY = hotbarY + (hotbarHeight - itemSize) * 0.5
     local cornerRadius = itemSize * 0.2
 
+    local selectedIndex = self.inventory.selectedIndex
+
     -- Draw hotbar background
     lg.setColor(0.2, 0.2, 0.2, 0.8)
     lg.rectangle("fill", hotbarX - hotbarWidth * 0.5, hotbarY, hotbarWidth, hotbarHeight, cornerRadius, cornerRadius)
@@ -197,12 +206,18 @@ function game:drawHud()
         local x = itemX + (i - 1) * (itemSize + itemSpacing)
         local y = itemY
     
-        -- Draw item slot
         lg.setColor(0.3, 0.3, 0.3, 0.9)
         lg.rectangle("fill", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
-        lg.setColor(0.5, 0.5, 0.5, 0.9)
         lg.rectangle("line", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
     
+        -- Draw item slot
+        if i == selectedIndex then
+            lg.setColor(1, 1, 0, 0.3) -- Bright yellow outline for the selected slot
+            lg.rectangle("fill", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
+        else
+            lg.setColor(0.5, 0.5, 0.5, 0.9) -- Gray outline for unselected slots
+        end
+
         -- Draw item icon and quantity
         local item = self.player.inventoryOrder[i]
         if item then
@@ -226,22 +241,47 @@ function game:drawHud()
         end
     end
 
-    local function drawIconValue(icon, value, x, y, sizeScale)
+    local function drawIconValue(icon, value, x, y, sizeScale, isHealth)
         sizeScale = sizeScale or iconScale
-        lg.setColor(1, 1, 1, 1)
-        lg.draw(tileAtlas, tiles[self.icon[icon]], x, y, 0, sizeScale / config.graphics.assetSize, sizeScale / config.graphics.assetSize)
-        lg.setFont(font.regular)
-        local formattedValue = math.floor(value * 100) / 100
-        lg.print(formattedValue, x + sizeScale, y + sizeScale * 0.2)
+        isHealth = isHealth or false
+
+        if isHealth then
+            local heartCount = math.floor(value / 2)
+            local halfHeart = value % 2 ~= 0
+            local heartSpacing = -10
+
+            for i = 1, heartCount do
+                lg.setColor(1, 1, 1, 1)
+                lg.draw(tileAtlas, tiles[self.icon[icon]], x + (i - 1) * (sizeScale + heartSpacing), y, 0, sizeScale / config.graphics.assetSize, sizeScale / config.graphics.assetSize)
+            end
+
+            if halfHeart then
+                lg.setColor(1, 1, 1, 1)
+                lg.draw(tileAtlas, tiles[self.icon[icon] + 1], x + heartCount * (sizeScale + heartSpacing), y, 0, sizeScale / config.graphics.assetSize, sizeScale / config.graphics.assetSize)
+            end
+        else
+            lg.setColor(1, 1, 1, 1)
+            lg.draw(tileAtlas, tiles[self.icon[icon]], x, y, 0, sizeScale / config.graphics.assetSize, sizeScale / config.graphics.assetSize)
+            lg.setFont(font.regular)
+            local formattedValue = math.floor(value * 100) / 100
+            lg.print(formattedValue, x + sizeScale, y + sizeScale * 0.2)
+        end
+    end 
+
+    if self.inventory.inventoryOpen then
+        self.inventory:draw(self.icon, itemSize, itemSpacing, cornerRadius, maxHotbarItems)
+        self.crafting:draw(self.icon)
     end
 
-    self.inventory:draw(self.icon, itemSize, itemSpacing, cornerRadius, maxHotbarItems)
-
     -- Health
-    drawIconValue("health", math.floor(self.player.health), hotbarX - hotbarWidth * 0.4, hotbarY - hotbarHeight * 1.2)
+    local healthX = hotbarX - hotbarWidth * 0.5 + itemSize * 0.2
+    local healthY = hotbarY + (hotbarHeight - itemSize) * 0.5 - 75
+    drawIconValue("health", math.floor(self.player.health), healthX, healthY, nil, true)
 
     -- Radiation
-    drawIconValue("radiation", self.player.radiation, hotbarX + hotbarWidth * 0.1, hotbarY - hotbarHeight * 1.2, radiationScale)
+    local radiationX = healthX + 200 * scale_x
+    local radiationY = healthY
+    drawIconValue("radiation", math.floor(self.player.radiation), radiationX, radiationY, nil)
 end
 
 function game:draw()
@@ -268,9 +308,9 @@ function game:draw()
    
     self:drawHud()
 
+    local all, all_len = self.world:query()
     if config.debug.enabled then
         lg.setColor(1, 0, 0)
-        local all, all_len = self.world:query()
         local bumpItems = self.world:getBumpWorld():countItems()
         lg.setFont(font.tiny)
         lg.printf("FPS: "..love.timer.getFPS()..
@@ -297,52 +337,78 @@ function game:draw()
         camera:pop()
     end
 
-    --self:drawMinimap(all)
+    self:drawMinimap(all)
 end
 
 function game:drawMinimap(all)
-    -- Minimap
-    local minimapScale = 4
-    local minimapX = lg.getWidth() * 0.8
-    local minimapY = lg.getHeight() * 0.8
-
-    local miniMapColors = {
-        {0, 0, 0, 1},
-        {1, 1, 1, 1},
-        {0.5, 0.5, 0.5},
-        {0.8, 0.7, 0.5},
-        {0.9, 0.9, 0.1},
-        {0.1, 0.9, 0.1},
-        {0.1, 0.7, 0.9},
-        {0.9, 0.1, 0.1},
-        {0.1, 0.1, 0.9},
-        {0.1, 0.8, 0.9},
-        {0.3, 0.8, 0.9},
-        {0.3, 0.8, 0.9},
-    }
-
-    miniMapColors[0] = {1, 0, 0}
+    local minimapScale = 5
+    local minimapWidth = 250
+    local minimapHeight = 250
+    local minimapX = 20
+    local minimapY = 20
+    local minimapCenterX = minimapX + minimapWidth / 2
+    local minimapCenterY = minimapY + minimapHeight / 2
     
-    local biomes = {
-        {1, 0.6, 0.7},
-        {0.1, 0.6, 0.3},
-        {1, 0.3, 0.9},
-        {1, 0.2, 0.2},
+    -- Draw minimap background
+    lg.setColor(0.1, 0.1, 0.1, 0.8)
+    lg.rectangle("fill", minimapX, minimapY, minimapWidth, minimapHeight)
+    
+    -- Draw minimap outline
+    lg.setColor(1, 1, 1, 0.8)
+    lg.setLineWidth(2)
+    lg.rectangle("line", minimapX, minimapY, minimapWidth, minimapHeight)
+    lg.setLineWidth(1)
+    
+    lg.setScissor(minimapX, minimapY, minimapWidth, minimapHeight)
+    
+    local miniMapColors = {
+        {0.2, 0.2, 0.2, 1},    -- 0: Black (Wall)
+        {0.65, 0.65, 0.7, 1},    -- 1: Light Gray (Stone)
+        {0.7, 0.5, 0.3, 1},    -- 2: Brown (Shrub)
+        {0.1, 0.1, 0.1, 1},    -- 3: Brown (Coal)
+        {0.7529, 0.7529, 0.7529, 1},    -- 4: Silver (Tanzenite)
+        {1.0, 1.8, 0.2, 1},    -- 5: Yellow (Gold)
+        {0.2, 0.5, 0.8, 1},    -- 6: Blue (Sapphire)
+        {0.8, 0.2, 0.2, 1},    -- 7: Red (Ruby)
+        {1, 0.2, 0.8, 1},    -- 8: Purple (Unknown)
+        {0.2, 0.8, 0.8, 1},    -- 9: Cyan (Diamond)
+        {1.0, 0.5, 0.2, 1},    -- 10: Orange (Copper)
+        {0.8, 0.8, 0.2, 1},    -- 11: Yellow-Green (Uranium)
     }
-    for i,v in ipairs(all) do
+    
+    local playerColor = {0, 1, 0, 1}
+    local playerSize = minimapScale
+    
+    local startX = self.player.gridX * minimapScale - minimapWidth / 2
+    local startY = self.player.gridY * minimapScale - minimapHeight / 2
+    
+    for i, v in ipairs(all) do
         if v.entityType == "tile" then
-            if tonumber(v.type) then
-                lg.setColor(miniMapColors[v.type])
-                lg.rectangle("fill", minimapX + v.gridX * minimapScale - (self.player.gridX * minimapScale), minimapY + v.gridY * minimapScale - (self.player.gridY * minimapScale), minimapScale, minimapScale)
+            local tileType = tonumber(v.type)
+            if tileType and miniMapColors[tileType] then
+                local color = miniMapColors[tileType]
+                lg.setColor(color[1], color[2], color[3], color[4])
+                lg.rectangle(
+                    "fill",
+                    minimapCenterX + (v.gridX - self.player.gridX) * minimapScale,
+                    minimapCenterY + (v.gridY - self.player.gridY) * minimapScale,
+                    minimapScale,
+                    minimapScale
+                )
             end
-
-            --lg.setColor(biomes[v.biome], biomes[v.biome], biomes[v.biome], 0.1)
-            --lg.rectangle("line", minimapX + v.gridX * minimapScale - (self.player.gridX * minimapScale), minimapY + v.gridY * minimapScale - (self.player.gridY * minimapScale), minimapScale, minimapScale)
         elseif v.entityType == "player" then
-            lg.setColor(0, 1, 0)
-            lg.rectangle("fill", minimapX + v.gridX * minimapScale - (self.player.gridX * minimapScale), minimapY + v.gridY * minimapScale - (self.player.gridY * minimapScale), minimapScale, minimapScale)
+            lg.setColor(playerColor[1], playerColor[2], playerColor[3], playerColor[4])
+            lg.rectangle(
+                "fill",
+                minimapCenterX - playerSize / 2,
+                minimapCenterY - playerSize / 2,
+                playerSize,
+                playerSize
+            )
         end
     end
+    
+    lg.setScissor()
 end
 
 function game:keypressed(key)
@@ -352,12 +418,28 @@ function game:keypressed(key)
 
     -- Inventory
     inventory:keypressed(key)
+
+    --Crafting
+    self.crafting:keypressed(key)
+
+    -- Hotbar selection
+    if tonumber(key) and tonumber(key) >= 1 and tonumber(key) <= 6 then
+        self.inventory.selectedIndex = tonumber(key)
+        print("hotbar: "..tostring(self.inventory.inventoryOrder[self.inventory.selectedIndex]))
+        self.inventory.highlightedItem = self.inventory.inventoryOrder[self.inventory.selectedIndex]
+    end
 end
 
-function game:mousepressed(x, y, k)
-    if inventory.inventoryOpen then
-        inventory:mousepressed(x, y, button)
+function game:mousepressed(x, y, button)
+    if self.inventory.inventoryOpen then
+        self.inventory:mousepressed(x, y, button)
+        self.crafting:mousepressed(x, y, button)
     end
+
+    --Placing
+    --if k == 2 and self.hoverEntity and not self.inventory.inventoryOpen then
+    --    self.player:place(self.hoverEntity) 
+    --end
 end
 
 return game

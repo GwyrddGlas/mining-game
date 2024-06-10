@@ -1,0 +1,23 @@
+[
+  {
+    "input": [
+      {
+        "slot1": "Coal",
+        "slot2": "",
+        "slot3": ""
+      },
+      {
+        "slot4": "Shrub",
+        "slot5": "",
+        "slot6": ""
+      },
+      {
+        "slot7": "",
+        "slot8": "",
+        "slot9": ""
+      }
+    ],
+    "output": "Torch",
+    "outputQuantity": 1
+  }
+]

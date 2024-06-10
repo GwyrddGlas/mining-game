@@ -1,5 +1,5 @@
 NAME = "Cave Game"
-VERSION = "v0.06"
+VERSION = "v0.07"
  
 -- GLOBALS
 lg = love.graphics
@@ -8,7 +8,7 @@ kb = love.keyboard
 lm = love.mouse
 lt = love.thread
 random = math.random
-noise = love.math.noise
+noise = love.math.noise1
 sin = math.sin
 cos = math.cos
 f = string.format
@@ -185,10 +185,10 @@ function love.keypressed(key)
         elseif key == "b" then
             config.debug.showChunkBorders = not config.debug.showChunkBorders
             note:new("Show chunk borders: "..tostring(config.debug.showChunkBorders))
-        elseif key == "c" then
-            config.debug.showCollision = not config.debug.showCollision
-            note:new("Show collisions: "..tostring(config.debug.showCollision))
-        elseif key == "p" then
+        --elseif key == "c" then
+        --    config.debug.showCollision = not config.debug.showCollision
+        --    note:new("Show collisions: "..tostring(config.debug.showCollision))
+        --elseif key == "p" then
             config.graphics.useShaders = not config.graphics.useShaders
             note:new("Shaders: "..tostring(config.graphics.useShaders))
         end

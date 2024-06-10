@@ -1,4 +1,5 @@
 -- TILE ENTITY
+local tileData = require("src.class.tileData")
 local entity = {}
 
 function entity:load(data, ecs)
@@ -19,11 +20,15 @@ function entity:load(data, ecs)
 end
 
 function entity:setType(type)
-    -- Housecleaning before changing type
-    if not tileData[type].solid then
-        if self.bumpWorld:hasItem(self) then
-            self.bumpWorld:remove(self)
+    -- House cleaning before changing type
+    if tileData[type] then --where is tiledata coming from?
+       if not tileData[type].solid then
+            if self.bumpWorld:hasItem(self) then
+                self.bumpWorld:remove(self)
+            end
         end
+    else
+        return 
     end
 
     -- Changing type
@@ -32,6 +37,7 @@ function entity:setType(type)
     self.maxHP = self.tileData.maxHP
     self.hp = self.maxHP
     self.mined = false
+    self.placed = false
     
     -- Creating bump item if solid
     if self.tileData.solid then
@@ -73,25 +79,45 @@ function entity:mine()
 end
 
 function entity:place(tile)
-    if tile.entityType == "tile" then
-        local inventory = self.inventory
-        local inventoryOrder = self.inventoryOrder
-        local selectedItem = inventory.selectedItem
+    local inventory = _PLAYER.inventory
+    local inventoryOrder = _PLAYER.inventoryOrder
+    local selectedItem = _INVENTORY.highlightedItem
+   
+    print("place: "..tostring(selectedItem))
+    if selectedItem then
+        print("Selected: "..tostring(selectedItem))
+        local itemType = selectedItem
+        local itemQuantity = inventory[itemType]
+        if itemQuantity and itemQuantity > 0 then
+            local newTileData = {
+                x = tile.gridX,
+                y = tile.gridY,
+                type = itemType
+            }
+            
+            print("worldGen.tiles:")
+for y, row in pairs(worldGen.tiles) do
+    for x, tile in pairs(row) do
+        print("  Tile at (" .. x .. ", " .. y .. "): " .. tostring(tile))
+    end
+end
 
-        if selectedItem then
-            local itemType = selectedItem
-            local itemQuantity = inventory[itemType]
-
-            if itemQuantity > 0 then
-                local newTileData = {
-                    x = tile.gridX,
-                    y = tile.gridY,
-                    type = itemType
-                }
-
-                local newTile = self.world:newEntity("src/entity/tile.lua", newTileData.x, newTileData.y, newTileData)
+            -- Check if a tile already exists at the target position
+            if not worldGen.tiles[newTileData.y] or not worldGen.tiles[newTileData.y][newTileData.x] then
+                local newTile = _WORLD:newEntity("src/entity/tile.lua", newTileData.x, newTileData.y, newTileData)
                 newTile:setType(itemType)
-
+                print("placed "..selectedItem.." at "..newTileData.x.." "..newTileData.y)
+                
+                -- Update the world tiles table
+                if not worldGen.tiles[newTileData.y] then
+                    worldGen.tiles[newTileData.y] = {}
+                end
+                worldGen.tiles[newTileData.y][newTileData.x] = newTile
+                
+                -- Mark the chunk as modified
+                newTile.chunk.modified = true
+                
+                -- Update the player's inventory
                 inventory[itemType] = itemQuantity - 1
                 if inventory[itemType] <= 0 then
                     inventory[itemType] = nil
@@ -102,10 +128,12 @@ function entity:place(tile)
                         end
                     end
                 end
-
-                tile.chunk.modified = true
+            else
+                print("worldGen.tile not loaded")
             end
         end
+    else
+        print("not selected")
     end
 end
 
