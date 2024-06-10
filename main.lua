@@ -1,5 +1,5 @@
 NAME = "Cave Game"
-VERSION = "v0.07"
+VERSION = "v0.07.1"
  
 -- GLOBALS
 lg = love.graphics
@@ -8,7 +8,7 @@ kb = love.keyboard
 lm = love.mouse
 lt = love.thread
 random = math.random
-noise = love.math.noise1
+noise = love.math.noise
 sin = math.sin
 cos = math.cos
 f = string.format
