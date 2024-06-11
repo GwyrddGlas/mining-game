@@ -210,8 +210,12 @@ function love.mousepressed(x, y, key)
     state:mousepressed(x, y, key)
 end
 
-function love.mousereleased(x, y, key)
-    state:mousereleased(x, y, key)
+function love.mousereleased(x, y, button, istouch, presses)
+    state:mousereleased(x, y, button, istouch, presses)
+end
+
+function love.mousemoved(x, y, dx, dy, touched)
+    state:mousemoved(x, y, dx, dy)
 end
 
 function love.wheelmoved(x, y)

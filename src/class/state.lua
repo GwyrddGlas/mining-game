@@ -65,9 +65,15 @@ function state:mousepressed(x, y, key)
     end
 end
 
-function state:mousereleased(x, y, key)
+function state:mousereleased(x, y, button, istouch, presses)
     if type(self.state.mousereleased) == "function" then
-        self.state:mousereleased(x, y, key)
+        self.state:mousereleased(x, y, button, istouch, presses)
+    end
+end
+
+function state:mousemoved(x, y, dx, dy, touched)
+    if type(self.state.mousemoved) == "function" then
+        self.state:mousemoved(x, y, dx, dy, touched)
     end
 end
 

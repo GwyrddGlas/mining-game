@@ -37,7 +37,7 @@ function slider:mousepressed(x, y, button)
     end
 end
 
-function slider:mousereleased(x, y, button)
+function slider:mousereleased(x, y, button, istouch, presses)
     if button == 1 then
         self.dragging = false
     end

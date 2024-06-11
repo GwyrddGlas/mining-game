@@ -188,4 +188,20 @@ function menu:mousepressed(x, y, k)
     end
 end
 
+function menu:mousereleased(x, y, button, istouch, presses)
+    for i,v in pairs(self.screen[self.currentScreen]) do
+        if type(v.mousereleased) == "function" then
+            v:mousereleased(x, y, button, istouch, presses)
+        end
+    end
+end
+
+function menu:mousemoved(x, y, dx, dy)
+    for i,v in pairs(self.screen[self.currentScreen]) do
+        if type(v.mousemoved) == "function" then
+            v:mousemoved(x, y, dx, dy)
+        end
+    end
+end
+
 return menu 
