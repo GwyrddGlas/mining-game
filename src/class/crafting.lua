@@ -154,8 +154,8 @@ function crafting:handleCraftingGridClick(x, y, button, craftingX, craftingY, it
 
     for row = 1, craftingRows do
         for col = 1, craftingColumns do
-            local slotX = craftingX + craftingPadding + (col - 1) * (itemSize + itemSpacing)
-            local slotY = craftingY + craftingPadding + (row - 1) * (itemSize + itemSpacing)
+            local slotX = craftingX  + (col - 1) * (itemSize )
+            local slotY = craftingY  + (row - 1) * (itemSize )
 
             if self:isMouseInsideSlot(x, y, slotX, slotY, itemSize) then
                 local index = (row - 1) * craftingColumns + col

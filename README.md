@@ -1,4 +1,4 @@
-# Untitled Mining Game
+# Miner's Odyssey
 
 ## About the Game
 

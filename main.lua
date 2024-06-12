@@ -1,4 +1,4 @@
-NAME = "Cave Game"
+NAME = "Miner's Odyssey"
 VERSION = "v0.07.1"
  
 -- GLOBALS

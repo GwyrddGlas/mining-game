@@ -135,6 +135,7 @@ end
 function game:unload()
     ecs.unload()
     self.world = nil
+    self.inventory.inventoryOpen = false
 end
 
 function game:update(dt)
