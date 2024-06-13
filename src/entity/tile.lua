@@ -96,11 +96,11 @@ function entity:place(tile)
             }
             
             print("worldGen.tiles:")
-for y, row in pairs(worldGen.tiles) do
-    for x, tile in pairs(row) do
-        print("  Tile at (" .. x .. ", " .. y .. "): " .. tostring(tile))
-    end
-end
+            for y, row in pairs(worldGen.tiles) do
+                for x, tile in pairs(row) do
+                    print("  Tile at (" .. x .. ", " .. y .. "): " .. tostring(tile))
+                end
+            end
 
             -- Check if a tile already exists at the target position
             if not worldGen.tiles[newTileData.y] or not worldGen.tiles[newTileData.y][newTileData.x] then

@@ -160,14 +160,21 @@ function game:update(dt)
     -- Updating world
     worldGen:update(dt)
 
+    -- Updating crafting grid
     crafting:update()
 
     -- Internal timer used for shaders
     self.time = self.time + dt
     if self.time > math.pi * 2 then self.time = 0 end
+    
     -- Settings macros
     self.shaders:setMacro("rad", self.player.radiation)
     self.shaders:setMacro("time", self.time)
+
+    -- Handle dying
+    if self.player.health <= 0 then
+        self.player:teleport(self.player.spawnX, self.player.spawnY)
+    end
 
     -- Handle music transitioning 
     if gameAudio.background[currentIndex] and not gameAudio.background[currentIndex]:isPlaying() then
@@ -366,6 +373,7 @@ function game:drawMinimap(all)
     local yPos = string.format("y: %i", self.player.gridY)
     local yPosWidth = lg.getFont():getWidth(yPos)
     lg.print(yPos, minimapX + minimapWidth - yPosWidth, minimapY + minimapHeight)    
+    
     lg.setScissor(minimapX, minimapY, minimapWidth, minimapHeight)
     
     local miniMapColors = {

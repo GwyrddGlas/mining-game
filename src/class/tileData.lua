@@ -169,4 +169,16 @@ tileData[#tileData+1] = {
     itemTextureID = 0,
 }
 
+tileData[#tileData+1] = {
+    type = "StoneBrick",
+    textureID = 29, 
+    maxHP = 8,
+    drop = {1, 1}, 
+    destructible = true, 
+    solid = false,
+    item = false,
+    placeable = true,
+    itemTextureID = 0,
+}
+
 return tileData
