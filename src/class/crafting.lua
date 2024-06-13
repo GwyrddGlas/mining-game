@@ -195,10 +195,16 @@ end
 function crafting:swapItems(index, clickedItem)
     local selectedIndex = self.selectedItem.index
     local selectedItem = self.player.craftingGrid[selectedIndex]
-    self.player.craftingGrid[selectedIndex] = clickedItem
-    self.player.craftingGrid[index] = selectedItem
-    self.player.craftingGridOrder[selectedIndex] = clickedItem.item
-    self.player.craftingGridOrder[index] = selectedItem.item
+
+    if clickedItem then
+        self.player.craftingGrid[selectedIndex] = clickedItem
+        self.player.craftingGridOrder[selectedIndex] = clickedItem.item
+    end
+    
+    if selectedItem then 
+        self.player.craftingGrid[index] = selectedItem
+        self.player.craftingGridOrder[index] = selectedItem.item
+    end
 end
 
 function crafting:moveSelectedItemToEmptySlot(index)
@@ -236,6 +242,32 @@ function crafting:removeItemFromCraftingGrid(index, clickedItem)
     end
 end
 
+function crafting:moveAllItemsToInventory()
+    local craftingGrid = self.player.craftingGrid
+    local craftingGridOrder = self.player.craftingGridOrder
+    local inventory = self.player.inventory
+    local inventoryOrder = self.player.inventoryOrder
+
+    for i, item in ipairs(craftingGridOrder) do
+        local itemData = craftingGrid[i]
+        if itemData then
+            local itemName = itemData.item
+            local itemQuantity = itemData.quantity
+
+            if inventory[itemName] then
+                inventory[itemName] = inventory[itemName] + itemQuantity
+            else
+                inventory[itemName] = itemQuantity
+                table.insert(inventoryOrder, itemName)
+            end
+
+            craftingGrid[i] = nil
+        end
+    end
+
+    self.player.craftingGridOrder = {}
+end
+
 function crafting:handleCraftingResultClick(x, y, craftingX, craftingY, craftingWidth, craftingHeight, itemSize, itemSpacing)
     local resultSlotX = craftingX + craftingWidth + itemSpacing
     local resultSlotY = craftingY + craftingHeight / 2 - itemSize / 2
@@ -246,47 +278,55 @@ function crafting:handleCraftingResultClick(x, y, craftingX, craftingY, crafting
 end
 
 function crafting:update()
-    -- Convert the crafting grid items to a 2D array
-    local craftingItems = {}
-    for row = 1, 3 do
-        craftingItems[row] = {}
-        for col = 1, 3 do
-            local index = (row - 1) * 3 + col
-            local itemData = self.player.craftingGrid[index]
-            if itemData then
-                craftingItems[row][col] = itemData.item
-            else
-                craftingItems[row][col] = ""
-            end
-        end
+    if not _INVENTORY.inventoryOpen then
+        self:moveAllItemsToInventory()
+        return
     end
 
-    -- Check if the crafting grid items match any recipe
-    for _, recipe in ipairs(recipes) do
-        local match = true
+    -- Convert the crafting grid items to a 2D array
+    if _INVENTORY.inventoryOpen then
+        local craftingItems = {}
         for row = 1, 3 do
+            craftingItems[row] = {}
             for col = 1, 3 do
-                local slotKey = "slot" .. ((row - 1) * 3 + col)
-                if craftingItems[row][col] ~= recipe.input[row][slotKey] then
-                    match = false
+                local index = (row - 1) * 3 + col
+                local itemData = self.player.craftingGrid[index]
+                if itemData then
+                    craftingItems[row][col] = itemData.item
+                else
+                    craftingItems[row][col] = ""
+                end
+            end
+        end
+
+        -- Check if the crafting grid items match any recipe
+        for _, recipe in ipairs(recipes) do
+            local match = true
+            for row = 1, 3 do
+                for col = 1, 3 do
+                    local slotKey = "slot" .. ((row - 1) * 3 + col)
+                    if craftingItems[row][col] ~= recipe.input[row][slotKey] then
+                        match = false
+                        break
+                    end
+                end
+                if not match then
                     break
                 end
             end
-            if not match then
-                break
+            if match then
+                self.selectedRecipe = recipe
+                self.craftingResult = recipe.output
+                return
             end
         end
-        if match then
-            self.selectedRecipe = recipe
-            self.craftingResult = recipe.output
-            return
-        end
-    end
 
-    -- No matching recipe found
-    self.selectedRecipe = nil
-    self.craftingResult = nil
+        -- No matching recipe found
+        self.selectedRecipe = nil
+        self.craftingResult = nil
+    end
 end
+
 function crafting:draw(icon)
     local width, height = lg.getWidth(), lg.getHeight()
 

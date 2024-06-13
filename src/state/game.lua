@@ -159,9 +159,7 @@ function game:update(dt)
     -- Updating world
     worldGen:update(dt)
 
-    if self.inventory.inventoryOpen then
-        crafting:update()
-    end
+    crafting:update()
 
     -- Internal timer used for shaders
     self.time = self.time + dt
