@@ -90,7 +90,8 @@ function game:load(data)
         Torch = 33,
         health = 41,
         halfHeart = 42,
-        radiation = 43
+        radiation = 43,
+        StoneBrick = 44
     }
 
     -- Poster stuff
@@ -359,6 +360,12 @@ function game:drawMinimap(all)
     lg.rectangle("line", minimapX, minimapY, minimapWidth, minimapHeight)
     lg.setLineWidth(1)
     
+    -- Draw minimap coordinates
+    lg.setColor(1, 1, 1, 1)
+    lg.print(string.format("x: %i", self.player.gridX), minimapX , minimapY + minimapHeight)
+    local yPos = string.format("y: %i", self.player.gridY)
+    local yPosWidth = lg.getFont():getWidth(yPos)
+    lg.print(yPos, minimapX + minimapWidth - yPosWidth, minimapY + minimapHeight)    
     lg.setScissor(minimapX, minimapY, minimapWidth, minimapHeight)
     
     local miniMapColors = {
@@ -425,7 +432,6 @@ function game:keypressed(key)
     -- Hotbar selection
     if tonumber(key) and tonumber(key) >= 1 and tonumber(key) <= 6 then
         self.inventory.selectedIndex = tonumber(key)
-        print("hotbar: "..tostring(self.inventory.inventoryOrder[self.inventory.selectedIndex]))
         self.inventory.highlightedItem = self.inventory.inventoryOrder[self.inventory.selectedIndex]
     end
 end
