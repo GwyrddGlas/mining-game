@@ -1,5 +1,5 @@
-NAME = "Cave Game"
-VERSION = "v0.07"
+NAME = "Miner's Odyssey"
+VERSION = "v0.07.1"
  
 -- GLOBALS
 lg = love.graphics
@@ -8,7 +8,7 @@ kb = love.keyboard
 lm = love.mouse
 lt = love.thread
 random = math.random
-noise = love.math.noise1
+noise = love.math.noise
 sin = math.sin
 cos = math.cos
 f = string.format
@@ -210,8 +210,12 @@ function love.mousepressed(x, y, key)
     state:mousepressed(x, y, key)
 end
 
-function love.mousereleased(x, y, key)
-    state:mousereleased(x, y, key)
+function love.mousereleased(x, y, button, istouch, presses)
+    state:mousereleased(x, y, button, istouch, presses)
+end
+
+function love.mousemoved(x, y, dx, dy, touched)
+    state:mousemoved(x, y, dx, dy)
 end
 
 function love.wheelmoved(x, y)

@@ -89,7 +89,8 @@ function game:load(data)
         Furnace = 29,
         Torch = 33,
         health = 41,
-        radiation = 42,
+        halfHeart = 42,
+        radiation = 43
     }
 
     -- Poster stuff
@@ -134,6 +135,7 @@ end
 function game:unload()
     ecs.unload()
     self.world = nil
+    self.inventory.inventoryOpen = false
 end
 
 function game:update(dt)
@@ -157,9 +159,7 @@ function game:update(dt)
     -- Updating world
     worldGen:update(dt)
 
-    if self.inventory.inventoryOpen then
-        crafting:update()
-    end
+    crafting:update()
 
     -- Internal timer used for shaders
     self.time = self.time + dt

@@ -134,115 +134,199 @@ function crafting:mousepressed(x, y, button)
     local craftingColumns = self:getCraftingColumns()
     local craftingRows = 3
     local craftingPadding = itemSize * 0.2
-    local clickedItem = nil
 
-    if x >= craftingX and x <= craftingX + craftingWidth and y >= craftingY and y <= craftingY + craftingHeight then
-        for row = 1, craftingRows do
-            for col = 1, craftingColumns do
-                local slotX = craftingX + craftingPadding + (col - 1) * (itemSize + itemSpacing)
-                local slotY = craftingY + craftingPadding + (row - 1) * (itemSize + itemSpacing)
-                if x >= slotX and x <= slotX + itemSize and y >= slotY and y <= slotY + itemSize then
-                    local index = (row - 1) * craftingColumns + col
-                    clickedItem = self.player.craftingGrid[index]
-                    if button == 1 then
-                        if self.selectedItem then
-                            if clickedItem then
-                                -- Swap the selected item with the clicked item
-                                local selectedIndex = self.selectedItem.index
-                                local selectedItem = self.player.craftingGrid[selectedIndex]
-                                self.player.craftingGrid[selectedIndex] = clickedItem
-                                self.player.craftingGrid[index] = selectedItem
-                                self.player.craftingGridOrder[selectedIndex] = clickedItem.item
-                                self.player.craftingGridOrder[index] = selectedItem.item
-                            else
-                                -- Move the selected item to the empty slot
-                                local selectedIndex = self.selectedItem.index
-                                local selectedItem = self.player.craftingGrid[selectedIndex]
-                                self.player.craftingGrid[selectedIndex] = nil
-                                self.player.craftingGrid[index] = selectedItem
-                                self.player.craftingGridOrder[selectedIndex] = nil
-                                self.player.craftingGridOrder[index] = selectedItem.item
-                            end
-                            self.selectedItem = nil
-                        else
-                            -- Select the clicked item
-                            if clickedItem then
-                                self.selectedItem = {item = clickedItem.item, index = index}
-                            end
-                        end
-                    elseif button == 2 and clickedItem then
-                        -- Move the clicked item back to the inventory
-                        local inventory = self.player.inventory
-                        local inventoryOrder = self.player.inventoryOrder
-                        inventory[clickedItem.item] = clickedItem.quantity
-                        table.insert(inventoryOrder, clickedItem.item)
-
-                        -- Remove the item from the crafting grid
-                        self.player.craftingGrid[index] = nil
-                        for i, gridItem in ipairs(self.player.craftingGridOrder) do
-                            if gridItem == clickedItem.item then
-                                table.remove(self.player.craftingGridOrder, i)
-                                break
-                            end
-                        end
-                    end
-                end
-            end
-        end
+    if self:isMouseInsideCraftingGrid(x, y, craftingX, craftingY, craftingWidth, craftingHeight) then
+        self:handleCraftingGridClick(x, y, button, craftingX, craftingY, itemSize, itemSpacing, craftingPadding)
     else
         self.selectedItem = nil
     end
 
-    -- Check if the mouse is clicked on the crafting result slot
+    self:handleCraftingResultClick(x, y, craftingX, craftingY, craftingWidth, craftingHeight, itemSize, itemSpacing)
+end
+
+function crafting:isMouseInsideCraftingGrid(x, y, craftingX, craftingY, craftingWidth, craftingHeight)
+    return x >= craftingX and x <= craftingX + craftingWidth and y >= craftingY and y <= craftingY + craftingHeight
+end
+
+function crafting:handleCraftingGridClick(x, y, button, craftingX, craftingY, itemSize, itemSpacing, craftingPadding)
+    local craftingColumns = self:getCraftingColumns()
+    local craftingRows = 3
+
+    for row = 1, craftingRows do
+        for col = 1, craftingColumns do
+            local slotX = craftingX  + (col - 1) * (itemSize )
+            local slotY = craftingY  + (row - 1) * (itemSize )
+
+            if self:isMouseInsideSlot(x, y, slotX, slotY, itemSize) then
+                local index = (row - 1) * craftingColumns + col
+                local clickedItem = self.player.craftingGrid[index]
+
+                if button == 1 then
+                    self:handleLeftClick(index, clickedItem)
+                elseif button == 2 and clickedItem then
+                    self:handleRightClick(index, clickedItem)
+                end
+
+                return
+            end
+        end
+    end
+end
+
+function crafting:isMouseInsideSlot(x, y, slotX, slotY, itemSize)
+    return x >= slotX and x <= slotX + itemSize and y >= slotY and y <= slotY + itemSize
+end
+
+function crafting:handleLeftClick(index, clickedItem)
+    if self.selectedItem then
+        if clickedItem then
+            self:swapItems(index, clickedItem)
+        else
+            self:moveSelectedItemToEmptySlot(index)
+        end
+        self.selectedItem = nil
+    else
+        if clickedItem then
+            self:selectItem(index, clickedItem)
+        end
+    end
+end
+
+function crafting:swapItems(index, clickedItem)
+    local selectedIndex = self.selectedItem.index
+    local selectedItem = self.player.craftingGrid[selectedIndex]
+
+    if clickedItem then
+        self.player.craftingGrid[selectedIndex] = clickedItem
+        self.player.craftingGridOrder[selectedIndex] = clickedItem.item
+    end
+    
+    if selectedItem then 
+        self.player.craftingGrid[index] = selectedItem
+        self.player.craftingGridOrder[index] = selectedItem.item
+    end
+end
+
+function crafting:moveSelectedItemToEmptySlot(index)
+    local selectedIndex = self.selectedItem.index
+    local selectedItem = self.player.craftingGrid[selectedIndex]
+    self.player.craftingGrid[selectedIndex] = nil
+    self.player.craftingGrid[index] = selectedItem
+    self.player.craftingGridOrder[selectedIndex] = nil
+    self.player.craftingGridOrder[index] = selectedItem.item
+end
+
+function crafting:selectItem(index, clickedItem)
+    self.selectedItem = {item = clickedItem.item, index = index}
+end
+
+function crafting:handleRightClick(index, clickedItem)
+    self:moveItemToInventory(clickedItem)
+    self:removeItemFromCraftingGrid(index, clickedItem)
+end
+
+function crafting:moveItemToInventory(clickedItem)
+    local inventory = self.player.inventory
+    local inventoryOrder = self.player.inventoryOrder
+    inventory[clickedItem.item] = clickedItem.quantity
+    table.insert(inventoryOrder, clickedItem.item)
+end
+
+function crafting:removeItemFromCraftingGrid(index, clickedItem)
+    self.player.craftingGrid[index] = nil
+    for i, gridItem in ipairs(self.player.craftingGridOrder) do
+        if gridItem == clickedItem.item then
+            table.remove(self.player.craftingGridOrder, i)
+            break
+        end
+    end
+end
+
+function crafting:moveAllItemsToInventory()
+    local craftingGrid = self.player.craftingGrid
+    local craftingGridOrder = self.player.craftingGridOrder
+    local inventory = self.player.inventory
+    local inventoryOrder = self.player.inventoryOrder
+
+    for i, item in ipairs(craftingGridOrder) do
+        local itemData = craftingGrid[i]
+        if itemData then
+            local itemName = itemData.item
+            local itemQuantity = itemData.quantity
+
+            if inventory[itemName] then
+                inventory[itemName] = inventory[itemName] + itemQuantity
+            else
+                inventory[itemName] = itemQuantity
+                table.insert(inventoryOrder, itemName)
+            end
+
+            craftingGrid[i] = nil
+        end
+    end
+
+    self.player.craftingGridOrder = {}
+end
+
+function crafting:handleCraftingResultClick(x, y, craftingX, craftingY, craftingWidth, craftingHeight, itemSize, itemSpacing)
     local resultSlotX = craftingX + craftingWidth + itemSpacing
     local resultSlotY = craftingY + craftingHeight / 2 - itemSize / 2
-    if x >= resultSlotX and x <= resultSlotX + itemSize and y >= resultSlotY and y <= resultSlotY + itemSize then
+
+    if self:isMouseInsideSlot(x, y, resultSlotX, resultSlotY, itemSize) then
         -- Handle crafting result interaction
     end
 end
 
 function crafting:update()
-    -- Convert the crafting grid items to a 2D array
-    local craftingItems = {}
-    for row = 1, 3 do
-        craftingItems[row] = {}
-        for col = 1, 3 do
-            local index = (row - 1) * 3 + col
-            local itemData = self.player.craftingGrid[index]
-            if itemData then
-                craftingItems[row][col] = itemData.item
-            else
-                craftingItems[row][col] = ""
-            end
-        end
+    if not _INVENTORY.inventoryOpen then
+        self:moveAllItemsToInventory()
+        return
     end
 
-    -- Check if the crafting grid items match any recipe
-    for _, recipe in ipairs(recipes) do
-        local match = true
+    -- Convert the crafting grid items to a 2D array
+    if _INVENTORY.inventoryOpen then
+        local craftingItems = {}
         for row = 1, 3 do
+            craftingItems[row] = {}
             for col = 1, 3 do
-                local slotKey = "slot" .. ((row - 1) * 3 + col)
-                if craftingItems[row][col] ~= recipe.input[row][slotKey] then
-                    match = false
+                local index = (row - 1) * 3 + col
+                local itemData = self.player.craftingGrid[index]
+                if itemData then
+                    craftingItems[row][col] = itemData.item
+                else
+                    craftingItems[row][col] = ""
+                end
+            end
+        end
+
+        -- Check if the crafting grid items match any recipe
+        for _, recipe in ipairs(recipes) do
+            local match = true
+            for row = 1, 3 do
+                for col = 1, 3 do
+                    local slotKey = "slot" .. ((row - 1) * 3 + col)
+                    if craftingItems[row][col] ~= recipe.input[row][slotKey] then
+                        match = false
+                        break
+                    end
+                end
+                if not match then
                     break
                 end
             end
-            if not match then
-                break
+            if match then
+                self.selectedRecipe = recipe
+                self.craftingResult = recipe.output
+                return
             end
         end
-        if match then
-            self.selectedRecipe = recipe
-            self.craftingResult = recipe.output
-            return
-        end
-    end
 
-    -- No matching recipe found
-    self.selectedRecipe = nil
-    self.craftingResult = nil
+        -- No matching recipe found
+        self.selectedRecipe = nil
+        self.craftingResult = nil
+    end
 end
+
 function crafting:draw(icon)
     local width, height = lg.getWidth(), lg.getHeight()
 
