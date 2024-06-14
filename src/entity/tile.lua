@@ -1,5 +1,7 @@
 -- TILE ENTITY
 local tileData = require("src.class.tileData")
+--local worldGen = require("src.class.worldGen")
+
 local entity = {}
 
 function entity:load(data, ecs)
@@ -94,16 +96,9 @@ function entity:place(tile)
                 y = tile.gridY,
                 type = itemType
             }
-            
-            print("worldGen.tiles:")
-            for y, row in pairs(worldGen.tiles) do
-                for x, tile in pairs(row) do
-                    print("  Tile at (" .. x .. ", " .. y .. "): " .. tostring(tile))
-                end
-            end
 
             -- Check if a tile already exists at the target position
-            if not worldGen.tiles[newTileData.y] or not worldGen.tiles[newTileData.y][newTileData.x] then
+            if worldGen.tiles[newTileData.y] or not worldGen.tiles[newTileData.y][newTileData.x] then
                 local newTile = _WORLD:newEntity("src/entity/tile.lua", newTileData.x, newTileData.y, newTileData)
                 newTile:setType(itemType)
                 print("placed "..selectedItem.." at "..newTileData.x.." "..newTileData.y)
@@ -112,10 +107,13 @@ function entity:place(tile)
                 if not worldGen.tiles[newTileData.y] then
                     worldGen.tiles[newTileData.y] = {}
                 end
+
                 worldGen.tiles[newTileData.y][newTileData.x] = newTile
                 
+                worldGen:updateWorld()
+
                 -- Mark the chunk as modified
-                newTile.chunk.modified = true
+               --newTile.chunk.modified = true
                 
                 -- Update the player's inventory
                 inventory[itemType] = itemQuantity - 1

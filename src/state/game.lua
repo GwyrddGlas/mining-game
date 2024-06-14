@@ -91,7 +91,8 @@ function game:load(data)
         health = 41,
         halfHeart = 42,
         radiation = 43,
-        StoneBrick = 44
+        StoneBrick = 44,
+        Grass = 45
     }
 
     -- Poster stuff
@@ -451,9 +452,9 @@ function game:mousepressed(x, y, button)
     end
 
     --Placing
-    --if k == 2 and self.hoverEntity and not self.inventory.inventoryOpen then
-    --    self.player:place(self.hoverEntity) 
-    --end
+    if button == 2 and self.hoverEntity and not self.inventory.inventoryOpen then
+        self.player:place(self.hoverEntity) 
+    end
 end
 
 return game

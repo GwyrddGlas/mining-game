@@ -64,7 +64,7 @@ local function generateNoise(x, y, scaleBase, scaleDetail, thresh, ratio1, ratio
     return noise(x * scaleBase, y * scaleBase, seed + seedOffset) * ratio1 + noise(x * scaleDetail, y * scaleDetail, seed + seedOffset) * ratio2 > thresh and true or false
 end
 
--- Tile definitions. 
+-- Tile definitions. THIS MAKES NO SENSE
 local wall = 1
 local ground = 2
 local coal = 3

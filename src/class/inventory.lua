@@ -107,7 +107,7 @@ function inventory:moveInventoryItemToIndex(item, index)
     end
 end
 
-function tprint (tbl, indent)
+function tprint(tbl, indent)
     if not indent then indent = 0 end
     for k, v in pairs(tbl) do
       formatting = string.rep("  ", indent) .. k .. ": "
@@ -117,7 +117,7 @@ function tprint (tbl, indent)
       elseif type(v) == 'boolean' then
         print(formatting .. tostring(v))      
       else
-        print(formatting .. v)
+        print(formatting .. tostring(v))
       end
     end
   end
