@@ -89,11 +89,8 @@ function entity:mine(tile)
     end
 end
 
-function entity:place(tile)
-    if tile.entityType == "tile" then
-        print("Tile")
-        tile:place(tile)
-    end
+function entity:place(tile, id)
+    tile:place(id)
 end
 
 function entity:draw()

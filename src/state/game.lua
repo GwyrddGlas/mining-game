@@ -370,6 +370,7 @@ function game:drawMinimap(all)
     
     -- Draw minimap coordinates
     lg.setColor(1, 1, 1, 1)
+    lg.setFont(font.tiny)
     lg.print(string.format("x: %i", self.player.gridX), minimapX , minimapY + minimapHeight)
     local yPos = string.format("y: %i", self.player.gridY)
     local yPosWidth = lg.getFont():getWidth(yPos)
@@ -453,7 +454,8 @@ function game:mousepressed(x, y, button)
 
     --Placing
     if button == 2 and self.hoverEntity and not self.inventory.inventoryOpen then
-        self.player:place(self.hoverEntity) 
+        local itemId = self.icon[self.inventory.highlightedItem]
+        self.player:place(self.hoverEntity, itemId) 
     end
 end
 

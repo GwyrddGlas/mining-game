@@ -110,7 +110,7 @@ end
 function tprint(tbl, indent)
     if not indent then indent = 0 end
     for k, v in pairs(tbl) do
-      formatting = string.rep("  ", indent) .. k .. ": "
+      formatting = string.rep("  ", indent) .. tostring(k) .. ": "
       if type(v) == "table" then
         print(formatting)
         tprint(v, indent+1)
