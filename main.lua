@@ -1,5 +1,5 @@
 NAME = "Miner's Odyssey"
-VERSION = "v0.07.1"
+VERSION = "v0.08"
  
 -- GLOBALS
 lg = love.graphics

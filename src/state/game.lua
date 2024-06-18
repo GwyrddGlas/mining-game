@@ -92,7 +92,8 @@ function game:load(data)
         halfHeart = 42,
         radiation = 43,
         StoneBrick = 44,
-        Grass = 45
+        Grass = 45,
+        Mushroom = 46
     }
 
     -- Poster stuff
@@ -175,6 +176,13 @@ function game:update(dt)
     -- Handle dying
     if self.player.health <= 0 then
         self.player:teleport(self.player.spawnX, self.player.spawnY)
+        self.player.health = 10
+        self.player.radiation = 0
+        
+        for item, _ in pairs(self.player.inventory) do
+            self.player.inventory[item] = nil
+        end
+        self.player.inventoryOrder = {}
     end
 
     -- Handle music transitioning 
@@ -323,6 +331,8 @@ function game:draw()
         local bumpItems = self.world:getBumpWorld():countItems()
         lg.setFont(font.tiny)
         lg.printf("FPS: "..love.timer.getFPS()..
+        "\nMemory (KB): " .. tostring(math.floor(collectgarbage("count")))..
+        "\nvram: " .. tostring(math.floor(love.graphics.getStats().texturememory/1024/1024))..
         "\nEntities: "..#self.visibleEntities.."/"..all_len..
         "\nX: "..floor(self.player.x).." ("..self.player.gridX..") Y: "..floor(self.player.y).." ("..self.player.gridY..")"..
         "\nChunkX: "..self.player.chunkX.." ChunkY: "..self.player.chunkY..
@@ -442,6 +452,22 @@ function game:keypressed(key)
     -- Hotbar selection
     if tonumber(key) and tonumber(key) >= 1 and tonumber(key) <= 6 then
         self.inventory.selectedIndex = tonumber(key)
+        self.inventory.highlightedItem = self.inventory.inventoryOrder[self.inventory.selectedIndex]
+    end
+end
+
+local scrollCount = 0
+function game:wheelmoved(x, y)
+    if y >= 1 then
+        scrollCount = scrollCount + 1
+    end
+  
+    if y <= 0 then
+        scrollCount = scrollCount - 1
+    end
+
+    if scrollCount >= 1 and scrollCount <= 6 then
+        self.inventory.selectedIndex = tonumber(scrollCount)
         self.inventory.highlightedItem = self.inventory.inventoryOrder[self.inventory.selectedIndex]
     end
 end

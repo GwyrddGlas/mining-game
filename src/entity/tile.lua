@@ -82,33 +82,33 @@ end
 
 local function convertIconToDefinition(iconValue)
     local iconDefinitions = {
+        [18] = 1,   -- Wall
         [1] = 3,    -- Coal
-        [2] = 4,    -- Iron
+        [9] = 4,   -- Shrub
+        [7] = 5,   -- Tanzenite
         [3] = 6,    -- Gold
         [4] = 7,    -- Uranium
         [5] = 8,    -- Diamond
         [6] = 9,    -- Ruby
-        [7] = 10,   -- Tanzenite
+        [10] = 10,    -- idk
+        [2] = 4,    -- Iron
         [8] = 11,   -- Copper
-        [9] = 12,   -- Shrub
-        [18] = 1,   -- Wall
         [28] = 13,  -- Crafting
         [29] = 14,  -- Furnace
-        [33] = 12,  -- Torch
-        [41] = 12,  -- health
-        [42] = 12,  -- halfHeart
-        [43] = 12,  -- radiation
-        [44] = 12,  -- StoneBrick
-        [45] = 15   -- Grass
+        [44] = 15,  -- StoneBrick
+        [45] = 16,   -- Grass
+        [46] = 17,   -- Mushroom
+        [33] = 15,  -- Torch
     }
     
     return iconDefinitions[iconValue] or 12
 end
 
 function entity:place(id)
-    print("place: id: "..convertIconToDefinition(id))
-    self:setType(convertIconToDefinition(id))
-    self.chunk.modified = true
+    if self.tileData.placeable then
+        self:setType(convertIconToDefinition(id))
+        self.chunk.modified = true
+    end
 end
 
 function entity:draw()

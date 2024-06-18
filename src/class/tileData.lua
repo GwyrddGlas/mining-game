@@ -33,7 +33,7 @@ tileData[#tileData+1] = {
     destructible = false, 
     solid = false,
     item = false,
-    placeable = false,
+    placeable = true,
     itemTextureID = 0,
 }
 
@@ -45,7 +45,7 @@ tileData[#tileData+1] = {
     destructible = true, 
     solid = false,
     placeable = false,
-    item = "Shrub",
+    item = false,
     itemTextureID = 50,
 }
 
@@ -182,8 +182,32 @@ tileData[#tileData+1] = {
 }
 
 tileData[#tileData+1] = {
-    type = "Grass",
+    type = "Torch",
     textureID = 30, 
+    maxHP = 8,
+    drop = {1, 1}, 
+    destructible = true, 
+    solid = true,
+    item = false,
+    placeable = true,
+    itemTextureID = 0,
+}
+
+tileData[#tileData+1] = {
+    type = "Grass",
+    textureID = 31, 
+    maxHP = 8,
+    drop = {1, 1}, 
+    destructible = true, 
+    solid = false,
+    item = false,
+    placeable = true,
+    itemTextureID = 0,
+}
+
+tileData[#tileData+1] = {
+    type = "Mushroom",
+    textureID = 18, 
     maxHP = 8,
     drop = {1, 1}, 
     destructible = true, 

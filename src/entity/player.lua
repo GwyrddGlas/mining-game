@@ -90,7 +90,9 @@ function entity:mine(tile)
 end
 
 function entity:place(tile, id)
-    tile:place(id)
+    if type(tile) == "table" then
+        tile:place(id)
+    end
 end
 
 function entity:draw()

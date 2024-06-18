@@ -9,6 +9,18 @@ local function setColor(r, g, b, a)
 	love.graphics.setColor(convertColor(r, g, b, a))
 end
 
+local commands = {
+    ["clear"] = function()
+        console:clearHistory()
+        console:print("Console cleared.")
+    end,
+	["give"] = function(item, quantity)
+        quantity = tonumber(quantity) or 1
+        _INVENTORY:giveItem(item, quantity)
+        console:print("Gave " .. quantity .. " " .. item .. "(s) to the player.")
+    end,
+}
+
 --==[[ < INTERNAL METHODS > ]]==--
 
 function console:updateTextboxIndicator()
@@ -43,11 +55,21 @@ function console:clearTextBox()
 end
 
 function console:lua(text)
-	local status, err = pcall(loadstring(text))
-	err = err or false
-	if err then
-		self:print("LUA: "..tostring(err))
-	end
+    local args = {}
+    for arg in string.gmatch(text, "%S+") do
+        table.insert(args, arg)
+    end
+
+    local command = args[1]
+    if commands[command] then
+        commands[command](unpack(args, 2))
+    else
+        local status, err = pcall(loadstring(text))
+        err = err or false
+        if err then
+            self:print("LUA: "..tostring(err))
+        end
+    end
 end
 
 function console:clearHistory()
