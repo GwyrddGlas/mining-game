@@ -331,8 +331,8 @@ function game:draw()
         local bumpItems = self.world:getBumpWorld():countItems()
         lg.setFont(font.tiny)
         lg.printf("FPS: "..love.timer.getFPS()..
-        "\nMemory (KB): " .. tostring(math.floor(collectgarbage("count")))..
-        "\nvram: " .. tostring(math.floor(love.graphics.getStats().texturememory/1024/1024))..
+        "\nRam: " .. tostring(math.floor(collectgarbage("count")/1024)).." MB"..
+        "\nVRam: " .. tostring(math.floor(love.graphics.getStats().texturememory/1024/1024)).." MB"..
         "\nEntities: "..#self.visibleEntities.."/"..all_len..
         "\nX: "..floor(self.player.x).." ("..self.player.gridX..") Y: "..floor(self.player.y).." ("..self.player.gridY..")"..
         "\nChunkX: "..self.player.chunkX.." ChunkY: "..self.player.chunkY..
@@ -456,20 +456,14 @@ function game:keypressed(key)
     end
 end
 
-local scrollCount = 0
 function game:wheelmoved(x, y)
-    if y >= 1 then
-        scrollCount = scrollCount + 1
+    self.inventory.selectedIndex = self.inventory.selectedIndex + y
+    if self.inventory.selectedIndex < 1 then
+        self.inventory.selectedIndex = 1
+    elseif self.inventory.selectedIndex > 6 then
+        self.inventory.selectedIndex = 6
     end
-  
-    if y <= 0 then
-        scrollCount = scrollCount - 1
-    end
-
-    if scrollCount >= 1 and scrollCount <= 6 then
-        self.inventory.selectedIndex = tonumber(scrollCount)
-        self.inventory.highlightedItem = self.inventory.inventoryOrder[self.inventory.selectedIndex]
-    end
+    self.inventory.highlightedItem = self.inventory.inventoryOrder[self.inventory.selectedIndex]
 end
 
 function game:mousepressed(x, y, button)

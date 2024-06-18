@@ -91,7 +91,26 @@ end
 
 function entity:place(tile, id)
     if type(tile) == "table" then
-        tile:place(id)
+        local inventory = _PLAYER.inventory
+        local inventoryOrder = _PLAYER.inventoryOrder
+        local selectedItem = _INVENTORY.highlightedItem
+        local itemQuantity = inventory[selectedItem]
+
+        if itemQuantity and itemQuantity > 0 then
+            inventory[selectedItem] = itemQuantity - 1
+            if inventory[selectedItem] <= 0 then
+                inventory[selectedItem] = nil
+                for i, item in ipairs(inventoryOrder) do
+                    if item == selectedItem then
+                        table.remove(inventoryOrder, i)
+                        break
+                    end
+                end
+            end
+            tile:place(id)
+        else
+            print("Not enough items to place.")
+        end
     end
 end
 
