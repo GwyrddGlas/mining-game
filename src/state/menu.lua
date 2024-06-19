@@ -250,6 +250,39 @@ function menu:keypressed(key)
     end
 end
 
+function menu:resize(w, h)
+    self.width, self.height = w, h
+
+    -- Update positions and dimensions of menu elements
+    for _, screen in pairs(self.screen) do
+        for _, element in pairs(screen) do
+            if type(element) == "table" and type(element.resize) == "function" then
+                element:resize(w, h)
+            end
+        end
+    end
+
+    -- Update positions and dimensions of skins
+    if self.currentScreen == "skins" then
+        local skinWidth = 600
+        local skinHeight = 300
+        local skinSpacing = 20
+        local totalWidth = #skins * (skinWidth + skinSpacing) - skinSpacing
+        local startX = (w - totalWidth) / 2
+        local startY = (h - skinHeight) / 2
+
+        for i, skin in ipairs(skins) do
+            local x = startX + (i - 1) * (skinWidth + skinSpacing)
+            local y = startY
+
+            skin.x = x
+            skin.y = y
+            skin.width = skinWidth
+            skin.height = skinHeight
+        end
+    end
+end
+
 function menu:mousepressed(x, y, k)
     for _, v in pairs(self.screen[self.currentScreen]) do
         if type(v.mousepressed) == "function" then

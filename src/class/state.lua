@@ -41,6 +41,12 @@ function state:update(dt)
     end
 end
 
+function state:resize(w, h)
+    if type(self.state.resize) == "function" then
+        self.state:resize(w, h)
+    end
+end
+
 function state:draw()
     if type(self.state.draw) == "function" then
         self.state:draw()

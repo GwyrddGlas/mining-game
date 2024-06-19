@@ -207,6 +207,10 @@ function love.keyreleased(key)
     state:keyreleased(key)
 end
 
+function love.resize(w, h)
+    state:resize(w, h)
+end
+
 function love.mousepressed(x, y, key)
     state:mousepressed(x, y, key)
 end
