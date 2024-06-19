@@ -1,5 +1,5 @@
 NAME = "Miner's Odyssey"
-VERSION = "v0.08"
+VERSION = "v0.09"
  
 -- GLOBALS
 lg = love.graphics
@@ -34,7 +34,8 @@ function love.load()
         window = {
             width = 1024,
             height = 576,
-            fullscreen = true,
+            fullscreen = false,
+            resizable = true,
             title = NAME.." ["..VERSION.."]"
         },
         graphics = {
@@ -74,7 +75,7 @@ function love.load()
     end
 
     -- Creating window
-    love.window.setMode(config.window.width, config.window.height, {fullscreen=config.window.fullscreen})
+    love.window.setMode(config.window.width, config.window.height, {fullscreen=config.window.fullscreen, resizable=config.window.resizable })
     love.window.setTitle(config.window.title)
 
     -- POSTER

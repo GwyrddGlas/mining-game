@@ -1,20 +1,10 @@
 local menu = {}
 
 -- Button functions
-local function newButton()
-    menu.currentScreen = "new"
-end
-
-local function loadButton()
-    menu.currentScreen = "load"
-end
-
-local function backButton()
-    menu.currentScreen = "main"
-end
-
-local function optionsButton()
-    menu.currentScreen = "options"
+local function changeScreen(screen)
+    return function()
+        menu.currentScreen = screen
+    end
 end
 
 local function exitButton()
@@ -51,24 +41,40 @@ local function createButton()
     state:load("game", {type = "new", worldName = worldName, seed = tonumber(seed)})
 end
 
-local function load()
-    local selected = false
-    for i,v in ipairs(menu.screen.load) do
-        if v.type == "textbox" then
-            if v.selected then
-                selected = v
-                break
-            end   
-        end
+local skins = {}
+local selectedSkin = "default"
+
+local function loadSkins()
+    local skinAnimations = _PLAYER.skinAnimations
+    skins = {
+        {name = "default", path = skinAnimations.default.skin, id = nil},
+        {name = "skin1", path = skinAnimations.skin1.skin, id = nil}
+    }
+
+    for _, v in ipairs(skins) do
+        v.id = love.graphics.newImage(v.path)
     end
+end
+
+local function selectSkin(skinName)
+    selectedSkin = skinName
+end
+
+
+local function load()
+    local selected = menu:getSelectedTextbox("load")
     if selected then
         state:load("game", {type = "load", worldName = selected.text})
+    end
+
+    if _PLAYER then
+        loadSkins()
     end
 end
 
 local function removeDirectory(dir)
     if fs.getInfo(dir).type == "directory" then
-        for _, sub in pairs( fs.getDirectoryItems(dir)) do
+        for _, sub in pairs(fs.getDirectoryItems(dir)) do
             removeDirectory(dir.."/"..sub)
             fs.remove(dir.."/"..sub)
         end
@@ -79,17 +85,7 @@ local function removeDirectory(dir)
 end
 
 local function delete()
-    local selected = false
-    local selectedIndex = false
-    for i,v in ipairs(menu.screen.load) do
-        if v.type == "textbox" then
-            if v.selected then
-                selected = v
-                selectedIndex = i
-                break
-            end   
-        end
-    end
+    local selected, selectedIndex = menu:getSelectedTextbox("load")
     if selected then
         if not menu.deleteConfirmed then
             note:new("Warning: This will delete the world PERMANENTLY. This is your only warning", "danger", 8)
@@ -101,6 +97,58 @@ local function delete()
         end
     end
 end
+
+function menu:getSelectedTextbox(screen)
+    for i, v in ipairs(self.screen[screen]) do
+        if v.type == "textbox" and v.selected then
+            return v, i
+        end
+    end
+    return nil
+end
+
+local function drawSkins()
+    local skinWidth = 600
+    local skinHeight = 300
+    local skinSpacing = 20
+    local totalWidth = #skins * (skinWidth + skinSpacing) - skinSpacing
+    local startX = (love.graphics.getWidth() - totalWidth) / 2
+    local startY = (love.graphics.getHeight() - skinHeight) / 2
+
+    for i, skin in ipairs(skins) do
+        local x = startX + (i - 1) * (skinWidth + skinSpacing)
+        local y = startY
+        
+        -- Adjust the outline rectangle to be less wide
+        local outlineWidth = skinWidth / 2
+
+        if skin.name == selectedSkin then
+            love.graphics.setColor(1, 1, 0) -- Yellow outline for selected skin
+            love.graphics.rectangle("line", x + (skinWidth - outlineWidth) / 2, y - 5, outlineWidth, skinHeight + 10)
+        end
+
+        love.graphics.setColor(1, 1, 1)
+        -- Adjust the position to center the sprite
+        local spriteScaleX = skinWidth / skin.id:getWidth()
+        local spriteScaleY = skinHeight / skin.id:getHeight()
+        local spriteX = x + (skinWidth - (spriteScaleX * skin.id:getWidth())) / 2
+        local spriteY = y + (skinHeight - (spriteScaleY * skin.id:getHeight())) / 2
+        love.graphics.draw(skin.id, spriteX, spriteY, 0, spriteScaleX, spriteScaleY)
+
+        love.graphics.setColor(1, 1, 1)
+        love.graphics.setFont(font.regular)
+        local skinNameWidth = font.regular:getWidth(skin.name)
+        love.graphics.print(skin.name, x + (skinWidth - skinNameWidth) / 2, y + skinHeight + 10)
+
+        if love.mouse.isDown(1) then
+            local mouseX, mouseY = love.mouse.getPosition()
+            if mouseX >= x and mouseX <= x + skinWidth and mouseY >= y and mouseY <= y + skinHeight then
+                selectSkin(skin.name)
+            end
+        end
+    end
+end
+
 
 function menu:load()
     lg.setBackgroundColor(0.1, 0.1, 0.1)
@@ -118,28 +166,41 @@ function menu:load()
         main = {
             label.new(NAME, self.color.success, font.large, 0, lg.getHeight() * 0.2, "center"),
             label.new(VERSION, self.color.success, font.regular, 12, 12, "left"),
-            button.new("New world", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.09, newButton),
-            button.new("Load world", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, loadButton),
-            button.new("Options", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.7, self.width * 0.4, self.height * 0.09, optionsButton),
+            button.new("New world", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.09, changeScreen("new")),
+            button.new("Load world", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, changeScreen("load")),
+            button.new("Options", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.7, self.width * 0.4, self.height * 0.09, changeScreen("options")),
             button.new("Exit", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, exitButton),
-            },
+        },
         options = {
             label.new("Options", self.color.success, font.large, 0, lg.getHeight() * 0.2, "center"),
+            button.new("Skins", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.09, changeScreen("skins")),
+            button.new("Sounds", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, changeScreen("sounds")),
+            button.new("Graphics", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.7, self.width * 0.4, self.height * 0.09, changeScreen("graphics")),
+            button.new("Back", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, changeScreen("main")),
+        },
+        skins = {
+            label.new("Skins", self.color.success, font.large, 0, lg.getHeight() * 0.2, "center"),
+            button.new("Back", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, changeScreen("options")),
+        },
+        sounds = {
             slider.new("Music", 0, 100, 50, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}),
-            button.new("Back", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, backButton),
+            button.new("Back", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, changeScreen("options")),
+        },
+        graphics = {
+            button.new("Back", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, changeScreen("options")),
         },
         new = {
             label.new("New world", self.color.success, font.large, 0, lg.getHeight() * 0.2, "center"),
             worldName = textbox.new("", "World name", self.color.fg, self.color.idle, self.color.bg, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.09),
             seed = textbox.new("", "Seed", self.color.fg, self.color.idle, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, false, 10),
             button.new("Create world", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.7, self.width * 0.4, self.height * 0.09, createButton),
-            button.new("Back", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, backButton),
+            button.new("Back", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, changeScreen("main")),
         },
         load = {
             label.new("Load world", self.color.success, font.large, lg.getWidth() * 0.05, lg.getHeight() * 0.2, "left"),
             button.new("Load world", self.color.success, self.color.bg, self.width * 0.05, self.height * 0.6, self.width * 0.25, self.height * 0.09, load),
             button.new("Delete world", self.color.danger, self.color.bg, self.width * 0.05, self.height * 0.7, self.width * 0.25, self.height * 0.09, delete),
-            button.new("Back", self.color.fg, self.color.bg, self.width * 0.05, self.height * 0.8, self.width * 0.25, self.height * 0.09, backButton),
+            button.new("Back", self.color.fg, self.color.bg, self.width * 0.05, self.height * 0.8, self.width * 0.25, self.height * 0.09, changeScreen("main")),
         }
     }
 
@@ -151,21 +212,30 @@ function menu:load()
         end
     end
 
+    load()
     self.deleteConfirmed = false
 end
 
 function menu:update(dt)
-    
+    if self.currentScreen == "skins" and not _PLAYER then
+        self.currentScreen = "main"
+        note:new("Warning: You must load ingame first.", "danger", 8)
+        return 
+    end
 end
 
 function menu:draw()
-    for i,v in pairs(self.screen[self.currentScreen]) do
+    for _, v in pairs(self.screen[self.currentScreen]) do
         v:draw()
+    end
+
+    if self.currentScreen == "skins" then
+        drawSkins()
     end
 end
 
 function menu:textinput(t)
-    for i,v in pairs(self.screen[self.currentScreen]) do
+    for _, v in pairs(self.screen[self.currentScreen]) do
         if type(v.textinput) == "function" then
             v:textinput(t)
         end
@@ -173,7 +243,7 @@ function menu:textinput(t)
 end
 
 function menu:keypressed(key)
-    for i,v in pairs(self.screen[self.currentScreen]) do
+    for _, v in pairs(self.screen[self.currentScreen]) do
         if type(v.keypressed) == "function" then
             v:keypressed(key)
         end
@@ -181,7 +251,7 @@ function menu:keypressed(key)
 end
 
 function menu:mousepressed(x, y, k)
-    for i,v in pairs(self.screen[self.currentScreen]) do
+    for _, v in pairs(self.screen[self.currentScreen]) do
         if type(v.mousepressed) == "function" then
             v:mousepressed(x, y, k)
         end
@@ -189,7 +259,7 @@ function menu:mousepressed(x, y, k)
 end
 
 function menu:mousereleased(x, y, button, istouch, presses)
-    for i,v in pairs(self.screen[self.currentScreen]) do
+    for _, v in pairs(self.screen[self.currentScreen]) do
         if type(v.mousereleased) == "function" then
             v:mousereleased(x, y, button, istouch, presses)
         end
@@ -197,11 +267,11 @@ function menu:mousereleased(x, y, button, istouch, presses)
 end
 
 function menu:mousemoved(x, y, dx, dy)
-    for i,v in pairs(self.screen[self.currentScreen]) do
+    for _, v in pairs(self.screen[self.currentScreen]) do
         if type(v.mousemoved) == "function" then
             v:mousemoved(x, y, dx, dy)
         end
     end
 end
 
-return menu 
+return menu
