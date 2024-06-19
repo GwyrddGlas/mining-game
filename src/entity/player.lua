@@ -59,8 +59,8 @@ function entity:load(data, ecs)
     self.animation = {
         right = anim.new(self.skinAnimations[self.selectedSkin].right, config.graphics.assetSize, config.graphics.assetSize),
         left = anim.new(self.skinAnimations[self.selectedSkin].left, config.graphics.assetSize, config.graphics.assetSize),
-        forward = anim.new(self.skinAnimations[self.selectedSkin].forward, config.graphics.assetSize, config.graphics.assetSize),
-        backward = anim.new(self.skinAnimations[self.selectedSkin].backward, config.graphics.assetSize, config.graphics.assetSize)
+        forward = anim.new(self.skinAnimations[self.selectedSkin].backward, config.graphics.assetSize, config.graphics.assetSize),
+        backward = anim.new(self.skinAnimations[self.selectedSkin].forward, config.graphics.assetSize, config.graphics.assetSize)
     }
 
     self.moving = false

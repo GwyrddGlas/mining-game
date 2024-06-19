@@ -266,7 +266,7 @@ function menu:resize(w, h)
     if self.currentScreen == "skins" then
         local skinWidth = 600
         local skinHeight = 300
-        local skinSpacing = 20
+        local skinSpacing = 10
         local totalWidth = #skins * (skinWidth + skinSpacing) - skinSpacing
         local startX = (w - totalWidth) / 2
         local startY = (h - skinHeight) / 2

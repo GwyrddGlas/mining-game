@@ -25,6 +25,8 @@ end
 
 function game:load(data)
     lg.setBackgroundColor(0, 0, 0)
+    self:resize(love.graphics.getWidth(), love.graphics.getHeight())
+
     local playerX, playerY = 0, 0 -- Grid coordinates!
     local playerLoaded = false -- True if player loaded from save file
     local playerInventory = {}
@@ -201,13 +203,13 @@ function game:drawHud() --optimise math later
     local radiationScale = 34 * scale_x
     local width, height = lg.getWidth(), lg.getHeight()
 
-    -- Player Inventory (Hotbar)
-    local maxHotbarItems = 6
+    -- Adjust hotbar and other UI elements' positions and sizes based on scaling
     local hotbarX = width * 0.5
     local hotbarY = height - height * 0.07
     local hotbarWidth = width * 0.3
     local hotbarHeight = height * 0.07
     local itemSize = hotbarHeight * 0.8
+    local maxHotbarItems = 6
     local itemSpacing = (hotbarWidth - itemSize * maxHotbarItems) / (maxHotbarItems - 1)
     local itemX = hotbarX - (hotbarWidth * 0.5)
     local itemY = hotbarY + (hotbarHeight - itemSize) * 0.5
@@ -290,15 +292,15 @@ function game:drawHud() --optimise math later
         self.crafting:draw(self.icon)
     end
 
-    -- Health
+    --Health
     local healthX = hotbarX - hotbarWidth * 0.5 + itemSize * 0.2
-    local healthY = hotbarY + (hotbarHeight - itemSize) * 0.5 - 75
-    drawIconValue("health", math.floor(self.player.health), healthX, healthY, nil, true)
+    local healthY = hotbarY + (hotbarHeight - itemSize) * 0.5 - 75 * scale_y
+    drawIconValue("health", math.floor(self.player.health), healthX, healthY, iconScale, true)
 
     -- Radiation
     local radiationX = healthX + 200 * scale_x
     local radiationY = healthY
-    drawIconValue("radiation", math.floor(self.player.radiation), radiationX, radiationY, nil)
+    drawIconValue("radiation", math.floor(self.player.radiation), radiationX, radiationY, radiationScale)
 end
 
 function game:draw()
@@ -464,6 +466,10 @@ function game:wheelmoved(x, y)
         self.inventory.selectedIndex = 6
     end
     self.inventory.highlightedItem = self.inventory.inventoryOrder[self.inventory.selectedIndex]
+end
+
+function game:resize(w, h)
+
 end
 
 function game:mousepressed(x, y, button)

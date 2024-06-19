@@ -208,6 +208,8 @@ function love.keyreleased(key)
 end
 
 function love.resize(w, h)
+    scale_x = w / config.window.width
+    scale_y = h / config.window.height
     state:resize(w, h)
 end
 
