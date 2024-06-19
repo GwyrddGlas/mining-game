@@ -108,8 +108,6 @@ function entity:place(tile, id)
                 end
             end
             tile:place(id)
-        else
-            print("Not enough items to place.")
         end
     end
 end

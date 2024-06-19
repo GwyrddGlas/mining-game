@@ -332,6 +332,7 @@ function game:draw()
         lg.setFont(font.tiny)
         lg.printf("FPS: "..love.timer.getFPS()..
         "\nRam: " .. tostring(math.floor(collectgarbage("count")/1024)).." MB"..
+        "\nRam (w/ assets): " .. tostring(math.floor(collectgarbage("count")/1024)+100).." MB".. --rough estimate (seems to be accurate-ish though)
         "\nVRam: " .. tostring(math.floor(love.graphics.getStats().texturememory/1024/1024)).." MB"..
         "\nEntities: "..#self.visibleEntities.."/"..all_len..
         "\nX: "..floor(self.player.x).." ("..self.player.gridX..") Y: "..floor(self.player.y).." ("..self.player.gridY..")"..
