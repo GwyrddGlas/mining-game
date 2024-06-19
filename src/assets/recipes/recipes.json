@@ -19,5 +19,68 @@
     ],
     "output": "Torch",
     "outputQuantity": 1
+  },
+  {
+    "input": [
+      {
+        "slot1": "Wall",
+        "slot2": "Wall",
+        "slot3": ""
+      },
+      {
+        "slot4": "Wall",
+        "slot5": "Wall",
+        "slot6": ""
+      },
+      {
+        "slot7": "",
+        "slot8": "",
+        "slot9": ""
+      }
+    ],
+    "output": "StoneBrick",
+    "outputQuantity": 1
+  },
+  {
+    "input": [
+      {
+        "slot1": "Shrub",
+        "slot2": "Shrub",
+        "slot3": ""
+      },
+      {
+        "slot4": "Shrub",
+        "slot5": "Shrub",
+        "slot6": ""
+      },
+      {
+        "slot7": "",
+        "slot8": "",
+        "slot9": ""
+      }
+    ],
+    "output": "Crafting",
+    "outputQuantity": 1
+  },
+  {
+    "input": [
+      {
+        "slot1": "Wall",
+        "slot2": "Wall",
+        "slot3": "Wall"
+      },
+      {
+        "slot4": "Wall",
+        "slot5": "",
+        "slot6": "Wall"
+      },
+      {
+        "slot7": "Wall",
+        "slot8": "Wall",
+        "slot9": "Wall"
+      }
+    ],
+    "output": "Furnace",
+    "outputQuantity": 1
   }
 ]

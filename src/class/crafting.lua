@@ -210,10 +210,13 @@ end
 function crafting:moveSelectedItemToEmptySlot(index)
     local selectedIndex = self.selectedItem.index
     local selectedItem = self.player.craftingGrid[selectedIndex]
-    self.player.craftingGrid[selectedIndex] = nil
-    self.player.craftingGrid[index] = selectedItem
-    self.player.craftingGridOrder[selectedIndex] = nil
-    self.player.craftingGridOrder[index] = selectedItem.item
+
+    if selectedItem then 
+        self.player.craftingGrid[selectedIndex] = nil
+        self.player.craftingGrid[index] = selectedItem
+        self.player.craftingGridOrder[selectedIndex] = nil
+        self.player.craftingGridOrder[index] = selectedItem.item
+    end
 end
 
 function crafting:selectItem(index, clickedItem)
@@ -273,7 +276,23 @@ function crafting:handleCraftingResultClick(x, y, craftingX, craftingY, crafting
     local resultSlotY = craftingY + craftingHeight / 2 - itemSize / 2
 
     if self:isMouseInsideSlot(x, y, resultSlotX, resultSlotY, itemSize) then
-        -- Handle crafting result interaction
+        if self.craftingResult then
+            local craftedItem = self.craftingResult
+            local craftedQuantity = 1 --temp
+
+            -- Move the crafted item to the inventory
+            self:moveItemToInventory({item = craftedItem, quantity = craftedQuantity})
+
+            -- Clear the crafting grid
+            for i = 1, 9 do
+                self.player.craftingGrid[i] = nil
+                self.player.craftingGridOrder[i] = nil
+            end
+
+            -- Reset the crafting result
+            self.craftingResult = nil
+            self.selectedRecipe = nil
+        end
     end
 end
 

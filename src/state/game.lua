@@ -90,7 +90,10 @@ function game:load(data)
         Torch = 33,
         health = 41,
         halfHeart = 42,
-        radiation = 43
+        radiation = 43,
+        StoneBrick = 44,
+        Grass = 45,
+        Mushroom = 46
     }
 
     -- Poster stuff
@@ -159,14 +162,28 @@ function game:update(dt)
     -- Updating world
     worldGen:update(dt)
 
+    -- Updating crafting grid
     crafting:update()
 
     -- Internal timer used for shaders
     self.time = self.time + dt
     if self.time > math.pi * 2 then self.time = 0 end
+    
     -- Settings macros
     self.shaders:setMacro("rad", self.player.radiation)
     self.shaders:setMacro("time", self.time)
+
+    -- Handle dying
+    if self.player.health <= 0 then
+        self.player:teleport(self.player.spawnX, self.player.spawnY)
+        self.player.health = 10
+        self.player.radiation = 0
+        
+        for item, _ in pairs(self.player.inventory) do
+            self.player.inventory[item] = nil
+        end
+        self.player.inventoryOrder = {}
+    end
 
     -- Handle music transitioning 
     if gameAudio.background[currentIndex] and not gameAudio.background[currentIndex]:isPlaying() then
@@ -314,6 +331,9 @@ function game:draw()
         local bumpItems = self.world:getBumpWorld():countItems()
         lg.setFont(font.tiny)
         lg.printf("FPS: "..love.timer.getFPS()..
+        "\nRam: " .. tostring(math.floor(collectgarbage("count")/1024)).." MB"..
+        "\nRam (w/ assets): " .. tostring(math.floor(collectgarbage("count")/1024)+100).." MB".. --rough estimate (seems to be accurate-ish though)
+        "\nVRam: " .. tostring(math.floor(love.graphics.getStats().texturememory/1024/1024)).." MB"..
         "\nEntities: "..#self.visibleEntities.."/"..all_len..
         "\nX: "..floor(self.player.x).." ("..self.player.gridX..") Y: "..floor(self.player.y).." ("..self.player.gridY..")"..
         "\nChunkX: "..self.player.chunkX.." ChunkY: "..self.player.chunkY..
@@ -358,6 +378,14 @@ function game:drawMinimap(all)
     lg.setLineWidth(2)
     lg.rectangle("line", minimapX, minimapY, minimapWidth, minimapHeight)
     lg.setLineWidth(1)
+    
+    -- Draw minimap coordinates
+    lg.setColor(1, 1, 1, 1)
+    lg.setFont(font.tiny)
+    lg.print(string.format("x: %i", self.player.gridX), minimapX , minimapY + minimapHeight)
+    local yPos = string.format("y: %i", self.player.gridY)
+    local yPosWidth = lg.getFont():getWidth(yPos)
+    lg.print(yPos, minimapX + minimapWidth - yPosWidth, minimapY + minimapHeight)    
     
     lg.setScissor(minimapX, minimapY, minimapWidth, minimapHeight)
     
@@ -425,9 +453,18 @@ function game:keypressed(key)
     -- Hotbar selection
     if tonumber(key) and tonumber(key) >= 1 and tonumber(key) <= 6 then
         self.inventory.selectedIndex = tonumber(key)
-        print("hotbar: "..tostring(self.inventory.inventoryOrder[self.inventory.selectedIndex]))
         self.inventory.highlightedItem = self.inventory.inventoryOrder[self.inventory.selectedIndex]
     end
+end
+
+function game:wheelmoved(x, y)
+    self.inventory.selectedIndex = self.inventory.selectedIndex + y
+    if self.inventory.selectedIndex < 1 then
+        self.inventory.selectedIndex = 1
+    elseif self.inventory.selectedIndex > 6 then
+        self.inventory.selectedIndex = 6
+    end
+    self.inventory.highlightedItem = self.inventory.inventoryOrder[self.inventory.selectedIndex]
 end
 
 function game:mousepressed(x, y, button)
@@ -437,9 +474,10 @@ function game:mousepressed(x, y, button)
     end
 
     --Placing
-    --if k == 2 and self.hoverEntity and not self.inventory.inventoryOpen then
-    --    self.player:place(self.hoverEntity) 
-    --end
+    if button == 2 and self.hoverEntity and not self.inventory.inventoryOpen then
+        local itemId = self.icon[self.inventory.highlightedItem]
+        self.player:place(self.hoverEntity, itemId) 
+    end
 end
 
 return game

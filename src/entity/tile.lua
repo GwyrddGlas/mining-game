@@ -1,5 +1,7 @@
 -- TILE ENTITY
 local tileData = require("src.class.tileData")
+--local worldGen = require("src.class.worldGen")
+
 local entity = {}
 
 function entity:load(data, ecs)
@@ -21,7 +23,7 @@ end
 
 function entity:setType(type)
     -- House cleaning before changing type
-    if tileData[type] then --where is tiledata coming from?
+    if tileData[type] then 
        if not tileData[type].solid then
             if self.bumpWorld:hasItem(self) then
                 self.bumpWorld:remove(self)
@@ -78,62 +80,34 @@ function entity:mine()
     end    
 end
 
-function entity:place(tile)
-    local inventory = _PLAYER.inventory
-    local inventoryOrder = _PLAYER.inventoryOrder
-    local selectedItem = _INVENTORY.highlightedItem
-   
-    print("place: "..tostring(selectedItem))
-    if selectedItem then
-        print("Selected: "..tostring(selectedItem))
-        local itemType = selectedItem
-        local itemQuantity = inventory[itemType]
-        if itemQuantity and itemQuantity > 0 then
-            local newTileData = {
-                x = tile.gridX,
-                y = tile.gridY,
-                type = itemType
-            }
-            
-            print("worldGen.tiles:")
-for y, row in pairs(worldGen.tiles) do
-    for x, tile in pairs(row) do
-        print("  Tile at (" .. x .. ", " .. y .. "): " .. tostring(tile))
-    end
+local function convertIconToDefinition(iconValue)
+    local iconDefinitions = {
+        [18] = 1,   -- Wall
+        [1] = 3,    -- Coal
+        [9] = 4,   -- Shrub
+        [7] = 5,   -- Tanzenite
+        [3] = 6,    -- Gold
+        [4] = 7,    -- Uranium
+        [5] = 8,    -- Diamond
+        [6] = 9,    -- Ruby
+        [10] = 10,    -- idk
+        [2] = 4,    -- Iron
+        [8] = 11,   -- Copper
+        [28] = 13,  -- Crafting
+        [29] = 14,  -- Furnace
+        [44] = 15,  -- StoneBrick
+        [45] = 16,   -- Grass
+        [46] = 17,   -- Mushroom
+        [33] = 15,  -- Torch
+    }
+    
+    return iconDefinitions[iconValue] or 12
 end
 
-            -- Check if a tile already exists at the target position
-            if not worldGen.tiles[newTileData.y] or not worldGen.tiles[newTileData.y][newTileData.x] then
-                local newTile = _WORLD:newEntity("src/entity/tile.lua", newTileData.x, newTileData.y, newTileData)
-                newTile:setType(itemType)
-                print("placed "..selectedItem.." at "..newTileData.x.." "..newTileData.y)
-                
-                -- Update the world tiles table
-                if not worldGen.tiles[newTileData.y] then
-                    worldGen.tiles[newTileData.y] = {}
-                end
-                worldGen.tiles[newTileData.y][newTileData.x] = newTile
-                
-                -- Mark the chunk as modified
-                newTile.chunk.modified = true
-                
-                -- Update the player's inventory
-                inventory[itemType] = itemQuantity - 1
-                if inventory[itemType] <= 0 then
-                    inventory[itemType] = nil
-                    for i, item in ipairs(inventoryOrder) do
-                        if item == itemType then
-                            table.remove(inventoryOrder, i)
-                            break
-                        end
-                    end
-                end
-            else
-                print("worldGen.tile not loaded")
-            end
-        end
-    else
-        print("not selected")
+function entity:place(id)
+    if self.tileData.placeable then
+        self:setType(convertIconToDefinition(id))
+        self.chunk.modified = true
     end
 end
 
@@ -143,7 +117,10 @@ function entity:draw()
         local los =  bresenham.los(self.gridX, self.gridY, _PLAYER.gridX, _PLAYER.gridY, function(x, y)
             if worldGen.tiles[y] then
                 if worldGen.tiles[y][x] then
-                    if not worldGen.tiles[y][x].tileData.solid then
+                    if not worldGen.tiles[y][x].tileData then
+                        print("Warning: tileData is nil for tile at position: " .. x .. ", " .. y)
+                        return true
+                    elseif not worldGen.tiles[y][x].tileData.solid then
                         return true
                     end
                end
@@ -168,13 +145,17 @@ function entity:draw()
         -- Drawing tile
         lg.setColor(self.color)
         
-        if self.tileData.textureID then
-            lg.draw(tileAtlas, tiles[self.tileData.textureID], self.x, self.y, 0, self.width / config.graphics.assetSize, self.height / config.graphics.assetSize)
-        end
-    
-        -- Drawing tile item
-        if self.tileData.item then
-            lg.draw(tileAtlas, tiles[self.tileData.itemTextureID], self.x, self.y, 0, self.width / config.graphics.assetSize, self.height / config.graphics.assetSize)
+        if self.tileData then
+            if self.tileData.textureID then
+                lg.draw(tileAtlas, tiles[self.tileData.textureID], self.x, self.y, 0, self.width / config.graphics.assetSize, self.height / config.graphics.assetSize)
+            end
+        
+            -- Drawing tile item
+            if self.tileData.item then
+                lg.draw(tileAtlas, tiles[self.tileData.itemTextureID], self.x, self.y, 0, self.width / config.graphics.assetSize, self.height / config.graphics.assetSize)
+            end
+        else
+            print("Warning: tileData is nil for tile at position: " .. self.gridX .. ", " .. self.gridY)
         end
 
         -- Drawing light
@@ -202,7 +183,6 @@ function entity:draw()
             end
         end
     end
-
 end
 
 return entity

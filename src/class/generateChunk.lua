@@ -64,16 +64,21 @@ local function generateNoise(x, y, scaleBase, scaleDetail, thresh, ratio1, ratio
     return noise(x * scaleBase, y * scaleBase, seed + seedOffset) * ratio1 + noise(x * scaleDetail, y * scaleDetail, seed + seedOffset) * ratio2 > thresh and true or false
 end
 
--- Tile definitions. 
+-- Tile definitions. this is dumb
 local wall = 1
 local ground = 2
 local coal = 3
 local iron = 4
-local gold = 5
-local uranium = 6
-local diamond = 7
-local ruby = 8
-local tanzenite = 9
+local gold = 6
+local uranium = 7
+local diamond = 8
+local ruby = 9
+local tanzenite = 10
+local copper = 11
+local idk = 12
+local Crafting = 13
+local Furnace = 14
+local Grass = 15
 
 -- Generating the requested chunks
 if type(chunksToGenerate) == "table" then

@@ -82,6 +82,14 @@ function inventory:swapInventoryItems(item1, item2)
     inventory[item1], inventory[item2] = inventory[item2], inventory[item1]
 end
 
+function inventory:giveItem(item, quantity)
+    if not self.player.inventory[item] then
+        self.player.inventory[item] = 0
+        table.insert(self.player.inventoryOrder, item)
+    end
+    self.player.inventory[item] = self.player.inventory[item] + quantity
+end
+
 function inventory:moveInventoryItemToIndex(item, index)
     local inventory = self.player.inventory
     local inventoryOrder = self.player.inventoryOrder
@@ -97,30 +105,13 @@ function inventory:moveInventoryItemToIndex(item, index)
     end
     
     if currentIndex then
-        -- Remove the item from its current slot
         table.remove(inventoryOrder, currentIndex)
-        inventory[item] = nil
         
-        -- Insert the item at the desired index
         table.insert(inventoryOrder, index, item)
+        
         inventory[item] = quantity
     end
 end
-
-function tprint (tbl, indent)
-    if not indent then indent = 0 end
-    for k, v in pairs(tbl) do
-      formatting = string.rep("  ", indent) .. k .. ": "
-      if type(v) == "table" then
-        print(formatting)
-        tprint(v, indent+1)
-      elseif type(v) == 'boolean' then
-        print(formatting .. tostring(v))      
-      else
-        print(formatting .. v)
-      end
-    end
-  end
 
 function inventory:mousepressed(x, y, button)
     local inventoryX, inventoryY, inventoryWidth, inventoryHeight = self:getInventoryBounds()

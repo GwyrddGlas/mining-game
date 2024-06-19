@@ -72,11 +72,10 @@ end
 
 function worldGen:findPlayerSpawnTile()
     if not self.player.control then
-        local spawnX, spawnY = 0, 0
         local foundSpawnTile = false
         if self.player.playerLoaded then
-            spawnX = self.player.x
-            spawnY = self.player.y
+            self.player.spawnX = self.player.x
+            self.player.spawnY = self.player.y
             foundSpawnTile = true
         else
             foundSpawnTile = true
@@ -84,7 +83,7 @@ function worldGen:findPlayerSpawnTile()
 
         if foundSpawnTile then
             self.player.control = true
-            self.player:teleport(spawnX, spawnY)
+            self.player:teleport(self.player.spawnX, self.player.spawnY)
             self:centerPlayerOnTile()
         end
     end
@@ -309,7 +308,6 @@ function worldGen:updateWorld()
 end
 
 function worldGen:draw()
-
     if config.debug.showChunkBorders then
         camera:push()
 
