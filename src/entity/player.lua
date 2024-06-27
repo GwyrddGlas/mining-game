@@ -34,7 +34,7 @@ function entity:load(data, ecs)
     self.inventoryOrder = {}
     self.playerLoaded = data.playerLoaded
     self.inRangeOfRadiation = false
-    self.selectedSkin = "default"
+    self.selectedSkin = "skin1"
     
     self.color = {1, 1, 1}
 

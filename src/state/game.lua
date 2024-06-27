@@ -206,7 +206,6 @@ function game:drawHud() --optimise math later
     local radiationScale = 34 * scale_x
     local width, height = lg.getWidth(), lg.getHeight()
 
-    -- Adjust hotbar and other UI elements' positions and sizes based on scaling
     local hotbarX = width * 0.5
     local hotbarY = height - height * 0.07
     local hotbarWidth = width * 0.3
@@ -214,15 +213,19 @@ function game:drawHud() --optimise math later
     local itemSize = hotbarHeight * 0.8
     local maxHotbarItems = 6
     local itemSpacing = (hotbarWidth - itemSize * maxHotbarItems) / (maxHotbarItems - 1)
-    local itemX = hotbarX - (hotbarWidth * 0.5)
-    local itemY = hotbarY + (hotbarHeight - itemSize) * 0.5
     local cornerRadius = itemSize * 0.2
+
+    local hotbarPadding = itemSize * 0.12
+    local adjustedHotbarWidth = hotbarWidth + hotbarPadding * 2
+
+    local itemX = hotbarX - (adjustedHotbarWidth * 0.5) + hotbarPadding
+    local itemY = hotbarY + (hotbarHeight - itemSize) * 0.5
 
     local selectedIndex = self.inventory.selectedIndex
 
     -- Draw hotbar background
-    lg.setColor(0.2, 0.2, 0.2, 0.8)
-    lg.rectangle("fill", hotbarX - hotbarWidth * 0.5, hotbarY, hotbarWidth, hotbarHeight, cornerRadius, cornerRadius)
+    lg.setColor(40/255, 40/255, 40/255, 1)
+    lg.rectangle("fill", hotbarX - adjustedHotbarWidth * 0.5, hotbarY, adjustedHotbarWidth, hotbarHeight, cornerRadius, cornerRadius)
 
     for i = 1, maxHotbarItems do
         local x = itemX + (i - 1) * (itemSize + itemSpacing)
@@ -234,10 +237,15 @@ function game:drawHud() --optimise math later
     
         -- Draw item slot
         if i == selectedIndex then
-            lg.setColor(1, 1, 0, 0.3) -- Bright yellow outline for the selected slot
-            lg.rectangle("fill", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
+            lg.setColor(12/255, 150/255, 140/255)
+            lg.setLineWidth(2)
+            lg.rectangle("line", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
+            lg.setLineWidth(1)   
         else
             lg.setColor(0.5, 0.5, 0.5, 0.9) -- Gray outline for unselected slots
+            lg.setLineWidth(2)
+            lg.rectangle("line", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
+            lg.setLineWidth(1)   
         end
 
         -- Draw item icon and quantity
@@ -297,7 +305,7 @@ function game:drawHud() --optimise math later
 
     --Health
     local healthX = hotbarX - hotbarWidth * 0.5 + itemSize * 0.2
-    local healthY = hotbarY + (hotbarHeight - itemSize) * 0.5 - 75 * scale_y
+    local healthY = hotbarY + (hotbarHeight - itemSize) * 0.5 - 45 * scale_y
     drawIconValue("health", math.floor(self.player.health), healthX, healthY, iconScale, true)
 
     -- Radiation
@@ -343,7 +351,8 @@ function game:draw()
         "\nChunkX: "..self.player.chunkX.." ChunkY: "..self.player.chunkY..
         "\nLoaded chunks: "..worldGen.loadedChunkCount..
         "\nBump items: "..bumpItems..
-        "\nWorld name: "..self.worldName.." World seed: "..tostring(self.seed), -12, 12, lg.getWidth(), "center")
+        "\nWorld name: "..self.worldName..
+        "\nWorld seed: "..tostring(self.seed), -12, 12, lg.getWidth(), "center")
         worldGen:draw()
     end
 
@@ -464,9 +473,9 @@ end
 function game:wheelmoved(x, y)
     self.inventory.selectedIndex = self.inventory.selectedIndex + y
     if self.inventory.selectedIndex < 1 then
-        self.inventory.selectedIndex = 1
-    elseif self.inventory.selectedIndex > 6 then
         self.inventory.selectedIndex = 6
+    elseif self.inventory.selectedIndex > 6 then
+        self.inventory.selectedIndex = 1
     end
     self.inventory.highlightedItem = self.inventory.inventoryOrder[self.inventory.selectedIndex]
 end

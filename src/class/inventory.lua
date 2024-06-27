@@ -189,8 +189,8 @@ function inventory:draw(icon, itemSize, itemSpacing, cornerRadius, maxHotbarItem
     local inventoryY = height * 0.5 - inventoryHeight * 0.5
     
     --inventory background
-    lg.setColor(0.2, 0.2, 0.2, 0.8)
-    lg.rectangle("fill", inventoryX, inventoryY, inventoryWidth, inventoryHeight, cornerRadius, cornerRadius)
+    --lg.setColor(0.2, 0.2, 0.2, 0.8)
+    --lg.rectangle("fill", inventoryX, inventoryY, inventoryWidth, inventoryHeight, cornerRadius, cornerRadius)
 
     for row = 1, inventoryRows do
         for col = 1, inventoryColumns do
@@ -199,10 +199,10 @@ function inventory:draw(icon, itemSize, itemSpacing, cornerRadius, maxHotbarItem
             local y = inventoryY + inventoryPadding + (row - 1) * (itemSize + itemSpacing)
 
             --inventory slots
-            lg.setColor(0.3, 0.3, 0.3, 0.9)
-            lg.rectangle("fill", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
-            lg.setColor(0.5, 0.5, 0.5, 0.9)
-            lg.rectangle("line", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
+           -- lg.setColor(0.3, 0.3, 0.3, 0.9)
+           -- lg.rectangle("fill", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
+           -- lg.setColor(0.5, 0.5, 0.5, 0.9)
+           -- lg.rectangle("line", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
             
             local item = self.player.inventoryOrder[index]
             if item then
@@ -227,7 +227,6 @@ function inventory:draw(icon, itemSize, itemSpacing, cornerRadius, maxHotbarItem
                         local textX = x + itemSize - textWidth - itemSize * 0.1
                         local textY = y + itemSize - textHeight - itemSize * 0.1
 
-                        lg.setColor(1, 1, 1)
                         lg.print(quantityText, textX, textY)
                     end
                 else
@@ -240,12 +239,17 @@ function inventory:draw(icon, itemSize, itemSpacing, cornerRadius, maxHotbarItem
             if mouseX >= x and mouseX <= x + itemSize and mouseY >= y and mouseY <= y + itemSize then
                 lg.print(tostring(item), x, y - 10)
 
-                lg.setBlendMode("add")
-                lg.setColor(1, 1, 1, 1)
-                lg.rectangle("line", x + 1, y + 1, itemSize - 2, itemSize - 2)
-                lg.setColor(1, 1, 1, 0.1)
-                lg.rectangle("fill", x + 1, y + 1, itemSize - 2, itemSize - 2)
-                lg.setBlendMode("alpha")           
+                --lg.setBlendMode("add")
+                --lg.setColor(1, 1, 1, 1)
+                --lg.rectangle("line", x + 1, y + 1, itemSize - 2, itemSize - 2)
+                --lg.setColor(1, 1, 1, 0.1)
+                --lg.rectangle("fill", x + 1, y + 1, itemSize - 2, itemSize - 2)
+                --lg.setBlendMode("alpha")   
+                
+                lg.setColor(12/255, 150/255, 140/255)
+                lg.setLineWidth(2)
+                lg.rectangle("line", x, y, itemSize, itemSize)
+                lg.setLineWidth(1)
             end
         end
     end

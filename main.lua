@@ -34,7 +34,7 @@ function love.load()
         window = {
             width = 1024,
             height = 576,
-            fullscreen = false,
+            fullscreen = true,
             resizable = true,
             title = NAME.." ["..VERSION.."]"
         },
