@@ -177,7 +177,10 @@ function game:update(dt)
 
     -- Handle dying
     if self.player.health <= 0 then
-        self.player:teleport(self.player.spawnX, self.player.spawnY)
+        if self.player.spawnX and self.player.spawnY then
+            self.player:teleport(self.player.spawnX, self.player.spawnY)
+        end
+        
         self.player.health = 10
         self.player.radiation = 0
         

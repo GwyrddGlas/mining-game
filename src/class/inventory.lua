@@ -213,17 +213,6 @@ function inventory:draw(icon, itemSize, itemSpacing, cornerRadius, maxHotbarItem
                     lg.setColor(1, 1, 1, 0.5)
                     lg.rectangle("fill", x, y, itemSize, itemSize)
                 end
-
-                --hover
-                local mouseX, mouseY = love.mouse.getPosition()
-                if mouseX >= x and mouseX <= x + itemSize and mouseY >= y and mouseY <= y + itemSize then
-                    lg.setBlendMode("add")
-                    lg.setColor(1, 1, 1, 1)
-                    lg.rectangle("line", x + 1, y + 1, itemSize - 2, itemSize - 2)
-                    lg.setColor(1, 1, 1, 0.1)
-                    lg.rectangle("fill", x + 1, y + 1, itemSize - 2, itemSize - 2)
-                    lg.setBlendMode("alpha")
-                end
                 
                 --print(tostring(item).."  "..tostring(self.icon[item]))
                 if icon[item] then
@@ -244,6 +233,19 @@ function inventory:draw(icon, itemSize, itemSpacing, cornerRadius, maxHotbarItem
                 else
                     print("Failed to load "..tostring(item))
                 end
+            end
+
+            --hover
+            local mouseX, mouseY = love.mouse.getPosition()
+            if mouseX >= x and mouseX <= x + itemSize and mouseY >= y and mouseY <= y + itemSize then
+                lg.print(tostring(item), x, y - 10)
+
+                lg.setBlendMode("add")
+                lg.setColor(1, 1, 1, 1)
+                lg.rectangle("line", x + 1, y + 1, itemSize - 2, itemSize - 2)
+                lg.setColor(1, 1, 1, 0.1)
+                lg.rectangle("fill", x + 1, y + 1, itemSize - 2, itemSize - 2)
+                lg.setBlendMode("alpha")           
             end
         end
     end
