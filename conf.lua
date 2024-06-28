@@ -1,4 +1,4 @@
 function love.conf(c)
     c.console = true
-    --c.window = false
+    c.window.msaa = 6
 end

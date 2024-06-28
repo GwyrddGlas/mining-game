@@ -1,5 +1,5 @@
 NAME = "Miner's Odyssey"
-VERSION = "v0.08"
+VERSION = "v0.09"
  
 -- GLOBALS
 lg = love.graphics
@@ -35,6 +35,7 @@ function love.load()
             width = 1024,
             height = 576,
             fullscreen = true,
+            resizable = true,
             title = NAME.." ["..VERSION.."]"
         },
         graphics = {
@@ -74,7 +75,7 @@ function love.load()
     end
 
     -- Creating window
-    love.window.setMode(config.window.width, config.window.height, {fullscreen=config.window.fullscreen})
+    love.window.setMode(config.window.width, config.window.height, {fullscreen=config.window.fullscreen, resizable=config.window.resizable })
     love.window.setTitle(config.window.title)
 
     -- POSTER
@@ -204,6 +205,12 @@ function love.keyreleased(key)
     keybind:trigger("keyreleased", key)
     keybind:keyreleased(key)
     state:keyreleased(key)
+end
+
+function love.resize(w, h)
+    scale_x = w / config.window.width
+    scale_y = h / config.window.height
+    state:resize(w, h)
 end
 
 function love.mousepressed(x, y, key)
