@@ -244,6 +244,12 @@ function menu:update(dt)
         note:new("Warning: You must load ingame first.", "danger", 8)
         return 
     end
+
+    for _, v in pairs(self.screen[self.currentScreen]) do
+        if type(v.update) == "function" then
+            v:update(dt)
+        end
+    end
 end
 
 function menu:draw()
