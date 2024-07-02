@@ -1,11 +1,11 @@
 return {
     name = "Grass",
     -- Shape
-    caveScaleBase = 0.08,
+    caveScaleBase = 0,
     caveScaleDetail = 0.33,
-    caveThresh = 0.47,
-    caveRatio1 = 0.8,
-    caveRatio2 = 0.2,
+    caveThresh = 0,
+    caveRatio1 = 0,
+    caveRatio2 = 0,
 
     ores = {
         {

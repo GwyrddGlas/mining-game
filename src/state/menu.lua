@@ -1,4 +1,6 @@
-local menu = {}
+local menu = {
+    selectedWorld = nil
+}
 
 -- Button functions
 local function changeScreen(screen)
@@ -60,11 +62,15 @@ local function selectSkin(skinName)
     selectedSkin = skinName
 end
 
-
 local function load()
-    local selected = menu:getSelectedTextbox("load")
-    if selected then
-        state:load("game", {type = "load", worldName = selected.text})
+    if currentTrack then
+        currentTrack:stop()
+    end
+
+    if menu.selectedWorld then
+        state:load("game", {type = "load", worldName = menu.selectedWorld})
+    else
+        note:new("Please select a world first", "danger")
     end
 
     if _PLAYER then
@@ -85,16 +91,19 @@ local function removeDirectory(dir)
 end
 
 local function delete()
-    local selected, selectedIndex = menu:getSelectedTextbox("load")
-    if selected then
+    if menu.selectedWorld then
         if not menu.deleteConfirmed then
             note:new("Warning: This will delete the world PERMANENTLY. This is your only warning", "danger", 8)
             menu.deleteConfirmed = true
         else
-            removeDirectory("worlds/"..selected.text)
-            menu.screen.load[selectedIndex] = nil
-            note:new("World '"..selected.text.."' deleted.", "success")
+            removeDirectory("worlds/"..menu.selectedWorld)
+            menu.selectedWorld = nil
+            note:new("World '"..menu.selectedWorld.."' deleted.", "success")
+            -- Reload the world list
+            menu:load()
         end
+    else
+        note:new("Please select a world first", "danger")
     end
 end
 
@@ -165,13 +174,13 @@ function menu:load()
     self.screen = {
         main = {
             label.new(NAME, self.color.success, font.large, 0, lg.getHeight() * 0.2, "center"),
-            label.new(VERSION, self.color.success, font.regular, 12, 12, "left"),
+            label.new(VERSION, self.color.success, font.regular, self.width*0.47, self.height - 55, "center"),
             button.new("Singleplayer", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.09, changeScreen("singleplayer")),
             button.new("Multiplayer", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.09, changeScreen("multiplayer")),
-            button.new("Skins", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, changeScreen("skins")),
+            --button.new("Skins", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, changeScreen("skins")),
             --button.new("Mods", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, changeScreen("skins")),
-            button.new("Options", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.7, self.width * 0.4, self.height * 0.09, changeScreen("options")),
-            button.new("Quit Game", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, exitButton),
+            button.new("Options", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, changeScreen("options")),
+            button.new("Quit Game", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.7, self.width * 0.4, self.height * 0.09, exitButton),
         },
         singleplayer = {
             label.new("Singleplayer", self.color.success, font.large, 0, lg.getHeight() * 0.2, "center"),
@@ -219,17 +228,53 @@ function menu:load()
             button.new("Back", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, changeScreen("main")),
         },
         load = {
-            label.new("Load world", self.color.success, font.large, lg.getWidth() * 0.05, lg.getHeight() * 0.2, "left"),
-            button.new("Load world", self.color.success, self.color.bg, self.width * 0.05, self.height * 0.6, self.width * 0.25, self.height * 0.09, load),
-            button.new("Delete world", self.color.danger, self.color.bg, self.width * 0.05, self.height * 0.7, self.width * 0.25, self.height * 0.09, delete),
-            button.new("Back", self.color.fg, self.color.bg, self.width * 0.05, self.height * 0.8, self.width * 0.25, self.height * 0.09, changeScreen("main")),
+            label.new("Select World", self.color.success, font.large, 0, lg.getHeight() * 0.2, "center"),
+            --button.new("Load world", self.color.success, self.color.bg, self.width * 0.05, self.height * 0.6, self.width * 0.25, self.height * 0.09, load),
+            --button.new("Delete world", self.color.danger, self.color.bg, self.width * 0.05, self.height * 0.7, self.width * 0.25, self.height * 0.09, delete),
+            --button.new("Back", self.color.fg, self.color.bg, self.width * 0.05, self.height * 0.8, self.width * 0.25, self.height * 0.09, changeScreen("main")),
         }
     }
 
-    local y = 0.1
+    local y = 0.4
     for i, world in ipairs(fs.getDirectoryItems("worlds")) do
         if fs.getInfo("worlds/"..world).type == "directory" then
-            self.screen.load[#self.screen.load+1] = textbox.new(world, world, self.color.fg, self.color.idle, self.color.bg, self.width * 0.35, self.height * y, self.width * 0.5, self.height * 0.09, function() return false end)
+            -- World button
+            self.screen.load[#self.screen.load+1] = button.new(
+                world, 
+                self.color.fg, 
+                self.color.bg, 
+                self.width * 0.35, 
+                self.height * y, 
+                self.width * 0.3, 
+                self.height * 0.09, 
+                function() 
+                    state:load("game", {type = "load", worldName = world})
+                    note:new("Selected world: " .. world, "success")
+                end
+            )
+            -- Delete button for this world
+            self.screen.load[#self.screen.load+1] = button.new(
+                "X", 
+                self.color.danger, 
+                self.color.bg, 
+                self.width * 0.66, 
+                self.height * y, 
+                self.width * 0.08, 
+                self.height * 0.08, 
+                function()
+                    if not self.deleteConfirmed then
+                        note:new("Warning: This will delete '"..world.."' PERMANENTLY. \nPress again to confirm.", "danger", 8)
+                        self.deleteConfirmed = world
+                    elseif self.deleteConfirmed == world then
+                        removeDirectory("worlds/"..world)
+                        self.selectedWorld = nil
+                        note:new("World '"..world.."' deleted.", "success")
+                        self:load()  -- Reload the menu to update the world list
+                    else
+                        self.deleteConfirmed = false
+                    end
+                end
+            )
             y = y + 0.1
         end
     end

@@ -4,7 +4,7 @@ local crafting = require("src/class/crafting")
 local game = {}
 
 local currentIndex = 1
-local currentTrack = gameAudio.background[currentIndex]
+currentTrack = gameAudio.background[currentIndex]
 
 local function playNextTrack()
     currentIndex = currentIndex + 1
