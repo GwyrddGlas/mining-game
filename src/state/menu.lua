@@ -44,10 +44,13 @@ local function createButton()
 end
 
 local skins = {}
-local selectedSkin = "default"
+local selectedSkin = "skin1"
 
 local function loadSkins()
-    local skinAnimations = _PLAYER.skinAnimations
+    local skinAnimations = {
+        default = {skin = "src/assets/player/skin.png"},
+        skin1 = {skin = "src/assets/player/skinBlue.png"}
+    }
     skins = {
         {name = "default", path = skinAnimations.default.skin, id = nil},
         {name = "skin1", path = skinAnimations.skin1.skin, id = nil}
@@ -74,8 +77,8 @@ local function load()
     end
 
     if _PLAYER then
-        loadSkins()
-    end
+        end
+    loadSkins()
 end
 
 local function removeDirectory(dir)
@@ -88,6 +91,32 @@ local function removeDirectory(dir)
         fs.remove(dir)
     end
     fs.remove(dir)
+end
+
+function menu:drawCharacterPreview()
+    local previewWidth = 200
+    local previewHeight = 400
+    local x = self.width - 300  -- Align with the "Change" button
+    local y = self.height * 0.7 - previewHeight  -- Position above the "Change" button
+
+    -- Draw character sprite
+    love.graphics.setColor(1, 1, 1)
+    local spriteX = x + previewWidth / 2
+    local spriteY = y + previewHeight / 2
+    
+    -- Find the selected skin
+    local selectedSkinImage
+    for _, skin in ipairs(skins) do
+        if skin.name == selectedSkin then
+            selectedSkinImage = skin.id
+            break
+        end
+    end
+    
+    if selectedSkinImage then
+        local scale = 16
+        love.graphics.draw(selectedSkinImage, spriteX, spriteY, 0, scale, scale, selectedSkinImage:getWidth() / 2, selectedSkinImage:getHeight() / 2)
+    end
 end
 
 local function delete()
@@ -158,7 +187,6 @@ local function drawSkins()
     end
 end
 
-
 function menu:load()
     lg.setBackgroundColor(0.1, 0.1, 0.1)
     self.width, self.height = lg.getWidth(), lg.getHeight()
@@ -181,6 +209,8 @@ function menu:load()
             --button.new("Mods", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, changeScreen("skins")),
             button.new("Options", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, changeScreen("options")),
             button.new("Quit Game", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.7, self.width * 0.4, self.height * 0.09, exitButton),
+            
+            button.new("Change", self.color.fg, self.color.bg, self.width - 350, self.height * 0.7, 200, self.height * 0.09, changeScreen("skins")),
         },
         singleplayer = {
             label.new("Singleplayer", self.color.success, font.large, 0, lg.getHeight() * 0.2, "center"),
@@ -284,12 +314,6 @@ function menu:load()
 end
 
 function menu:update(dt)
-    if self.currentScreen == "skins" and not _PLAYER then
-        self.currentScreen = "main"
-        note:new("Warning: You must load ingame first.", "danger", 8)
-        return 
-    end
-
     for _, v in pairs(self.screen[self.currentScreen]) do
         if type(v.update) == "function" then
             v:update(dt)
@@ -302,7 +326,9 @@ function menu:draw()
         v:draw()
     end
 
-    if self.currentScreen == "skins" then
+    if self.currentScreen == "main" then
+        self:drawCharacterPreview()
+    elseif self.currentScreen == "skins" then
         drawSkins()
     end
 end
