@@ -14,8 +14,8 @@ local function playNextTrack()
     
     currentTrack = gameAudio.background[currentIndex]
     if currentTrack then
-        currentTrack:setVolume(0.2)
         currentTrack:play()
+        currentTrack:setVolume(config.audio.music * config.audio.master)
     end
 end
 
@@ -24,6 +24,8 @@ local function playBackgroundMusic()
 end
 
 function game:load(data)
+    config = ttf.load("config.lua")
+
     lg.setBackgroundColor(0, 0, 0)
     self:resize(love.graphics.getWidth(), love.graphics.getHeight())
 
@@ -238,7 +240,7 @@ function game:drawHud() --optimise math later
         -- Draw item slot
         if i == selectedIndex then
             lg.setColor(12/255, 150/255, 140/255)
-            lg.setLineWidth(2)
+            lg.setLineWidth(5)
             lg.rectangle("line", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
             lg.setLineWidth(1)   
         else

@@ -9,6 +9,17 @@ return {
 
     ores = {
         {
+            -- Grass          
+            type = "Grass",
+            scaleBase = 1,  
+            scaleDetail = 0.2,  
+            thresh = 0.3,  
+            ratio1 = 0.7,
+            ratio2 = 0.3,
+            spawnProbability = 1, 
+            seedOffset = 800
+        },
+        {
             -- Coal             3
             type = "Coal",
             scaleBase = 0.07,

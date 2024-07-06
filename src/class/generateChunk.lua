@@ -113,9 +113,11 @@ if type(chunksToGenerate) == "table" then
                 -- "sway" is an offset, based on noise, Used to generate slightly different terrain at different coordinates
                 local sway = -1 + (noise(tileY * 0.01, tileX * 0.01, seed) * 2)
                 local swayAmount = 0.05
-                if generateNoise(tileX, tileY, tileBiome.caveScaleBase, tileBiome.caveScaleDetail, tileBiome.caveThresh + (swayAmount * sway), tileBiome.caveRatio1, tileBiome.caveRatio2, 0) then
+                local isCave = generateNoise(tileX, tileY, tileBiome.caveScaleBase, tileBiome.caveScaleDetail, tileBiome.caveThresh + (swayAmount * sway), tileBiome.caveRatio1, tileBiome.caveRatio2, 0)
+                
+                if isCave then
                     tile = ground
-
+                
                     for i, ore in ipairs(tileBiome.ores) do
                         if generateNoise(tileX, tileY, ore.scaleBase, ore.scaleDetail, ore.thresh, ore.ratio1, ore.ratio2, ore.seedOffset) then
                             local probability = ore.spawnProbability + (love.math.random() * (1 - ore.spawnProbability))
@@ -123,6 +125,13 @@ if type(chunksToGenerate) == "table" then
                                 tile = i + 2
                             end
                         end
+                    end
+                else
+                    -- If it's not a cave, and it's a grass biome, make it a grass tile
+                    if tileBiome.name == "Grass" then
+                        tile = Grass
+                    else
+                        tile = wall  -- Or whatever your default surface tile is
                     end
                 end
 
