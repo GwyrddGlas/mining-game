@@ -78,7 +78,7 @@ local copper = 11
 local idk = 12
 local Crafting = 13
 local Furnace = 14
-local Grass = 15
+local Grass = 16
 
 -- Generating the requested chunks
 if type(chunksToGenerate) == "table" then
@@ -100,6 +100,7 @@ if type(chunksToGenerate) == "table" then
                 -- Grid coordinates for the tile
                 local tileX = (v.x * chunkSize) + x
                 local tileY = (v.y * chunkSize) + y
+                
                 -- World coordinates for the tile
                 local worldX = chunkWorldX + (x * tileSize)
                 local worldY = chunkWorldY + (y * tileSize)
@@ -116,7 +117,7 @@ if type(chunksToGenerate) == "table" then
                 local isCave = generateNoise(tileX, tileY, tileBiome.caveScaleBase, tileBiome.caveScaleDetail, tileBiome.caveThresh + (swayAmount * sway), tileBiome.caveRatio1, tileBiome.caveRatio2, 0)
                 
                 if isCave then
-                    tile = ground
+                    tile = Grass
                 
                     for i, ore in ipairs(tileBiome.ores) do
                         if generateNoise(tileX, tileY, ore.scaleBase, ore.scaleDetail, ore.thresh, ore.ratio1, ore.ratio2, ore.seedOffset) then
@@ -127,11 +128,10 @@ if type(chunksToGenerate) == "table" then
                         end
                     end
                 else
-                    -- If it's not a cave, and it's a grass biome, make it a grass tile
                     if tileBiome.name == "Grass" then
                         tile = Grass
                     else
-                        tile = wall  -- Or whatever your default surface tile is
+                        tile = wall  
                     end
                 end
 

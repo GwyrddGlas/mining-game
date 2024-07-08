@@ -36,7 +36,8 @@ function button:update(dt)
     if self.isHovered then
         self.targetScale = 1.05
         if not self.wasHovered then
-            hoverSound:stop()  -- Stop any currently playing instance
+            hoverSound:stop()
+            hoverSound:setVolume(config.audio.sfx)
             hoverSound:play()
         end
     else

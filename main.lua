@@ -36,7 +36,6 @@ function love.load()
             height = 576,
             fullscreen = true,
             resizable = true,
-            title = NAME.." ["..VERSION.."]"
         },
         graphics = {
             useLight = true,
@@ -67,11 +66,11 @@ function love.load()
         }
     }
 
-    config = default_config
     if fs.getInfo("config.lua") then
         config = ttf.load("config.lua")
     else
-        save_config()
+        config = default_config
+        --save_config()
     end
 
     -- Creating folders
@@ -81,7 +80,7 @@ function love.load()
 
     -- Creating window
     love.window.setMode(config.window.width, config.window.height, {fullscreen=config.window.fullscreen, resizable=config.window.resizable })
-    love.window.setTitle(config.window.title)
+    love.window.setTitle(NAME.." ["..VERSION.."]")
 
     -- POSTER
     poster = require("src.lib.poster")

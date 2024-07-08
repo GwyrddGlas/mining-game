@@ -417,6 +417,12 @@ function game:drawMinimap(all)
         {0.2, 0.8, 0.8, 1},    -- 9: Cyan (Diamond)
         {1.0, 0.5, 0.2, 1},    -- 10: Orange (Copper)
         {0.8, 0.8, 0.2, 1},    -- 11: Yellow-Green (Uranium)
+        {1, 1, 1, 1},    -- 12: 
+        {1, 1, 1, 1},    -- 13: 
+        {1, 1, 1, 1},    -- 14: 
+        {102/255, 123/255, 13/255, 1},    -- 15: Grass (Green)
+        {1, 1, 1, 1},    -- 16
+
     }
     
     local playerColor = {0, 1, 0, 1}

@@ -1,7 +1,7 @@
 local slider = {}
 local slider_meta = {__index = slider}
 
-function slider.new(label, min, max, value, x, y, width, height, color, handleColor)
+function slider.new(label, min, max, value, x, y, width, height, color, handleColor, onValueChange)
     return setmetatable({
         min = min,
         max = max,
@@ -13,7 +13,8 @@ function slider.new(label, min, max, value, x, y, width, height, color, handleCo
         color = color,
         handleColor = handleColor,
         label = label,
-        dragging = false
+        dragging = false,
+        onValueChange = onValueChange 
     }, slider_meta)
 end
 
@@ -52,7 +53,11 @@ end
 function slider:updateValue(x)
     local value = (x - self.x) / self.width
     value = value * (self.max - self.min) + self.min
+    local oldValue = self.value
     self:setValue(value)
+    if self.value ~= oldValue and self.onValueChange then
+        self.onValueChange(self.value)
+    end
 end
 
 function slider:drawLabel()
