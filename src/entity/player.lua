@@ -34,16 +34,35 @@ function entity:load(data, ecs)
     self.inventoryOrder = {}
     self.playerLoaded = data.playerLoaded
     self.inRangeOfRadiation = false
-
+    self.selectedSkin = "skin1"
+    
     self.color = {1, 1, 1}
 
     -- Animation related stuff
-    self.animation = {
-        right = anim.new("src/assets/player/left.png", config.graphics.assetSize, config.graphics.assetSize),
-        left = anim.new("src/assets/player/right.png", config.graphics.assetSize, config.graphics.assetSize),
-        forward = anim.new("src/assets/player/backward.png", config.graphics.assetSize, config.graphics.assetSize),
-        backward = anim.new("src/assets/player/forward.png", config.graphics.assetSize, config.graphics.assetSize),
+    self.skinAnimations = {
+        default = {
+            right = "src/assets/player/left.png",
+            left = "src/assets/player/right.png",
+            forward = "src/assets/player/forward.png",
+            backward = "src/assets/player/backward.png",
+            skin = "src/assets/player/skin.png",
+        },
+        skin1 = {
+            right = "src/assets/player/leftBlue.png",
+            left = "src/assets/player/rightBlue.png",
+            forward = "src/assets/player/forwardBlue.png",
+            backward = "src/assets/player/backwardBlue.png",
+            skin = "src/assets/player/skinBlue.png",
+        },
     }
+
+    self.animation = {
+        right = anim.new(self.skinAnimations[self.selectedSkin].right, config.graphics.assetSize, config.graphics.assetSize),
+        left = anim.new(self.skinAnimations[self.selectedSkin].left, config.graphics.assetSize, config.graphics.assetSize),
+        forward = anim.new(self.skinAnimations[self.selectedSkin].backward, config.graphics.assetSize, config.graphics.assetSize),
+        backward = anim.new(self.skinAnimations[self.selectedSkin].forward, config.graphics.assetSize, config.graphics.assetSize)
+    }
+
     self.moving = false
     self.direction = "right"
 
@@ -53,6 +72,20 @@ function entity:load(data, ecs)
     -- Updating coordinates
     self:updateChunkCoordinates()
     self:updateGridCoordinates()
+end
+
+function entity:changeSkin(skinName)
+    if self.skinAnimations[skinName] then
+        self.selectedSkin = skinName
+        self.animation = {
+            right = anim.new(self.skinAnimations[self.selectedSkin].right, config.graphics.assetSize, config.graphics.assetSize),
+            left = anim.new(self.skinAnimations[self.selectedSkin].left, config.graphics.assetSize, config.graphics.assetSize),
+            forward = anim.new(self.skinAnimations[self.selectedSkin].forward, config.graphics.assetSize, config.graphics.assetSize),
+            backward = anim.new(self.skinAnimations[self.selectedSkin].backward, config.graphics.assetSize, config.graphics.assetSize)
+        }
+    else
+        print("Invalid skin name: " .. skinName)
+    end
 end
 
 function entity:updateChunkCoordinates()

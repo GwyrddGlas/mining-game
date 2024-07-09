@@ -369,7 +369,7 @@ function crafting:draw(icon)
     local craftingY = height * 0.5 - craftingHeight * 0.5
         
     -- Draw crafting UI background
-    lg.setColor(0.2, 0.2, 0.2, 0.8)
+    lg.setColor(0.2, 0.2, 0.25, 0.9)  -- Slightly blue-ish dark background
     lg.rectangle("fill", craftingX, craftingY, inventoryWidth, inventoryHeight, cornerRadius, cornerRadius)
 
     -- Draw crafting grid slots
@@ -380,26 +380,28 @@ function crafting:draw(icon)
             
             local index = (row - 1) * craftingColumns + col -- Calculate the index here
             
-            lg.setColor(0.3, 0.3, 0.3, 0.9)
+            lg.setColor(0.3, 0.3, 0.4, 0.7)  -- Slightly blue-ish gray for slots
             lg.rectangle("fill", slotX, slotY, itemSize, itemSize, cornerRadius, cornerRadius)
-            lg.setColor(0.5, 0.5, 0.5, 0.9)
+            lg.setColor(0.5, 0.5, 0.6, 0.9)  -- Light gray border
+            lg.setLineWidth(2)
             lg.rectangle("line", slotX, slotY, itemSize, itemSize, cornerRadius, cornerRadius)
+            lg.setLineWidth(1)
             
             --selected
             if self.selectedItem and index == self.selectedItem.index then
-                lg.setColor(1, 1, 1, 0.5)
-                lg.rectangle("fill", slotX, slotY, itemSize, itemSize, cornerRadius, cornerRadius)
+                lg.setColor(0.2, 0.6, 0.8, 0.8)  -- Bright blue for selected item
+                lg.setLineWidth(3)
+                lg.rectangle("line", slotX, slotY, itemSize, itemSize, cornerRadius, cornerRadius)
+                lg.setLineWidth(1)
             end
 
             --hover
             local mouseX, mouseY = love.mouse.getPosition()
             if mouseX >= slotX and mouseX <= slotX + itemSize and mouseY >= slotY and mouseY <= slotY + itemSize then
-                lg.setBlendMode("add")
-                lg.setColor(1, 1, 1, 1)
-                lg.rectangle("line", slotX + 1, slotY + 1, itemSize - 2, itemSize - 2)
-                lg.setColor(1, 1, 1, 0.1)
-                lg.rectangle("fill", slotX + 1, slotY + 1, itemSize - 2, itemSize - 2)
-                lg.setBlendMode("alpha")
+                lg.setColor(0.3, 0.8, 1)  -- Brighter blue for hover effect
+                lg.setLineWidth(3)
+                lg.rectangle("line", slotX, slotY, itemSize, itemSize, cornerRadius, cornerRadius)
+                lg.setLineWidth(1)
             end
             
             -- Draw items in the crafting grid slots
@@ -422,23 +424,31 @@ function crafting:draw(icon)
         end
     end
 
-    -- Draw crafting result slot
-    local resultSlotX = craftingX + craftingWidth + itemSpacing
-    local resultSlotY = craftingY + craftingHeight / 2 - itemSize / 2
+    local resultSlotX = 0
+    local resultSlotY = 0
 
-    lg.setColor(0.3, 0.3, 0.3, 0.9)
+    -- Draw crafting result background
+    local resultBackgroundWidth = itemSize 
+    local resultBackgroundHeight = itemSize
+    local resultBackgroundX = craftingX + craftingWidth + itemSpacing
+    local resultBackgroundY = craftingY
+    lg.setColor(0.2, 0.2, 0.25, 0.9)  -- Slightly blue-ish dark background
+   -- lg.rectangle("fill", resultBackgroundX, craftingY + craftingHeight / 2 - itemSize / 2, resultBackgroundWidth, resultBackgroundHeight, cornerRadius, cornerRadius)
+
+    -- Draw crafting result slot
+    resultSlotX =  craftingX + craftingWidth + itemSpacing
+    resultSlotY =  craftingY + craftingHeight / 2 - itemSize / 2
+    lg.setColor(0.3, 0.3, 0.4, 0.7)  -- Slightly blue-ish gray for slots
     lg.rectangle("fill", resultSlotX, resultSlotY, itemSize, itemSize, cornerRadius, cornerRadius)
-    lg.setColor(0.5, 0.5, 0.5, 0.9)
-    lg.rectangle("line", resultSlotX, resultSlotY, itemSize, itemSize, cornerRadius, cornerRadius)    
+    lg.setColor(0.5, 0.5, 0.6, 0.9)  -- Light gray border
+    lg.setLineWidth(2)
+    lg.rectangle("line", resultSlotX, resultSlotY, itemSize, itemSize, cornerRadius, cornerRadius)
+    lg.setLineWidth(1)
     
     -- Draw crafting result item
     if self.craftingResult then
---        local quantity = itemData.quantity
-        --local quantityText = tostring(quantity)
         lg.setColor(1, 1, 1)   
-     
         lg.draw(tileAtlas, tiles[icon[self.craftingResult]],  resultSlotX + itemSize * 0.1, resultSlotY + itemSize * 0.1, 0, itemSize * 0.8 / config.graphics.assetSize, itemSize * 0.8 / config.graphics.assetSize)
-       -- lg.print(quantityText, textX, textY)
     end
 end
 

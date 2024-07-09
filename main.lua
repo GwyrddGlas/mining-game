@@ -1,5 +1,5 @@
 NAME = "Miner's Odyssey"
-VERSION = "v0.08"
+VERSION = "v0.09"
  
 -- GLOBALS
 lg = love.graphics
@@ -35,7 +35,7 @@ function love.load()
             width = 1024,
             height = 576,
             fullscreen = true,
-            title = NAME.." ["..VERSION.."]"
+            resizable = true,
         },
         graphics = {
             useLight = true,
@@ -47,13 +47,18 @@ function love.load()
             tileSize = 40,
             assetSize = 16
         },
+        audio = {
+            master = 1,
+            music = 0.2,
+            sfx = 1
+        },
         settings = {
             chunkSaveInterval = 10,
             chunkSize = 6
         },
         debug = {
             enabled = true,
-            text_color = {255, 144, 79},
+            text_color = {255, 255, 255},
             showChunkBorders = false,
             showCollision = false,
             saveChunks = true,
@@ -61,10 +66,10 @@ function love.load()
         }
     }
 
-    config = default_config
     if fs.getInfo("config.lua") then
-        --config = ttf.load("config.lua")
+        config = ttf.load("config.lua")
     else
+        config = default_config
         --save_config()
     end
 
@@ -74,8 +79,8 @@ function love.load()
     end
 
     -- Creating window
-    love.window.setMode(config.window.width, config.window.height, {fullscreen=config.window.fullscreen})
-    love.window.setTitle(config.window.title)
+    love.window.setMode(config.window.width, config.window.height, {fullscreen=config.window.fullscreen, resizable=config.window.resizable })
+    love.window.setTitle(NAME.." ["..VERSION.."]")
 
     -- POSTER
     poster = require("src.lib.poster")
@@ -110,14 +115,15 @@ function love.load()
         "silent_echoes"
     }
 
-    for _, v in ipairs(backgroundMusic) do --TODO: use newQueueableSource
+    for _, v in ipairs(backgroundMusic) do
         local path = "src/assets/audio/"
         if love.filesystem.exists(path..v..".mp3") then
-            gameAudio.background[#gameAudio.background+1] = love.audio.newSource(path..tostring(v)..".mp3", "stream")
+          gameAudio.background[#gameAudio.background+1] = love.audio.newSource(path..tostring(v)..".mp3", "stream")
         else 
-            print(v.." not found at path "..path)
+          print(v.." not found at path "..path)
         end
-    end
+      end
+      applyMasterVolume()
 
     state:load("menu", {worldName = "test"})
     --state:load("game", {type = "load", worldName = "test"})
@@ -126,12 +132,19 @@ function love.load()
     console:setVisible(false)
 end
 
-local function save_config()
+function save_config()
     ttf.save(config, "config.lua")
 end
 
-local function clear_config()
+function clear_config()
     fs.remove("config.lua")
+end
+
+function applyMasterVolume()
+    for _, source in pairs(gameAudio.background) do
+      source:setVolume(config.audio.master * config.audio.music)
+    end
+    -- Apply to other audio sources (SFX, etc.) here
 end
 
 --The following are callback functions
@@ -204,6 +217,12 @@ function love.keyreleased(key)
     keybind:trigger("keyreleased", key)
     keybind:keyreleased(key)
     state:keyreleased(key)
+end
+
+function love.resize(w, h)
+    scale_x = w / config.window.width
+    scale_y = h / config.window.height
+    state:resize(w, h)
 end
 
 function love.mousepressed(x, y, key)

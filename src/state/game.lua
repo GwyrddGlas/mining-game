@@ -4,7 +4,7 @@ local crafting = require("src/class/crafting")
 local game = {}
 
 local currentIndex = 1
-local currentTrack = gameAudio.background[currentIndex]
+currentTrack = gameAudio.background[currentIndex]
 
 local function playNextTrack()
     currentIndex = currentIndex + 1
@@ -14,8 +14,8 @@ local function playNextTrack()
     
     currentTrack = gameAudio.background[currentIndex]
     if currentTrack then
-        currentTrack:setVolume(0.2)
         currentTrack:play()
+        currentTrack:setVolume(config.audio.music * config.audio.master)
     end
 end
 
@@ -24,7 +24,11 @@ local function playBackgroundMusic()
 end
 
 function game:load(data)
+    config = ttf.load("config.lua")
+
     lg.setBackgroundColor(0, 0, 0)
+    self:resize(love.graphics.getWidth(), love.graphics.getHeight())
+
     local playerX, playerY = 0, 0 -- Grid coordinates!
     local playerLoaded = false -- True if player loaded from save file
     local playerInventory = {}
@@ -175,7 +179,10 @@ function game:update(dt)
 
     -- Handle dying
     if self.player.health <= 0 then
-        self.player:teleport(self.player.spawnX, self.player.spawnY)
+        if self.player.spawnX and self.player.spawnY then
+            self.player:teleport(self.player.spawnX, self.player.spawnY)
+        end
+        
         self.player.health = 10
         self.player.radiation = 0
         
@@ -201,39 +208,49 @@ function game:drawHud() --optimise math later
     local radiationScale = 34 * scale_x
     local width, height = lg.getWidth(), lg.getHeight()
 
-    -- Player Inventory (Hotbar)
-    local maxHotbarItems = 6
     local hotbarX = width * 0.5
     local hotbarY = height - height * 0.07
-    local hotbarWidth = width * 0.3
+    local hotbarWidth = width * 0.28 
     local hotbarHeight = height * 0.07
     local itemSize = hotbarHeight * 0.8
+    local maxHotbarItems = 6
     local itemSpacing = (hotbarWidth - itemSize * maxHotbarItems) / (maxHotbarItems - 1)
-    local itemX = hotbarX - (hotbarWidth * 0.5)
-    local itemY = hotbarY + (hotbarHeight - itemSize) * 0.5
     local cornerRadius = itemSize * 0.2
+
+    local hotbarPadding = itemSize * 0.08 
+    local adjustedHotbarWidth = hotbarWidth + hotbarPadding * 2
+
+    local itemX = hotbarX - (adjustedHotbarWidth * 0.5) + hotbarPadding
+    local itemY = hotbarY + (hotbarHeight - itemSize) * 0.5
 
     local selectedIndex = self.inventory.selectedIndex
 
     -- Draw hotbar background
-    lg.setColor(0.2, 0.2, 0.2, 0.8)
-    lg.rectangle("fill", hotbarX - hotbarWidth * 0.5, hotbarY, hotbarWidth, hotbarHeight, cornerRadius, cornerRadius)
+    lg.setColor(0.2, 0.2, 0.25, 0.9)  
+    lg.rectangle("fill", hotbarX - adjustedHotbarWidth * 0.5, hotbarY, adjustedHotbarWidth, hotbarHeight, cornerRadius, cornerRadius)
 
     for i = 1, maxHotbarItems do
         local x = itemX + (i - 1) * (itemSize + itemSpacing)
         local y = itemY
     
-        lg.setColor(0.3, 0.3, 0.3, 0.9)
-        lg.rectangle("fill", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
-        lg.rectangle("line", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
-    
         -- Draw item slot
         if i == selectedIndex then
-            lg.setColor(1, 1, 0, 0.3) -- Bright yellow outline for the selected slot
-            lg.rectangle("fill", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
+            lg.setColor(0.2, 0.6, 0.8, 0.8)  -- Bright blue for selected slot
         else
-            lg.setColor(0.5, 0.5, 0.5, 0.9) -- Gray outline for unselected slots
+            lg.setColor(0.3, 0.3, 0.4, 0.7)  -- Slightly blue-ish gray for unselected slots
         end
+        lg.rectangle("fill", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
+    
+        -- Draw item slot border
+        if i == selectedIndex then
+            lg.setColor(0.3, 0.8, 1)  -- Brighter blue border for selected slot
+            lg.setLineWidth(3)
+        else
+            lg.setColor(0.5, 0.5, 0.6, 0.9)  -- Light gray border for unselected slots
+            lg.setLineWidth(2)
+        end
+        lg.rectangle("line", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
+        lg.setLineWidth(1)
 
         -- Draw item icon and quantity
         local item = self.player.inventoryOrder[i]
@@ -286,19 +303,19 @@ function game:drawHud() --optimise math later
     end 
 
     if self.inventory.inventoryOpen then
-        self.inventory:draw(self.icon, itemSize, itemSpacing, cornerRadius, maxHotbarItems)
+        self.inventory:draw(self.icon, itemSize, self.crafting:getCraftingItemSpacing(), cornerRadius, maxHotbarItems)
         self.crafting:draw(self.icon)
     end
 
-    -- Health
+    --Health
     local healthX = hotbarX - hotbarWidth * 0.5 + itemSize * 0.2
-    local healthY = hotbarY + (hotbarHeight - itemSize) * 0.5 - 75
-    drawIconValue("health", math.floor(self.player.health), healthX, healthY, nil, true)
+    local healthY = hotbarY + (hotbarHeight - itemSize) * 0.5 - 45 * scale_y
+    drawIconValue("health", math.floor(self.player.health), healthX, healthY, iconScale, true)
 
     -- Radiation
     local radiationX = healthX + 200 * scale_x
     local radiationY = healthY
-    drawIconValue("radiation", math.floor(self.player.radiation), radiationX, radiationY, nil)
+    drawIconValue("radiation", math.floor(self.player.radiation), radiationX, radiationY, radiationScale)
 end
 
 function game:draw()
@@ -331,15 +348,15 @@ function game:draw()
         local bumpItems = self.world:getBumpWorld():countItems()
         lg.setFont(font.tiny)
         lg.printf("FPS: "..love.timer.getFPS()..
-        "\nRam: " .. tostring(math.floor(collectgarbage("count")/1024)).." MB"..
-        "\nRam (w/ assets): " .. tostring(math.floor(collectgarbage("count")/1024)+100).." MB".. --rough estimate (seems to be accurate-ish though)
+        "\nRam: " .. tostring(math.floor(collectgarbage("count")/1024)+100).." MB"..
         "\nVRam: " .. tostring(math.floor(love.graphics.getStats().texturememory/1024/1024)).." MB"..
         "\nEntities: "..#self.visibleEntities.."/"..all_len..
         "\nX: "..floor(self.player.x).." ("..self.player.gridX..") Y: "..floor(self.player.y).." ("..self.player.gridY..")"..
         "\nChunkX: "..self.player.chunkX.." ChunkY: "..self.player.chunkY..
         "\nLoaded chunks: "..worldGen.loadedChunkCount..
         "\nBump items: "..bumpItems..
-        "\nWorld name: "..self.worldName.." World seed: "..tostring(self.seed), -12, 12, lg.getWidth(), "center")
+        "\nWorld name: "..self.worldName..
+        "\nWorld seed: "..tostring(self.seed), -12, 12, lg.getWidth(), "center")
         worldGen:draw()
     end
 
@@ -402,6 +419,12 @@ function game:drawMinimap(all)
         {0.2, 0.8, 0.8, 1},    -- 9: Cyan (Diamond)
         {1.0, 0.5, 0.2, 1},    -- 10: Orange (Copper)
         {0.8, 0.8, 0.2, 1},    -- 11: Yellow-Green (Uranium)
+        {1, 1, 1, 1},    -- 12: 
+        {1, 1, 1, 1},    -- 13: 
+        {1, 1, 1, 1},    -- 14: 
+        {102/255, 123/255, 13/255, 1},    -- 15: Grass (Green)
+        {1, 1, 1, 1},    -- 16
+
     }
     
     local playerColor = {0, 1, 0, 1}
@@ -460,11 +483,15 @@ end
 function game:wheelmoved(x, y)
     self.inventory.selectedIndex = self.inventory.selectedIndex + y
     if self.inventory.selectedIndex < 1 then
-        self.inventory.selectedIndex = 1
-    elseif self.inventory.selectedIndex > 6 then
         self.inventory.selectedIndex = 6
+    elseif self.inventory.selectedIndex > 6 then
+        self.inventory.selectedIndex = 1
     end
     self.inventory.highlightedItem = self.inventory.inventoryOrder[self.inventory.selectedIndex]
+end
+
+function game:resize(w, h)
+
 end
 
 function game:mousepressed(x, y, button)
