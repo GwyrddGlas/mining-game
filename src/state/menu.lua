@@ -233,7 +233,12 @@ function menu:load()
         },
         multiplayer = {
             label.new("Multiplayer", self.color.success, font.large, 0, lg.getHeight() * 0.15, "center"),
-
+            serverAddress = textbox.new("", "Server Address", self.color.fg, self.color.idle, self.color.bg, self.width * 0.3, self.height * 0.3, self.width * 0.4, self.height * 0.09),
+            button.new("Connect", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.09, function() 
+                -- Add connection logic here
+                print("Connecting to: " .. menu.screen.multiplayer.serverAddress.text)
+            end),
+            button.new("Back", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, changeScreen("main")),
         },
         options = {
             label.new("Settings", self.color.success, font.large, 0, lg.getHeight() * 0.15, "center"),
