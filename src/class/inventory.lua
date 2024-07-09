@@ -188,8 +188,8 @@ function inventory:draw(icon, itemSize, itemSpacing, cornerRadius, maxHotbarItem
     local inventoryX = width * 0.5 - inventoryWidth * 0.5
     local inventoryY = height * 0.5 - inventoryHeight * 0.5
     
-    --inventory background
-    lg.setColor(40/255, 40/255, 40/255, 1)
+    -- Inventory background
+    lg.setColor(0.2, 0.2, 0.25, 0.9)  -- Slightly blue-ish dark background
     lg.rectangle("fill", inventoryX, inventoryY, inventoryWidth, inventoryHeight, cornerRadius, cornerRadius)
 
     for row = 1, inventoryRows do
@@ -199,10 +199,10 @@ function inventory:draw(icon, itemSize, itemSpacing, cornerRadius, maxHotbarItem
             local y = inventoryY + inventoryPadding + (row - 1) * (itemSize + itemSpacing)
             local item = self.player.inventoryOrder[index]
 
-            --inventory slots
-            lg.setColor(0.3, 0.3, 0.3, 0.9)
+            -- Inventory slots
+            lg.setColor(0.3, 0.3, 0.4, 0.7) 
             lg.rectangle("fill", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
-            lg.setColor(0.5, 0.5, 0.5, 0.9)
+            lg.setColor(0.5, 0.5, 0.6, 0.9)  -- Light gray border
             lg.setLineWidth(2)
             lg.rectangle("line", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
             lg.setLineWidth(1)
@@ -210,10 +210,10 @@ function inventory:draw(icon, itemSize, itemSpacing, cornerRadius, maxHotbarItem
             if item then
                 local quantity = self.player.inventory[item]
                 
-                --selected 
+                -- Selected item
                 if self.selectedItem == item then
-                    lg.setColor(12/255, 150/255, 140/255)
-                    lg.setLineWidth(2)
+                    lg.setColor(0.2, 0.6, 0.8, 0.8) 
+                    lg.setLineWidth(3)
                     lg.rectangle("line", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
                     lg.setLineWidth(1)
                 end
@@ -238,16 +238,16 @@ function inventory:draw(icon, itemSize, itemSpacing, cornerRadius, maxHotbarItem
                 end
             end
 
-            --hover
+            -- Hover effect
             local mouseX, mouseY = love.mouse.getPosition()
             if mouseX >= x and mouseX <= x + itemSize and mouseY >= y and mouseY <= y + itemSize then
                 if item then
                     lg.setColor(1, 1, 1)
-                    lg.print(tostring(item), x, y - 10)
+                    lg.print(tostring(item), x, y - 20) 
                 end
 
-                lg.setColor(12/255, 150/255, 140/255)
-                lg.setLineWidth(2)
+                lg.setColor(0.3, 0.8, 1)
+                lg.setLineWidth(3)
                 lg.rectangle("line", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
                 lg.setLineWidth(1)
             end

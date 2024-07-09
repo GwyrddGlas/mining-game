@@ -94,8 +94,8 @@ end
 function menu:drawCharacterPreview()
     local previewWidth = 200
     local previewHeight = 400
-    local x = self.width - 300  -- Align with the "Change" button
-    local y = self.height * 0.7 - previewHeight  -- Position above the "Change" button
+    local x = self.width - 300  
+    local y = self.height * 0.7 - previewHeight
 
     -- Draw character sprite
     love.graphics.setColor(1, 1, 1)
@@ -224,7 +224,7 @@ function menu:load()
             --button.new("Mods", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, changeScreen("skins")),
             button.new("Settings", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, changeScreen("options")),
             button.new("Quit Game", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.7, self.width * 0.4, self.height * 0.09, exitButton),
-            button.new("Change", self.color.fg, self.color.bg, self.width - 350, self.height * 0.7, 200, self.height * 0.09, changeScreen("skins")),
+            button.new("Change", self.color.fg, self.color.bg, self.width * 0.7, self.height * 0.7, self.width * 0.2, self.height * 0.09, changeScreen("skins")),        
         },
         singleplayer = {
             label.new("Singleplayer", self.color.success, font.large, 0, lg.getHeight() * 0.15, "center"),

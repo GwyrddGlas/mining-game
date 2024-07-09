@@ -210,14 +210,14 @@ function game:drawHud() --optimise math later
 
     local hotbarX = width * 0.5
     local hotbarY = height - height * 0.07
-    local hotbarWidth = width * 0.3
+    local hotbarWidth = width * 0.28 
     local hotbarHeight = height * 0.07
     local itemSize = hotbarHeight * 0.8
     local maxHotbarItems = 6
     local itemSpacing = (hotbarWidth - itemSize * maxHotbarItems) / (maxHotbarItems - 1)
     local cornerRadius = itemSize * 0.2
 
-    local hotbarPadding = itemSize * 0.12
+    local hotbarPadding = itemSize * 0.08 
     local adjustedHotbarWidth = hotbarWidth + hotbarPadding * 2
 
     local itemX = hotbarX - (adjustedHotbarWidth * 0.5) + hotbarPadding
@@ -226,29 +226,31 @@ function game:drawHud() --optimise math later
     local selectedIndex = self.inventory.selectedIndex
 
     -- Draw hotbar background
-    lg.setColor(40/255, 40/255, 40/255, 1)
+    lg.setColor(0.2, 0.2, 0.25, 0.9)  
     lg.rectangle("fill", hotbarX - adjustedHotbarWidth * 0.5, hotbarY, adjustedHotbarWidth, hotbarHeight, cornerRadius, cornerRadius)
 
     for i = 1, maxHotbarItems do
         local x = itemX + (i - 1) * (itemSize + itemSpacing)
         local y = itemY
     
-        lg.setColor(0.3, 0.3, 0.3, 0.9)
-        lg.rectangle("fill", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
-        lg.rectangle("line", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
-    
         -- Draw item slot
         if i == selectedIndex then
-            lg.setColor(12/255, 150/255, 140/255)
-            lg.setLineWidth(5)
-            lg.rectangle("line", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
-            lg.setLineWidth(1)   
+            lg.setColor(0.2, 0.6, 0.8, 0.8)  -- Bright blue for selected slot
         else
-            lg.setColor(0.5, 0.5, 0.5, 0.9) -- Gray outline for unselected slots
-            lg.setLineWidth(2)
-            lg.rectangle("line", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
-            lg.setLineWidth(1)   
+            lg.setColor(0.3, 0.3, 0.4, 0.7)  -- Slightly blue-ish gray for unselected slots
         end
+        lg.rectangle("fill", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
+    
+        -- Draw item slot border
+        if i == selectedIndex then
+            lg.setColor(0.3, 0.8, 1)  -- Brighter blue border for selected slot
+            lg.setLineWidth(3)
+        else
+            lg.setColor(0.5, 0.5, 0.6, 0.9)  -- Light gray border for unselected slots
+            lg.setLineWidth(2)
+        end
+        lg.rectangle("line", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
+        lg.setLineWidth(1)
 
         -- Draw item icon and quantity
         local item = self.player.inventoryOrder[i]
@@ -301,7 +303,7 @@ function game:drawHud() --optimise math later
     end 
 
     if self.inventory.inventoryOpen then
-        self.inventory:draw(self.icon, itemSize, itemSpacing, cornerRadius, maxHotbarItems)
+        self.inventory:draw(self.icon, itemSize, self.crafting:getCraftingItemSpacing(), cornerRadius, maxHotbarItems)
         self.crafting:draw(self.icon)
     end
 
