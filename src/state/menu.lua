@@ -94,7 +94,7 @@ end
 function menu:drawCharacterPreview()
     local previewWidth = 200
     local previewHeight = 400
-    local x = self.width - 300  
+    local x = self.width * 0.7 + previewWidth/1.5
     local y = self.height * 0.7 - previewHeight
 
     -- Draw character sprite
