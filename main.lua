@@ -149,6 +149,7 @@ end
 
 --The following are callback functions
 function love.update(dt)
+    network:receive()
     keybind:trigger("keydown")
     state:update(dt)
     note:update(dt)

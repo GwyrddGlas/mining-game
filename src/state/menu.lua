@@ -143,6 +143,18 @@ function menu:getSelectedTextbox(screen)
     return nil
 end
 
+local function createServerButton()
+    local ip = menu.screen.multiplayer.ipAddress.text
+    local port = tonumber(menu.screen.multiplayer.port.text)
+    if ip ~= "" and port then
+        network:init(ip, port)
+        network:createServer()
+        note:new("Server created at " .. ip .. ":" .. port, "success")
+    else
+        note:new("Please enter a valid IP and Port", "danger")
+    end
+end
+
 local function drawSkins()
     local screenWidth = love.graphics.getWidth()
     local screenHeight = love.graphics.getHeight()
@@ -233,12 +245,32 @@ function menu:load()
         },
         multiplayer = {
             label.new("Multiplayer", self.color.success, font.large, 0, lg.getHeight() * 0.15, "center"),
-            serverAddress = textbox.new("", "Server Address", self.color.fg, self.color.idle, self.color.bg, self.width * 0.3, self.height * 0.3, self.width * 0.4, self.height * 0.09),
-            button.new("Connect", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.09, function() 
-                -- Add connection logic here
-                print("Connecting to: " .. menu.screen.multiplayer.serverAddress.text)
+            ipAddress = textbox.new("", "IP Address", self.color.fg, self.color.idle, self.color.bg, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.09),
+            port = textbox.new("", "Port", self.color.fg, self.color.idle, self.color.bg, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.09),
+            button.new("Create Server", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, function()
+                local ip = menu.screen.multiplayer.ipAddress.text
+                local port = tonumber(menu.screen.multiplayer.port.text)
+                if ip ~= "" and port then
+                    network:init(ip, port)
+                    network:createServer()
+                    note:new("Server created at " .. ip .. ":" .. port, "success")
+                else
+                    note:new("Please enter a valid IP and Port", "danger")
+                end
             end),
-            button.new("Back", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, changeScreen("main")),
+            button.new("Connect", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.7, self.width * 0.4, self.height * 0.09, function() 
+                local ip = menu.screen.multiplayer.ipAddress.text
+                local port = tonumber(menu.screen.multiplayer.port.text)
+                if ip ~= "" and port then
+                    network:init(ip, port)
+                    if network:connect() then
+                        note:new("Connected to server", "success")
+                    end
+                else
+                    note:new("Please enter a valid IP and Port", "danger")
+                end
+            end),
+            button.new("Back", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, changeScreen("main")),
         },
         options = {
             label.new("Settings", self.color.success, font.large, 0, lg.getHeight() * 0.15, "center"),
