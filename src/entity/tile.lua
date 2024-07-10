@@ -42,7 +42,7 @@ function entity:setType(type)
     self.placed = false
     
     -- Creating bump item if solid
-    if self.tileData.solid then
+    if self.tileData.solid and not  self.bumpWorld:hasItem(self) then
         self.bumpWorld:add(self, self.x, self.y, self.width, self.height) 
     end
 end
