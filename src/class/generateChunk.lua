@@ -52,9 +52,24 @@ end
 -- Determines the biome, at x & y
 local biomeCount = #biomes
 local function biomeNoise(x, y, scale)
-    local scaleBase = 0.05 * scale
-    local scaleDetail = 0.04 * scale
-    return math.floor((noise(x * scaleBase, y * scaleBase, seed + 100) * 0.8 + noise(x * scaleDetail, y * scaleDetail, seed + 100) * 0.2) * biomeCount + 1)
+    local scaleBase = 0.01 * scale 
+    local scaleDetail = 0.02 * scale
+    local noise1 = noise(x * scaleBase, y * scaleBase, seed + 100)
+    local noise2 = noise(x * scaleDetail, y * scaleDetail, seed + 200)
+    local combined = (noise1 * 0.7 + noise2 * 0.3) 
+    return math.floor(combined * biomeCount + 1)
+end
+
+local function blendBiomes(x, y, scale)
+    local mainBiome = biomeNoise(x, y, scale)
+    local blendFactor = fractalNoise(x, y, seed + 300, 0.05 * scale, 3, 0.5, 2)
+    if blendFactor > 0.8 then
+        local secondaryBiome = biomeNoise(x + 100, y + 100, scale) 
+        if secondaryBiome ~= mainBiome then
+            return secondaryBiome
+        end
+    end
+    return mainBiome
 end
 
 -- A noise function that returs a boolean
@@ -81,8 +96,9 @@ local Furnace = 14
 local Grass = 16
 
 -- Generating the requested chunks
+-- Generating the requested chunks
 if type(chunksToGenerate) == "table" then
-    for i,v in ipairs(chunksToGenerate) do
+    for i, v in ipairs(chunksToGenerate) do
         local finalChunk = {
             x = v.x,
             y = v.y,
@@ -93,10 +109,10 @@ if type(chunksToGenerate) == "table" then
         local chunkWorldY = v.y * chunkSize * tileSize
 
         local chunk = {}
-        local biome = biomeNoise(v.x, v.y, noiseScale)
-        for y=1, chunkSize do
+
+        for y = 1, chunkSize do
             chunk[y] = {}
-            for x=1, chunkSize do
+            for x = 1, chunkSize do
                 -- Grid coordinates for the tile
                 local tileX = (v.x * chunkSize) + x
                 local tileY = (v.y * chunkSize) + y
@@ -105,20 +121,21 @@ if type(chunksToGenerate) == "table" then
                 local worldX = chunkWorldX + (x * tileSize)
                 local worldY = chunkWorldY + (y * tileSize)
 
+                -- Determine the biome for this tile
+                local biomeIndex = blendBiomes(tileX, tileY, noiseScale)
+
                 -- Tile setup
                 local tile = wall
 
-                -- Tile type deciding
-                local tileBiome = biomes[biome]
+                local tileBiome = biomes[biomeIndex]
                     
-                -- "sway" is an offset, based on noise, Used to generate slightly different terrain at different coordinates
                 local sway = -1 + (noise(tileY * 0.01, tileX * 0.01, seed) * 2)
                 local swayAmount = 0.05
-                local isCave = generateNoise(tileX, tileY, tileBiome.caveScaleBase, tileBiome.caveScaleDetail, tileBiome.caveThresh + (swayAmount * sway), tileBiome.caveRatio1, tileBiome.caveRatio2, 0)
+                local isCave = generateNoise(tileX, tileY, tileBiome.caveScaleBase, tileBiome.caveScaleDetail, tileBiome.caveThresh, tileBiome.caveRatio1, tileBiome.caveRatio2, 0)
                 
                 if isCave then
-                    tile = Grass
-                
+                    tile = tileBiome.groundTile or Grass
+
                     for i, ore in ipairs(tileBiome.ores) do
                         if generateNoise(tileX, tileY, ore.scaleBase, ore.scaleDetail, ore.thresh, ore.ratio1, ore.ratio2, ore.seedOffset) then
                             local probability = ore.spawnProbability + (love.math.random() * (1 - ore.spawnProbability))
@@ -126,21 +143,25 @@ if type(chunksToGenerate) == "table" then
                                 tile = i + 2
                             end
                         end
-                    end
+                    end                
                 else
-                    if tileBiome.name == "Grass" then
-                        tile = Grass
-                    else
-                        tile = wall  
+                    tile = tileBiome.surfaceTile or wall 
+                end
+
+                if tileBiome.features then
+                    for _, feature in ipairs(tileBiome.features) do
+                        if generateNoise(tileX, tileY, feature.scaleBase, feature.scaleDetail, feature.thresh, feature.ratio1, feature.ratio2, feature.seedOffset) then
+                            tile = feature.tileType
+                        end
                     end
                 end
 
-                chunk[y][x] = {type = tile, x = worldX, y = worldY, biome = biome}
+                chunk[y][x] = {type = tile, x = worldX, y = worldY, biome = biomeIndex}
             end
         end
 
-        for y=1, #chunk do
-            for x=1, #chunk[1] do
+        for y = 1, #chunk do
+            for x = 1, #chunk[1] do
                 local tile = chunk[y][x]
                 finalChunk.tiles[#finalChunk.tiles+1] = {x = tile.x, y = tile.y, type = tile.type, biome = tile.biome}
             end

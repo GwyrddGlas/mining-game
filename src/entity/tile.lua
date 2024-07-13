@@ -74,6 +74,16 @@ function entity:mine()
                 end
             end
 
+            --TODO: replace with better system
+            --replace grass with dirt
+            if self.tileData.type == "Grass" then
+                nextType = 17
+            end
+        
+            if self.tileData.type == "Dirt" then
+                nextType = 2
+            end
+
             self:setType(nextType)
             self.chunk.modified = true
         end

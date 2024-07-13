@@ -206,6 +206,18 @@ tileData[#tileData+1] = {
 }
 
 tileData[#tileData+1] = {
+    type = "Dirt",
+    textureID = 32, 
+    maxHP = 8,
+    drop = {1, 1}, 
+    destructible = true, 
+    solid = false,
+    item = false,
+    placeable = true,
+    itemTextureID = 0,
+}
+
+tileData[#tileData+1] = {
     type = "Mushroom",
     textureID = 18, 
     maxHP = 8,

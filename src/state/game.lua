@@ -97,7 +97,7 @@ function game:load(data)
         radiation = 43,
         StoneBrick = 44,
         Grass = 45,
-        Mushroom = 46
+        Dirt = 46
     }
 
     -- Poster stuff
