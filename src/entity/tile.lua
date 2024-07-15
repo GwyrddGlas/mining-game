@@ -111,7 +111,7 @@ local function convertIconToDefinition(iconValue)
         [33] = 15,  -- Torch
     }
     
-    return iconDefinitions[iconValue] or 12
+    return iconDefinitions[iconValue] or 10
 end
 
 function entity:place(id)
