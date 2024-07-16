@@ -110,7 +110,7 @@ function game:load(data)
         {"waveDistortion", "intensity", 0},
         {"waveDistortion", "scale", config.graphics.tileSize * scale_x * 0.5},
         {"waveDistortion", "phase", 0},
-        {"brightness", "amount", 0.19},
+        {"brightness", "amount", config.graphics.brightness or 0.16},
         {"contrast", "amount", 1.2},
         {"saturation", "amount", 1.2},
         {"vignette", "radius", 1},
@@ -500,7 +500,7 @@ function game:mousepressed(x, y, button)
         self.crafting:mousepressed(x, y, button)
     end
 
-    --Placing
+    --Placing/Interacting
     if button == 2 and self.hoverEntity and not self.inventory.inventoryOpen then
         local itemId = self.icon[self.inventory.highlightedItem]
         self.player:place(self.hoverEntity, itemId) 

@@ -2,6 +2,9 @@ local menu = {
     selectedWorld = nil
 }
 
+local nightSkyImage
+local nightSkyImageScaleX, nightSkyImageScaleY
+
 -- Button functions
 local function changeScreen(screen)
     return function()
@@ -55,6 +58,10 @@ local function loadSkins()
         {name = "default", path = skinAnimations.default.skin, id = nil},
         {name = "skin1", path = skinAnimations.skin1.skin, id = nil}
     }
+
+    nightSkyImage = love.graphics.newImage("src/assets/night_sky_with_moon_and_clouds.png")
+    nightSkyImageScaleX = love.graphics.getWidth() / nightSkyImage:getWidth()
+    nightSkyImageScaleY = love.graphics.getHeight() / nightSkyImage:getHeight()
 
     for _, v in ipairs(skins) do
         v.id = love.graphics.newImage(v.path)
@@ -209,13 +216,13 @@ function menu:load()
         bg = {0, 0, 0},
         idle = {0.4, 0.4, 0.4},
         danger = {0.8, 0.2, 0.2},
-        success = {0.4, 0.9, 0.4}
+        success = {0.4, 1, 0.4}
     }
 
     self.currentScreen = "main"
     self.screen = {
         main = {
-            label.new(NAME, self.color.success, font.large, 0, lg.getHeight() * 0.2, "center"),
+            label.new(NAME, self.color.success, font.title, 0, lg.getHeight() * 0.2, "center"),
             label.new(VERSION, self.color.success, font.regular, self.width*0.47, self.height - 55, "center"),
             label.new("dsc.gg/miners-odyssey", self.color.success, font.regular, 10, self.height - 55, "left"),
             button.new("Singleplayer", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.09, changeScreen("singleplayer")),
@@ -227,7 +234,7 @@ function menu:load()
             button.new("Change", self.color.fg, self.color.bg, self.width * 0.7, self.height * 0.7, self.width * 0.2, self.height * 0.09, changeScreen("skins")),        
         },
         singleplayer = {
-            label.new("Singleplayer", self.color.success, font.large, 0, lg.getHeight() * 0.15, "center"),
+            label.new("Singleplayer", self.color.success, font.title, 0, lg.getHeight() * 0.15, "center"),
             button.new("New world", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.09, changeScreen("new")),
             button.new("Load world", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.09, changeScreen("load")),
         },
@@ -236,7 +243,7 @@ function menu:load()
 
         },
         options = {
-            label.new("Settings", self.color.success, font.large, 0, lg.getHeight() * 0.15, "center"),
+            label.new("Settings", self.color.success, font.title, 0, lg.getHeight() * 0.15, "center"),
             button.new("Graphics", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.3, self.width * 0.4, self.height * 0.09, changeScreen("graphics")),
             button.new("Sounds", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.09, changeScreen("sounds")),
             button.new("Controls", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.09, changeScreen("graphics")),
@@ -247,11 +254,11 @@ function menu:load()
             button.new("Back", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.7, self.width * 0.4, self.height * 0.09, changeScreen("main") ),
         },
         skins = {
-            label.new("Skins", self.color.success, font.large, 0, lg.getHeight() * 0.15, "center"),
+            label.new("Skins", self.color.success, font.title, 0, lg.getHeight() * 0.15, "center"),
             button.new("Back", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, changeScreen("main")),
         },
-        sounds = { --setting up for later
-            label.new("Sound Settings", self.color.success, font.large, 0, lg.getHeight() * 0.15, "center"),
+        sounds = {
+            label.new("Sound Settings", self.color.success, font.title, 0, lg.getHeight() * 0.15, "center"),
             slider.new("Master Volume", 0, 1, config.audio.master, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(value) 
                 config.audio.master = value
                 applyMasterVolume()
@@ -268,7 +275,7 @@ function menu:load()
             button.new("Back", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, changeScreen("options"))
         },
         graphics = {
-            label.new("Graphics Settings", self.color.success, font.large, 0, lg.getHeight() * 0.15, "center"),
+            label.new("Graphics Settings", self.color.success, font.title, 0, lg.getHeight() * 0.15, "center"),
             checkbox.new("Light", self.color.fg, self.color.fg, self.width * 0.3, self.height * 0.3, self.width * 0.4, self.height * 0.05, config.graphics.useLight, 
                 function(isChecked) 
                     config.graphics.useLight = isChecked 
@@ -290,20 +297,21 @@ function menu:load()
                 end),             
            
             slider.new("Bloom", 0, 1, config.graphics.bloom, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(value) config.graphics.bloom = value end),
-            slider.new("Light Distance", 0, 600, config.graphics.lightDistance, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(value) config.graphics.lightDistance = value end),
-            slider.new("Ambient Light", 0, 1, config.graphics.ambientLight, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(value) config.graphics.ambientLight = value end),
+            slider.new("Light Distance", 0, 600, config.graphics.lightDistance, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(value) config.graphics.ambientLight = value end),
+            slider.new("Brightness", 0, 1, config.graphics.brightness, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(value) config.graphics.brightness = value end),
+            slider.new("Ambient Light", 0, 1, config.graphics.ambientLight, self.width * 0.3, self.height * 0.7, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(value) config.graphics.ambientLight = value end),
             --colorpicker.new("Light Color", config.graphics.lightColor, self.width * 0.3, self.height * 0.55, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(r, g, b) config.graphics.lightColor = {r, g, b} end),
             button.new("Back", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, changeScreen("options"))
         },
         new = {
-            label.new("New world", self.color.success, font.large, 0, lg.getHeight() * 0.15, "center"),
+            label.new("New world", self.color.success, font.title, 0, lg.getHeight() * 0.15, "center"),
             worldName = textbox.new("", "World name", self.color.fg, self.color.idle, self.color.bg, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.09),
             seed = textbox.new("", "Seed", self.color.fg, self.color.idle, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, false, 10),
             button.new("Create world", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.7, self.width * 0.4, self.height * 0.09, createButton),
             button.new("Back", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, changeScreen("main")),
         },
         load = {
-            label.new("Select World", self.color.success, font.large, 0, lg.getHeight() * 0.15, "center"),
+            label.new("Select World", self.color.success, font.title, 0, lg.getHeight() * 0.15, "center"),
             --button.new("Load world", self.color.success, self.color.bg, self.width * 0.05, self.height * 0.6, self.width * 0.25, self.height * 0.09, load),
             --button.new("Delete world", self.color.danger, self.color.bg, self.width * 0.05, self.height * 0.7, self.width * 0.25, self.height * 0.09, delete),
             --button.new("Back", self.color.fg, self.color.bg, self.width * 0.05, self.height * 0.8, self.width * 0.25, self.height * 0.09, changeScreen("main")),
@@ -367,6 +375,8 @@ function menu:update(dt)
 end
 
 function menu:draw()
+    love.graphics.draw(nightSkyImage, 0, 0, 0, nightSkyImageScaleX, nightSkyImageScaleY)
+
     for _, v in pairs(self.screen[self.currentScreen]) do
         v:draw()
     end
@@ -396,6 +406,11 @@ end
 
 function menu:resize(w, h)
     self.width, self.height = w, h
+
+    if nightSkyImage then
+        nightSkyImageScaleX = w / nightSkyImage:getWidth()
+        nightSkyImageScaleY = h / nightSkyImage:getHeight()
+    end
 
     for screenName, screen in pairs(self.screen) do
         for _, element in pairs(screen) do

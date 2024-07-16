@@ -11,9 +11,8 @@ love.mouse = require("love.mouse")
 local fs = love.filesystem
 local noise = love.math.noise
 
-local noiseScale = 0.6 -- Global noise scale
+local noiseScale = 0.6 
 
--- Loading biome files
 local biomes = {}
 for _, file in ipairs(fs.getDirectoryItems("src/biome")) do
     biomes[#biomes+1] = fs.load("src/biome/"..file)()
@@ -21,7 +20,6 @@ end
 
 -- A fractal noise function for more interesting noise
 local function fractalNoise(x, y, seed, scale, iterations, ampScale, freqScale)
-    -- Normal function
     local function normal(value, min, max)
         return (value - min) / (max - min)
     end
@@ -52,14 +50,13 @@ end
 -- Determines the biome, at x & y
 local biomeCount = #biomes
 local function biomeNoise(x, y, scale)
-    local scaleBase = 0.01 * scale -- Increased scale for broader biomes
-    local scaleDetail = 0.008 * scale -- Adjusted detail scale
+    local scaleBase = 0.01 * scale 
+    local scaleDetail = 0.009 * scale 
     local baseNoise = noise(x * scaleBase, y * scaleBase, seed + 100)
     local detailNoise = noise(x * scaleDetail, y * scaleDetail, seed + 200)
     return math.floor((baseNoise * 0.7 + detailNoise * 0.3) * biomeCount) + 1
 end
 
--- A noise function that returs a boolean
 local function generateNoise(x, y, scaleBase, scaleDetail, thresh, ratio1, ratio2, seedOffset)
     scaleBase = scaleBase * noiseScale
     scaleDetail = scaleDetail * noiseScale

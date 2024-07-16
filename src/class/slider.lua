@@ -19,10 +19,13 @@ function slider.new(label, min, max, value, x, y, width, height, color, handleCo
 end
 
 function slider:getValue()
-    return self.value
+    return self.value or 0
 end
 
 function slider:setValue(value)
+    if value == nil then
+        value = self.min or 0
+    end
     self.value = math.min(math.max(value, self.min), self.max)
 end
 

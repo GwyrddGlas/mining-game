@@ -1,4 +1,4 @@
-NAME = "Miner's Odyssey"
+NAME = "Miners Odyssey"
 VERSION = "v0.09"
  
 -- GLOBALS
@@ -41,6 +41,7 @@ function love.load()
             useLight = true,
             useShaders = true,
             bloom = 0.4,
+            brightness = 0.19,
             lightDistance = 500,
             ambientLight = 0.3,
             lightColor = {1, 0.9, 0.8},
@@ -98,6 +99,7 @@ function love.load()
         regular = lg.newFont("src/font/monogram.ttf", 24 * scale_x),
         large = lg.newFont("src/font/monogram.ttf", 64 * scale_x),
         tiny = lg.newFont("src/font/monogram.ttf", 16 * scale_x),
+        title = lg.newFont("src/font/PressStart2P-Regular.ttf", 40 * scale_x),
     }
 
     lg.setFont(font.regular)
