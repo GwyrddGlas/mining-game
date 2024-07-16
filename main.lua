@@ -1,6 +1,6 @@
-NAME = "Miner's Odyssey"
-VERSION = "v0.010"
- 
+NAME = "Miners Odyssey"
+VERSION = "v0.09"
+
 -- GLOBALS
 lg = love.graphics
 fs = love.filesystem
@@ -14,22 +14,27 @@ cos = math.cos
 f = string.format
 floor = math.floor
 
+local timer = 0
+
 function love.load()
-    -- Loaidng classes
+    -- Loading classes
     require("src.class.util")
+    discordGameSDK = require("src.lib.lua-discordGameSDK")
     require_folder("src/class")
 
     exString.import()
 
-    --Global keypress events love.system.openURL("file://"..love.filesystem.getSaveDirectory())
-    keybind:new("keypressed", {"escape","lshift"}, love.event.push, "quit")
-    keybind:new("keypressed", {"escape","lctrl"}, love.system.openURL, "file://"..love.filesystem.getSaveDirectory())
+    -- Global keypress events
+    keybind:new("keypressed", {"escape", "lshift"}, love.event.push, "quit")
+    keybind:new("keypressed", {"escape", "lctrl"}, love.system.openURL, "file://"..love.filesystem.getSaveDirectory())
 
     -- Defining states
     state:define_state("src/state/game.lua", "game")
     state:define_state("src/state/menu.lua", "menu")
 
-    --Config
+    discordRPC = discordGameSDK.initialize(1074627551294656544)
+
+    -- Config
     local default_config = {
         window = {
             width = 1024,
@@ -41,6 +46,7 @@ function love.load()
             useLight = true,
             useShaders = true,
             bloom = 0.4,
+            brightness = 0.19,
             lightDistance = 500,
             ambientLight = 0.3,
             lightColor = {1, 0.9, 0.8},
@@ -70,7 +76,7 @@ function love.load()
         config = ttf.load("config.lua")
     else
         config = default_config
-        --save_config()
+        -- save_config()
     end
 
     -- Creating folders
@@ -89,11 +95,11 @@ function love.load()
     lg.setLineStyle("rough")
     lm.setVisible(false)
 
-    --Scaling
+    -- Scaling
     scale_x = lg.getWidth() * 0.001
     scale_y = lg.getHeight() * 0.001
 
-    --Loading fonts
+    -- Loading fonts
     font = {
         regular = lg.newFont("src/font/monogram.ttf", 24 * scale_x),
         large = lg.newFont("src/font/monogram.ttf", 64 * scale_x),
@@ -106,7 +112,7 @@ function love.load()
     tileAtlas, tiles = loadAtlas("src/assets/tileset.png", 16, 16, 0)
     tileBreakImg, tileBreak = loadAtlas("src/assets/tileBreak.png", 16, 16, 0)
 
-    -- loading audio
+    -- Loading audio
     gameAudio = {background = {}}
 
     local backgroundMusic = {
@@ -118,15 +124,15 @@ function love.load()
     for _, v in ipairs(backgroundMusic) do
         local path = "src/assets/audio/"
         if love.filesystem.exists(path..v..".mp3") then
-          gameAudio.background[#gameAudio.background+1] = love.audio.newSource(path..tostring(v)..".mp3", "stream")
+            gameAudio.background[#gameAudio.background+1] = love.audio.newSource(path..tostring(v)..".mp3", "stream")
         else 
-          print(v.." not found at path "..path)
+            print(v.." not found at path "..path)
         end
-      end
-      applyMasterVolume()
+    end
+    applyMasterVolume()
 
     state:load("menu", {worldName = "test"})
-    --state:load("game", {type = "load", worldName = "test"})
+    -- state:load("game", {type = "load", worldName = "test"})
 
     console:init(0, 0, lg.getWidth(), lg.getHeight(), false, font.regular)
     console:setVisible(false)
@@ -142,20 +148,30 @@ end
 
 function applyMasterVolume()
     for _, source in pairs(gameAudio.background) do
-      source:setVolume(config.audio.master * config.audio.music)
+        source:setVolume(config.audio.master * config.audio.music)
     end
     -- Apply to other audio sources (SFX, etc.) here
 end
 
---The following are callback functions
+-- The following are callback functions
 function love.update(dt)
-    network:receive()
     keybind:trigger("keydown")
     state:update(dt)
     note:update(dt)
     console:update(dt)
     smoof:update(dt)
     floatText:update(dt)
+
+    timer = timer + dt -- Update the timer with the time passed since last frame
+
+    local presence = {
+        state = "Playing Solo",
+        details = "Miners Odyssey",
+        start_time = os.time() - math.floor(timer), -- Adjust the start time based on the elapsed time
+        large_image = "stone",
+        large_text = "Exploring the depths",
+    }
+    discordRPC = discordGameSDK.updatePresence(discordRPC, presence)
 end
 
 function love.draw()
@@ -191,6 +207,7 @@ function love.keypressed(key)
     elseif key == "f2" then
         config.debug.enabled = not config.debug.enabled
     end
+
     -- DEBUG KEYS
     if state.loadedStateName == "game" and not console:getVisible() then
         if key == "l" then
@@ -199,13 +216,9 @@ function love.keypressed(key)
         elseif key == "b" then
             config.debug.showChunkBorders = not config.debug.showChunkBorders
             note:new("Show chunk borders: "..tostring(config.debug.showChunkBorders))
-        --elseif key == "c" then
-        --    config.debug.showCollision = not config.debug.showCollision
-        --    note:new("Show collisions: "..tostring(config.debug.showCollision))
-        --elseif key == "p" then
-            config.graphics.useShaders = not config.graphics.useShaders
-            note:new("Shaders: "..tostring(config.graphics.useShaders))
         end
+        config.graphics.useShaders = not config.graphics.useShaders
+        note:new("Shaders: "..tostring(config.graphics.useShaders))
     end
 end
 
@@ -244,4 +257,8 @@ end
 
 function love.quit()
     state:quit()
+
+    if discordRPC and discordRPC.running then
+        discordRPC = discordGameSDK.clearPresence(discordRPC)
+    end
 end
