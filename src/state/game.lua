@@ -110,7 +110,7 @@ function game:load(data)
         {"waveDistortion", "intensity", 0},
         {"waveDistortion", "scale", config.graphics.tileSize * scale_x * 0.5},
         {"waveDistortion", "phase", 0},
-        {"brightness", "amount", config.graphics.brightness or 0.16},
+        {"brightness", "amount", config.graphics.brightness},
         {"contrast", "amount", 1.2},
         {"saturation", "amount", 1.2},
         {"vignette", "radius", 1},
@@ -137,6 +137,7 @@ function game:load(data)
     })
 
     playBackgroundMusic()
+    gameAudio.menu[1]:stop()
 end
 
 function game:unload()

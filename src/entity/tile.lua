@@ -92,26 +92,25 @@ end
 
 local function convertIconToDefinition(iconValue)
     local iconDefinitions = {
-        [18] = 1,   -- Wall
         [1] = 3,    -- Coal
-        [9] = 4,   -- Shrub
-        [7] = 5,   -- Tanzenite
-        [3] = 6,    -- Gold
-        [4] = 7,    -- Uranium
-        [5] = 8,    -- Diamond
-        [6] = 9,    -- Ruby
-        [10] = 10,    -- idk
         [2] = 4,    -- Iron
-        [8] = 11,   -- Copper
+        [3] = 6,    -- Gold
+        [4] = 11,   -- Uranium
+        [5] = 9,    -- Diamond
+        [6] = 8,    -- Ruby
+        [7] = 5,    -- Tanzenite
+        [8] = 10,   -- Copper
+        [9] = 2,    -- Shrub
+        [18] = 1,   -- Wall
         [28] = 13,  -- Crafting
         [29] = 14,  -- Furnace
+        [33] = 16,  -- Torch
         [44] = 15,  -- StoneBrick
-        [45] = 16,   -- Grass
-        [46] = 17,   -- Mushroom
-        [33] = 15,  -- Torch
+        [45] = 15,  -- Grass
+        [46] = 17,  -- Dirt
     }
     
-    return iconDefinitions[iconValue] or 10
+    return iconDefinitions[iconValue] or 2  -- Default to Stone (2) if not found
 end
 
 function entity:place(id)

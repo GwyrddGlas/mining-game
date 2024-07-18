@@ -1,5 +1,8 @@
 local menu = {
-    selectedWorld = nil
+    selectedWorld = nil,
+    titleOffset = 0,
+    titleSpeed = 20,  
+    titleAmplitude = 10 
 }
 
 local nightSkyImage
@@ -75,14 +78,14 @@ end
 local function load()
     if currentTrack then
         currentTrack:stop()
+        gameAudio.menu[1]:setVolume(config.audio.master * config.audio.music)
+        gameAudio.menu[1]:play()
     end
 
     if menu.selectedWorld then
         state:load("game", {type = "load", worldName = menu.selectedWorld})
     end
 
-    if _PLAYER then
-        end
     loadSkins()
 end
 
@@ -227,8 +230,6 @@ function menu:load()
             label.new("dsc.gg/miners-odyssey", self.color.success, font.regular, 10, self.height - 55, "left"),
             button.new("Singleplayer", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.09, changeScreen("singleplayer")),
             button.new("Multiplayer", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.09, changeScreen("multiplayer")),
-            --button.new("Skins", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, changeScreen("skins")),
-            --button.new("Mods", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, changeScreen("skins")),
             button.new("Settings", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, changeScreen("options")),
             button.new("Quit Game", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.7, self.width * 0.4, self.height * 0.09, exitButton),
             button.new("Change", self.color.fg, self.color.bg, self.width * 0.7, self.height * 0.7, self.width * 0.2, self.height * 0.09, changeScreen("skins")),        
@@ -268,10 +269,11 @@ function menu:load()
                 if currentTrack then
                     currentTrack:setVolume(value * config.audio.master)
                 end
-            end),            
+                if gameAudio.menu[1] then
+                    gameAudio.menu[1]:setVolume(value * config.audio.master)
+                end
+            end),      
             slider.new("SFX Volume", 0, 1, config.audio.sfx, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(value) config.audio.sfx = value end),
-            --checkbox.new("Enable Music", self.width * 0.3, self.height * 0.45, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, sound.enableMusic, function(value) sound.enableMusic = value end),
-            --checkbox.new("Enable SFX", self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, sound.enableSFX, function(value) sound.enableSFX = value end),
             button.new("Back", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, changeScreen("options"))
         },
         graphics = {
@@ -298,7 +300,8 @@ function menu:load()
            
             slider.new("Bloom", 0, 1, config.graphics.bloom, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(value) config.graphics.bloom = value end),
             slider.new("Light Distance", 0, 600, config.graphics.lightDistance, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(value) config.graphics.ambientLight = value end),
-            slider.new("Brightness", 0, 1, config.graphics.brightness, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(value) config.graphics.brightness = value end),
+            slider.new("Brightness", 0, 1, config.graphics.brightness, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(value) --config.graphics.brightness = value 
+            end),
             slider.new("Ambient Light", 0, 1, config.graphics.ambientLight, self.width * 0.3, self.height * 0.7, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(value) config.graphics.ambientLight = value end),
             --colorpicker.new("Light Color", config.graphics.lightColor, self.width * 0.3, self.height * 0.55, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(r, g, b) config.graphics.lightColor = {r, g, b} end),
             button.new("Back", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, changeScreen("options"))
@@ -367,6 +370,8 @@ function menu:load()
 end
 
 function menu:update(dt)
+    self.titleOffset = self.titleAmplitude * math.sin(love.timer.getTime() * self.titleSpeed / self.titleAmplitude)
+
     for _, v in pairs(self.screen[self.currentScreen]) do
         if type(v.update) == "function" then
             v:update(dt)
@@ -377,7 +382,11 @@ end
 function menu:draw()
     love.graphics.draw(nightSkyImage, 0, 0, 0, nightSkyImageScaleX, nightSkyImageScaleY)
 
-    for _, v in pairs(self.screen[self.currentScreen]) do
+    for i, v in ipairs(self.screen[self.currentScreen]) do
+        if i == 1 and self.currentScreen == "main" then
+            v.y = lg.getHeight() * 0.2 + self.titleOffset
+        end
+
         v:draw()
     end
 

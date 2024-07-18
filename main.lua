@@ -1,5 +1,5 @@
 NAME = "Miners Odyssey"
-VERSION = "v0.09"
+VERSION = "v0.010"
  
 -- GLOBALS
 lg = love.graphics
@@ -109,7 +109,7 @@ function love.load()
     tileBreakImg, tileBreak = loadAtlas("src/assets/tileBreak.png", 16, 16, 0)
 
     -- loading audio
-    gameAudio = {background = {}}
+    gameAudio = {background = {}, menu = {}}
 
     local backgroundMusic = {
         "serenity",
@@ -117,15 +117,19 @@ function love.load()
         "silent_echoes"
     }
 
+    local path = "src/assets/audio/"
     for _, v in ipairs(backgroundMusic) do
-        local path = "src/assets/audio/"
         if love.filesystem.exists(path..v..".mp3") then
-          gameAudio.background[#gameAudio.background+1] = love.audio.newSource(path..tostring(v)..".mp3", "stream")
+            gameAudio.background[#gameAudio.background+1] = love.audio.newSource(path..tostring(v)..".mp3", "stream")
         else 
-          print(v.." not found at path "..path)
+            print(v.." not found at path "..path)
         end
-      end
-      applyMasterVolume()
+    end
+
+    gameAudio.menu[#gameAudio.menu+1] = love.audio.newSource(path.."Dreamers.wav", "stream")
+    gameAudio.menu[1]:play()
+
+    applyMasterVolume()
 
     state:load("menu", {worldName = "test"})
     --state:load("game", {type = "load", worldName = "test"})
@@ -144,7 +148,10 @@ end
 
 function applyMasterVolume()
     for _, source in pairs(gameAudio.background) do
-      source:setVolume(config.audio.master * config.audio.music)
+        source:setVolume(config.audio.master * config.audio.music)
+    end
+    if gameAudio.menu[1] then
+        gameAudio.menu[1]:setVolume(config.audio.master * config.audio.music)
     end
     -- Apply to other audio sources (SFX, etc.) here
 end
