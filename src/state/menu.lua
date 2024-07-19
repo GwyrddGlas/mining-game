@@ -7,6 +7,7 @@ local menu = {
 
 local nightSkyImage
 local nightSkyImageScaleX, nightSkyImageScaleY
+local keyboardImage
 
 -- Button functions
 local function changeScreen(screen)
@@ -65,6 +66,8 @@ local function loadSkins()
     nightSkyImage = love.graphics.newImage("src/assets/night_sky_with_moon_and_clouds.png")
     nightSkyImageScaleX = love.graphics.getWidth() / nightSkyImage:getWidth()
     nightSkyImageScaleY = love.graphics.getHeight() / nightSkyImage:getHeight()
+    
+    keyboardImage = love.graphics.newImage("src/assets/keyboard.png")
 
     for _, v in ipairs(skins) do
         v.id = love.graphics.newImage(v.path)
@@ -276,7 +279,7 @@ self.screen = {
         label.new("Settings", self.color.success, font.title, 0, lg.getHeight() * 0.15, "center"),
         button.new("Graphics", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.3, self.width * 0.4, self.height * 0.09, changeScreen("graphics")),
         button.new("Sounds", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.09, changeScreen("sounds")),
-        button.new("Controls", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.09, changeScreen("graphics")),
+        button.new("Controls", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.09, changeScreen("controls")),
         button.new("Save", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, function()
             clear_config()
             save_config()
@@ -337,17 +340,21 @@ self.screen = {
     },
     new = {
         label.new("New world", self.color.success, font.title, 0, lg.getHeight() * 0.15, "center"),
-        worldName = textbox.new("", "World name", self.color.fg, self.color.idle, self.color.bg, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.09),
-        seed = textbox.new("", "Seed", self.color.fg, self.color.idle, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, false, 10),
-        button.new("Create world", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.7, self.width * 0.4, self.height * 0.09, createButton),
-        button.new("Back", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, changeScreen("main")),
+        worldName = textbox.new("", "World name", self.color.fg, self.color.idle, self.color.bg, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.09),
+        seed = textbox.new("", "Seed", self.color.fg, self.color.idle, self.color.bg, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.09, false, 10),
+        button.new("Create world", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, createButton),
+        button.new("Back", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.7, self.width * 0.4, self.height * 0.09, changeScreen("main")),
     },
     load = {
         label.new("Select World", self.color.success, font.title, 0, lg.getHeight() * 0.15, "center"),
         --button.new("Load world", self.color.success, self.color.bg, self.width * 0.05, self.height * 0.6, self.width * 0.25, self.height * 0.09, load),
         --button.new("Delete world", self.color.danger, self.color.bg, self.width * 0.05, self.height * 0.7, self.width * 0.25, self.height * 0.09, delete),
         --button.new("Back", self.color.fg, self.color.bg, self.width * 0.05, self.height * 0.8, self.width * 0.25, self.height * 0.09, changeScreen("main")),
-    }
+    },
+    controls = {
+        label.new("Controls", self.color.success, font.title, 0, lg.getHeight() * 0.15, "center"),
+        button.new("Back", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, changeScreen("options")),
+    },
 }
 
     local y = 0.4
@@ -408,10 +415,18 @@ function menu:update(dt)
     end
 end
 
+function menu:drawKeyboardImage()
+    love.graphics.setColor(1,1,1)
+    local scale = math.min(self.width / keyboardImage:getWidth(), self.height / keyboardImage:getHeight()) * 0.6
+    local x = (self.width - keyboardImage:getWidth() * scale) / 2
+    local y = (self.height - keyboardImage:getHeight() * scale) / 2
+    love.graphics.draw(keyboardImage, x, y, 0, scale, scale)
+end
+
 function menu:draw()
     love.graphics.draw(nightSkyImage, 0, 0, 0, nightSkyImageScaleX, nightSkyImageScaleY)
 
-    for i, v in ipairs(self.screen[self.currentScreen]) do
+    for i, v in pairs(self.screen[self.currentScreen]) do
         if i == 1 and self.currentScreen == "main" then
             v.y = lg.getHeight() * 0.2 + self.titleOffset
         end
@@ -423,6 +438,8 @@ function menu:draw()
         self:drawCharacterPreview()
     elseif self.currentScreen == "skins" then
         drawSkins()
+    elseif self.currentScreen == "controls" then
+        self:drawKeyboardImage()
     end
 end
 
@@ -481,6 +498,12 @@ function menu:resize(w, h)
             skin.width = skinWidth
             skin.height = skinHeight
         end
+    end
+
+    -- Update keyboard image scale
+    if keyboardImage then
+        local scale = math.min(w / keyboardImage:getWidth(), h / keyboardImage:getHeight()) * 0.8
+        self.keyboardImageScale = scale
     end
 end
 

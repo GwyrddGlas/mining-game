@@ -105,12 +105,12 @@ local function convertIconToDefinition(iconValue)
         [28] = 13,  -- Crafting
         [29] = 14,  -- Furnace
         [33] = 16,  -- Torch
-        [44] = 15,  -- StoneBrick
-        [45] = 15,  -- Grass
+        [30] = 15,  -- StoneBrick
+       -- [45] = 15,  -- Grass
         [46] = 17,  -- Dirt
     }
     
-    return iconDefinitions[iconValue] or 2  -- Default to Stone (2) if not found
+    return iconDefinitions[iconValue] or 2 
 end
 
 function entity:place(id)

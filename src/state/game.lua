@@ -91,13 +91,14 @@ function game:load(data)
         Wall = 18,
         Crafting = 28,
         Furnace = 29,
+        StoneBrick = 30,
+        Grass = 31,
+        Dirt = 32,
         Torch = 33,
         health = 41,
         halfHeart = 42,
         radiation = 43,
-        StoneBrick = 44,
-        Grass = 45,
-        Dirt = 46
+        Mushroom = 51,
     }
 
     -- Poster stuff
@@ -283,7 +284,7 @@ function game:drawHud() --optimise math later
         if isHealth then
             local heartCount = math.floor(value / 2)
             local halfHeart = value % 2 ~= 0
-            local heartSpacing = -10
+            local heartSpacing = -15
 
             for i = 1, heartCount do
                 lg.setColor(1, 1, 1, 1)

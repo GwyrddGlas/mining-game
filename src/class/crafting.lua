@@ -417,9 +417,10 @@ function crafting:draw(icon)
                 local textX = slotX + itemSize - textWidth - itemSize * 0.1
                 local textY = slotY + itemSize - textHeight - itemSize * 0.1
                 lg.setColor(1, 1, 1)
-                lg.draw(tileAtlas, tiles[icon[item]],  slotX + itemSize * 0.1, slotY + itemSize * 0.1, 0, itemSize * 0.8 / config.graphics.assetSize, itemSize * 0.8 / config.graphics.assetSize)
-                
-                lg.print(quantityText, textX, textY)
+                if tiles[icon[item]] then
+                    lg.draw(tileAtlas, tiles[icon[item]],  slotX + itemSize * 0.1, slotY + itemSize * 0.1, 0, itemSize * 0.8 / config.graphics.assetSize, itemSize * 0.8 / config.graphics.assetSize) 
+                    lg.print(quantityText, textX, textY)
+                end
             end
         end
     end
