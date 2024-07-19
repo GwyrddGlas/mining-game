@@ -45,16 +45,14 @@ function textbox:draw()
     if self.selected then
         lg.setColor(self.textColorSelected)
     end
-    
     local font = lg.getFont()
     local y = self.y + (self.height / 2) - ((font:getAscent() - font:getDescent()) / 2)
     local text = self.text
-   
     if #self.text < 1 and not self.selected then
         text = self.placeholder
     end
-    
     lg.printf(text, self.x, y, self.width, "center")
+
 
     --lg.setColor(1, 0, 1)
     --lg.rectangle("line", self.x, self.y, self.width, self.height)
