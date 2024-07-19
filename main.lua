@@ -195,6 +195,9 @@ function love.keypressed(key)
     end
 
     if key == "f1" then
+        if _INVENTORY.inventoryOpen then
+            _INVENTORY.inventoryOpen = false
+        end
         console:setVisible(true)
     elseif key == "f2" then
         config.debug.enabled = not config.debug.enabled
@@ -207,12 +210,6 @@ function love.keypressed(key)
         elseif key == "b" then
             config.debug.showChunkBorders = not config.debug.showChunkBorders
             note:new("Show chunk borders: "..tostring(config.debug.showChunkBorders))
-        --elseif key == "c" then
-        --    config.debug.showCollision = not config.debug.showCollision
-        --    note:new("Show collisions: "..tostring(config.debug.showCollision))
-        --elseif key == "p" then
-            config.graphics.useShaders = not config.graphics.useShaders
-            note:new("Shaders: "..tostring(config.graphics.useShaders))
         end
     end
 end

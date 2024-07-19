@@ -53,9 +53,9 @@ function textbox:draw()
     end
     lg.printf(text, self.x, y, self.width, "center")
 
-
-    --lg.setColor(1, 0, 1)
-    --lg.rectangle("line", self.x, self.y, self.width, self.height)
+    --print("test textbox")
+    lg.setColor(1, 0, 1)
+    lg.rectangle("line", self.x, self.y, self.width, self.height)
 end
 
 function textbox:textinput(t)

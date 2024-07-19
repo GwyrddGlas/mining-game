@@ -88,6 +88,8 @@ function slider:draw()
     love.graphics.setColor(self.handleColor)
     love.graphics.rectangle("fill", handleX, handleY, handleWidth, handleHeight)
 
+   -- print("test slider")
+
     -- Draw label
     self:drawLabel()
 end

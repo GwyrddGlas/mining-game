@@ -241,7 +241,11 @@ function menu:load()
         },
         multiplayer = {
             label.new("Multiplayer", self.color.success, font.large, 0, lg.getHeight() * 0.15, "center"),
-
+            serverAddress = textbox.new("", "Server Address", self.color.fg, self.color.idle, self.color.bg, self.width * 0.3, self.height * 0.3, self.width * 0.4, self.height * 0.09),
+            button.new("Connect", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.09, function() 
+                print("Connecting to: " .. menu.screen.multiplayer.serverAddress.text)
+            end),
+            button.new("Back", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, changeScreen("main")),
         },
         options = {
             label.new("Settings", self.color.success, font.title, 0, lg.getHeight() * 0.15, "center"),
@@ -278,7 +282,7 @@ function menu:load()
         },
         graphics = {
             label.new("Graphics Settings", self.color.success, font.title, 0, lg.getHeight() * 0.15, "center"),
-            checkbox.new("Light", self.color.fg, self.color.fg, self.width * 0.3, self.height * 0.3, self.width * 0.4, self.height * 0.05, config.graphics.useLight, 
+            checkbox.new("Fog", self.color.fg, self.color.fg, self.width * 0.3, self.height * 0.3, self.width * 0.4, self.height * 0.05, config.graphics.useLight, 
                 function(isChecked) 
                     config.graphics.useLight = isChecked 
                 end),        
@@ -286,11 +290,11 @@ function menu:load()
                 function(isChecked) 
                     config.graphics.useShaders = isChecked 
                 end),              
-                checkbox.new("Vsync", self.color.fg, self.color.fg, self.width * 0.5, self.height * 0.3, self.width * 0.4, self.height * 0.05, config.window.fullscreen, 
+            checkbox.new("Vsync", self.color.fg, self.color.fg, self.width * 0.5, self.height * 0.3, self.width * 0.4, self.height * 0.05, config.window.fullscreen, 
                 function(isChecked) 
                     love.window.setVSync(isChecked)
                 end),  
-                checkbox.new("FullScreen", self.color.fg, self.color.fg, self.width * 0.6, self.height * 0.3, self.width * 0.4, self.height * 0.05, config.window.fullscreen, 
+            checkbox.new("FullScreen", self.color.fg, self.color.fg, self.width * 0.6, self.height * 0.3, self.width * 0.4, self.height * 0.05, config.window.fullscreen, 
                 function(isChecked) 
                     config.window.fullscreen = isChecked 
                     love.window.setFullscreen(isChecked)
@@ -300,11 +304,11 @@ function menu:load()
            
             slider.new("Bloom", 0, 1, config.graphics.bloom, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(value) config.graphics.bloom = value end),
             slider.new("Light Distance", 0, 600, config.graphics.lightDistance, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(value) config.graphics.ambientLight = value end),
-            slider.new("Brightness", 0, 1, config.graphics.brightness, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(value) --config.graphics.brightness = value 
-            end),
+            slider.new("Brightness", 0, 0.4, config.graphics.brightness, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(value) config.graphics.brightness = value print(value) end),
             slider.new("Ambient Light", 0, 1, config.graphics.ambientLight, self.width * 0.3, self.height * 0.7, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(value) config.graphics.ambientLight = value end),
             --colorpicker.new("Light Color", config.graphics.lightColor, self.width * 0.3, self.height * 0.55, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(r, g, b) config.graphics.lightColor = {r, g, b} end),
-            button.new("Back", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, changeScreen("options"))
+            button.new("Reset Graphics Settings", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, changeScreen("options")),
+            button.new("Back", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.9, self.width * 0.4, self.height * 0.09, changeScreen("options"))
         },
         new = {
             label.new("New world", self.color.success, font.title, 0, lg.getHeight() * 0.15, "center"),
