@@ -7,7 +7,6 @@ local menu = {
 
 local nightSkyImage
 local nightSkyImageScaleX, nightSkyImageScaleY
-local keyboardImage
 
 -- Button functions
 local function changeScreen(screen)
@@ -67,8 +66,6 @@ local function loadSkins()
     nightSkyImageScaleX = love.graphics.getWidth() / nightSkyImage:getWidth()
     nightSkyImageScaleY = love.graphics.getHeight() / nightSkyImage:getHeight()
     
-    keyboardImage = love.graphics.newImage("src/assets/keyboard.png")
-
     for _, v in ipairs(skins) do
         v.id = love.graphics.newImage(v.path)
     end
@@ -231,7 +228,7 @@ self.currentScreen = "main"
 self.screen = {
     main = {
         label.new(NAME, self.color.success, font.title, 0, lg.getHeight() * 0.2, "center"),
-        label.new(VERSION, self.color.success, font.regular, self.width*0.47, self.height - 55, "center"),
+        label.new(VERSION, self.color.success, font.regular, self.width*0.47 - font.regular:getWidth(VERSION)*0.4, self.height - 55, "center"),
         label.new("dsc.gg/miners-odyssey", self.color.success, font.regular, 10, self.height - 55, "left"),
         button.new("Singleplayer", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.09, changeScreen("singleplayer")),
         button.new("Multiplayer", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.09, changeScreen("multiplayer")),
@@ -353,6 +350,23 @@ self.screen = {
     },
     controls = {
         label.new("Controls", self.color.success, font.title, 0, lg.getHeight() * 0.15, "center"),
+        keybox.new("Forward", self.color.fg, self.color.fg, self.width * 0.3, self.height * 0.3, 120, self.height * 0.09, "w", function(key)
+            print("New key set: " .. key)
+        end),
+        keybox.new("Backward", self.color.fg, self.color.fg, self.width * 0.3, self.height * 0.4, 120, self.height * 0.09, "w", function(key)
+            print("New key set: " .. key)
+        end),
+        keybox.new("Left", self.color.fg, self.color.fg, self.width * 0.3, self.height * 0.5, 120, self.height * 0.09, "w", function(key)
+            print("New key set: " .. key)
+        end),
+        keybox.new("Right", self.color.fg, self.color.fg, self.width * 0.3, self.height * 0.6, 120, self.height * 0.09, "w", function(key)
+            print("New key set: " .. key)
+        end),
+        
+        keybox.new("Inventory", self.color.fg, self.color.fg, self.width * 0.5, self.height * 0.3, 120, self.height * 0.09, "w", function(key)
+            print("New key set: " .. key)
+        end),
+        
         button.new("Back", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, changeScreen("options")),
     },
 }
@@ -415,14 +429,6 @@ function menu:update(dt)
     end
 end
 
-function menu:drawKeyboardImage()
-    love.graphics.setColor(1,1,1)
-    local scale = math.min(self.width / keyboardImage:getWidth(), self.height / keyboardImage:getHeight()) * 0.6
-    local x = (self.width - keyboardImage:getWidth() * scale) / 2
-    local y = (self.height - keyboardImage:getHeight() * scale) / 2
-    love.graphics.draw(keyboardImage, x, y, 0, scale, scale)
-end
-
 function menu:draw()
     love.graphics.draw(nightSkyImage, 0, 0, 0, nightSkyImageScaleX, nightSkyImageScaleY)
 
@@ -438,8 +444,6 @@ function menu:draw()
         self:drawCharacterPreview()
     elseif self.currentScreen == "skins" then
         drawSkins()
-    elseif self.currentScreen == "controls" then
-        self:drawKeyboardImage()
     end
 end
 
@@ -498,12 +502,6 @@ function menu:resize(w, h)
             skin.width = skinWidth
             skin.height = skinHeight
         end
-    end
-
-    -- Update keyboard image scale
-    if keyboardImage then
-        local scale = math.min(w / keyboardImage:getWidth(), h / keyboardImage:getHeight()) * 0.8
-        self.keyboardImageScale = scale
     end
 end
 

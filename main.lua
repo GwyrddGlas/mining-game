@@ -1,6 +1,6 @@
 NAME = "Miners Odyssey"
-VERSION = "v0.010"
- 
+VERSION = "v0.010 (Pre Alpha 1a)"
+
 -- GLOBALS
 lg = love.graphics
 fs = love.filesystem
@@ -17,7 +17,7 @@ floor = math.floor
 function love.load()
     -- Loaidng classes
     require("src.class.util")
-    require_folder("src/class")
+    require_folder("src.class")
 
     exString.import()
 
@@ -32,8 +32,8 @@ function love.load()
     --Config
     local default_config = {
         window = {
-            width = 1024,
-            height = 576,
+            width = 1280,
+            height = 720,
             fullscreen = true,
             resizable = true,
         },

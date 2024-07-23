@@ -95,6 +95,7 @@ function game:load(data)
         Grass = 31,
         Dirt = 32,
         Torch = 33,
+        Chest = 34,
         health = 41,
         halfHeart = 42,
         radiation = 43,
@@ -277,25 +278,23 @@ function game:drawHud() --optimise math later
         end
     end
 
-    local function drawIconValue(icon, value, x, y, sizeScale, isHealth)
-        sizeScale = sizeScale or iconScale
-        isHealth = isHealth or false
-
-        if isHealth then
-            local heartCount = math.floor(value / 2)
-            local halfHeart = value % 2 ~= 0
-            local heartSpacing = -15
-
-            for i = 1, heartCount do
-                lg.setColor(1, 1, 1, 1)
-                lg.draw(tileAtlas, tiles[self.icon[icon]], x + (i - 1) * (sizeScale + heartSpacing), y, 0, sizeScale / config.graphics.assetSize, sizeScale / config.graphics.assetSize)
-            end
-
-            if halfHeart then
-                lg.setColor(1, 1, 1, 1)
-                lg.draw(tileAtlas, tiles[self.icon[icon] + 1], x + heartCount * (sizeScale + heartSpacing), y, 0, sizeScale / config.graphics.assetSize, sizeScale / config.graphics.assetSize)
-            end
-        else
+local function drawIconValue(icon, value, x, y, sizeScale, isHealth)
+    sizeScale = sizeScale or iconScale
+    isHealth = isHealth or false
+   
+    if isHealth then
+        local heartCount = math.floor(value / 2)
+        local halfHeart = value % 2 ~= 0
+        local heartSpacing = -15
+        for i = 1, heartCount do
+            lg.setColor(1, 1, 1, 1)
+            lg.draw(tileAtlas, tiles[self.icon[icon]], x + (i - 1) * (sizeScale + heartSpacing), y, 0, sizeScale / config.graphics.assetSize, sizeScale / config.graphics.assetSize)
+        end
+        if halfHeart then
+            lg.setColor(1, 1, 1, 1)
+            lg.draw(tileAtlas, tiles[self.icon[icon] + 1], x + heartCount * (sizeScale + heartSpacing), y, 0, sizeScale / config.graphics.assetSize, sizeScale / config.graphics.assetSize)
+        end
+    else
             lg.setColor(1, 1, 1, 1)
             lg.draw(tileAtlas, tiles[self.icon[icon]], x, y, 0, sizeScale / config.graphics.assetSize, sizeScale / config.graphics.assetSize)
             lg.setFont(font.regular)
@@ -333,7 +332,6 @@ function game:draw()
     lg.setColor(1, 1, 1, 1)
     if config.graphics.useShaders then
         self.canvas:draw(self.shaders)
-
         lg.setBlendMode("add")
         lg.setColor(1, 1, 1, config.graphics.bloom)
         self.canvas:draw(self.bloom, self.bloom)

@@ -1,11 +1,22 @@
+controls = {
+    right = "d",
+    left = "a",
+    down = "s",
+    up = "w",
+    sprint = "space"
+}
+
 return {
     filter = function(e)
         return e.control or false
     end,
 
     process = function(e, dt)
-        local right, left, down, up = kb.isDown("d"), kb.isDown("a"), kb.isDown("s"), kb.isDown("w") 
-        local space = kb.isDown("space")
+        local right = kb.isDown(controls.right)
+        local left = kb.isDown(controls.left)
+        local down = kb.isDown(controls.down)
+        local up = kb.isDown(controls.up)
+        local space = kb.isDown(controls.sprint)
         local speed = e.speed
         if space then speed = e.speed * 5 end
 
@@ -26,7 +37,6 @@ return {
             ny = ny - speed * dt
             e.moving = true
         end
-
 
         -- Collisions
         local fx, fy, col, len = e.bumpWorld:move(e, nx, ny)

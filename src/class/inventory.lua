@@ -26,8 +26,9 @@ function inventory:getInventoryBounds()
     local inventoryRows, inventoryColumns = 3, 6
     local itemSize = self:getInventoryItemSize()
     local itemSpacing = self:getInventoryItemSpacing()
-    local inventoryWidth = inventoryColumns * (itemSize + itemSpacing) - itemSpacing
-    local inventoryHeight = inventoryRows * (itemSize + itemSpacing) - itemSpacing
+    local inventoryPadding = itemSize * 0.2
+    local inventoryWidth = inventoryColumns * (itemSize + itemSpacing) - itemSpacing + inventoryPadding * 2
+    local inventoryHeight = inventoryRows * (itemSize + itemSpacing) - itemSpacing + inventoryPadding * 2
     local inventoryX = width * 0.5 - inventoryWidth * 0.5
     local inventoryY = height * 0.5 - inventoryHeight * 0.5
     return inventoryX, inventoryY, inventoryWidth, inventoryHeight
@@ -165,7 +166,10 @@ function inventory:handleRightClick(index, clickedItem)
 end
 
 function inventory:isMouseInsideSlot(x, y, slotX, slotY, itemSize)
-    return x >= slotX and x <= slotX + itemSize and y >= slotY and y <= slotY + itemSize
+    local padding = itemSize * 0.2  -- Add some padding
+    local offsetX = itemSize * 0.5  -- Shift detection area to the left
+    return x >= slotX - padding - offsetX and x <= slotX + itemSize + padding - offsetX and 
+           y >= slotY - padding and y <= slotY + itemSize + padding
 end
 
 function inventory:keypressed(key)

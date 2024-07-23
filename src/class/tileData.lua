@@ -19,7 +19,7 @@ tileData[#tileData+1] = {
     maxHP = 5,
     drop = {1, 1}, 
     destructible = true, 
-    solid = true,
+    solid = false,
     item = false,
     placeable = true,
     itemTextureID = 0,
@@ -46,7 +46,7 @@ tileData[#tileData+1] = {
     solid = false,
     placeable = false,
     item = false,
-    itemTextureID = 50,
+    itemTextureID = 0,
 }
 
 tileData[#tileData+1] = {
@@ -219,7 +219,19 @@ tileData[#tileData+1] = {
 
 tileData[#tileData+1] = {
     type = "Mushroom",
-    textureID = 18, 
+    textureID = 33, 
+    maxHP = 8,
+    drop = {1, 1}, 
+    destructible = true, 
+    solid = false,
+    item = false,
+    placeable = true,
+    itemTextureID = 0,
+}
+
+tileData[#tileData+1] = {
+    type = "Chest",
+    textureID = 34, 
     maxHP = 8,
     drop = {1, 1}, 
     destructible = true, 
