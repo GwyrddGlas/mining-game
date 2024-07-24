@@ -21,6 +21,7 @@ Embark on an exciting adventure in a vast 2D world, where you can mine resources
 - Left-click to mine blocks and interact with the world
 - Right-click to place blocks or use items
 - Press 'I' to open the inventory
+- Press 'lshift' to sprint
 - Press 'ESC' to pause the game or access the menu
 
 ### In Inventory
