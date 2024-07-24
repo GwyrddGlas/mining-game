@@ -87,7 +87,7 @@ function game:load(data)
         Ruby = 6,
         Tanzenite = 7,
         Copper = 8,
-        Shrub = 9,
+        Shrub = 9, --stick
         Wall = 18,
         Crafting = 28,
         Furnace = 29,
@@ -138,6 +138,8 @@ function game:load(data)
         {"horizontalBlur", "amount", 3},
     })
 
+    self.inventory.inventoryOpen = false
+
     playBackgroundMusic()
     gameAudio.menu[1]:stop()
 end
@@ -145,7 +147,6 @@ end
 function game:unload()
     ecs.unload()
     self.world = nil
-    self.inventory.inventoryOpen = false
 end
 
 function game:update(dt)
@@ -378,33 +379,47 @@ function game:draw()
 end
 
 function game:drawMinimap(all)
+    local minimapRadius = 125
+    local minimapX = 30 + minimapRadius
+    local minimapY = 30 + minimapRadius
     local minimapScale = 5
-    local minimapWidth = 250
-    local minimapHeight = 250
-    local minimapX = 20
-    local minimapY = 20
-    local minimapCenterX = minimapX + minimapWidth / 2
-    local minimapCenterY = minimapY + minimapHeight / 2
-    
-    -- Draw minimap background
+
+    -- Draw circular background
     lg.setColor(0.1, 0.1, 0.1, 0.8)
-    lg.rectangle("fill", minimapX, minimapY, minimapWidth, minimapHeight)
+    lg.circle("fill", minimapX, minimapY, minimapRadius)
     
-    -- Draw minimap outline
-    lg.setColor(1, 1, 1, 0.8)
+    -- Draw fancy border
+    lg.setColor(0.3, 0.3, 0.3, 1)
+    lg.setLineWidth(4)
+    lg.circle("line", minimapX, minimapY, minimapRadius)
+    lg.setColor(0.7, 0.7, 0.7, 1)
     lg.setLineWidth(2)
-    lg.rectangle("line", minimapX, minimapY, minimapWidth, minimapHeight)
+    lg.circle("line", minimapX, minimapY, minimapRadius)
     lg.setLineWidth(1)
+    
+    -- Draw compass points
+    local compassColor = {0.9, 0.9, 0.9, 0.7}
+    local compassOffset = minimapRadius + 20
+    lg.setColor(compassColor)
+    lg.setFont(font.tiny)
+    lg.print("N", minimapX - 5, minimapY - compassOffset - 10)
+    lg.print("S", minimapX - 5, minimapY + compassOffset - 15)
+    lg.print("W", minimapX - compassOffset + 5, minimapY - 7)
+    lg.print("E", minimapX + compassOffset - 15, minimapY - 7)
     
     -- Draw minimap coordinates
     lg.setColor(1, 1, 1, 1)
     lg.setFont(font.tiny)
-    lg.print(string.format("x: %i", self.player.gridX), minimapX , minimapY + minimapHeight)
+    lg.print(string.format("x: %i", self.player.gridX), minimapX - minimapRadius, minimapY + minimapRadius + 10)
     local yPos = string.format("y: %i", self.player.gridY)
     local yPosWidth = lg.getFont():getWidth(yPos)
-    lg.print(yPos, minimapX + minimapWidth - yPosWidth, minimapY + minimapHeight)    
+    lg.print(yPos, minimapX + minimapRadius - yPosWidth, minimapY + minimapRadius + 10)
     
-    lg.setScissor(minimapX, minimapY, minimapWidth, minimapHeight)
+    -- Set circular stencil
+    lg.stencil(function()
+        lg.circle("fill", minimapX, minimapY, minimapRadius - 2)
+    end, "replace", 1)
+    lg.setStencilTest("greater", 0)
     
     local miniMapColors = {
         {0.2, 0.2, 0.2, 1},    -- 0: Black (Wall)
@@ -423,15 +438,11 @@ function game:drawMinimap(all)
         {1, 1, 1, 1},    -- 13: 
         {1, 1, 1, 1},    -- 14: 
         {102/255, 123/255, 13/255, 1},    -- 15: Grass (Green)
-        {1, 1, 1, 1},    -- 16
 
     }
     
     local playerColor = {0, 1, 0, 1}
     local playerSize = minimapScale
-    
-    local startX = self.player.gridX * minimapScale - minimapWidth / 2
-    local startY = self.player.gridY * minimapScale - minimapHeight / 2
     
     for i, v in ipairs(all) do
         if v.entityType == "tile" then
@@ -441,8 +452,8 @@ function game:drawMinimap(all)
                 lg.setColor(color[1], color[2], color[3], color[4])
                 lg.rectangle(
                     "fill",
-                    minimapCenterX + (v.gridX - self.player.gridX) * minimapScale,
-                    minimapCenterY + (v.gridY - self.player.gridY) * minimapScale,
+                    minimapX + (v.gridX - self.player.gridX) * minimapScale,
+                    minimapY + (v.gridY - self.player.gridY) * minimapScale,
                     minimapScale,
                     minimapScale
                 )
@@ -451,15 +462,47 @@ function game:drawMinimap(all)
             lg.setColor(playerColor[1], playerColor[2], playerColor[3], playerColor[4])
             lg.rectangle(
                 "fill",
-                minimapCenterX - playerSize / 2,
-                minimapCenterY - playerSize / 2,
+                minimapX - playerSize / 2,
+                minimapY - playerSize / 2,
                 playerSize,
                 playerSize
             )
         end
     end
     
-    lg.setScissor()
+    -- Reset stencil test
+    lg.setStencilTest()
+    
+    local function atan2(y, x)
+        if x > 0 then
+            return math.atan(y/x)
+        elseif x < 0 and y >= 0 then
+            return math.atan(y/x) + math.pi
+        elseif x < 0 and y < 0 then
+            return math.atan(y/x) - math.pi
+        elseif x == 0 and y > 0 then
+            return math.pi/2
+        elseif x == 0 and y < 0 then
+            return -math.pi/2
+        else -- x == 0 and y == 0
+            return 0
+        end
+    end
+
+    -- Draw player direction indicator
+    local directionLength = 15
+    local mx, my = camera:getMouse()
+    local playerAngle = atan2(my - self.player.y, mx - self.player.x)
+    lg.setColor(1, 1, 1, 0.8)
+    lg.setLineWidth(2)
+    lg.line(
+        minimapX,
+        minimapY,
+        minimapX + math.cos(playerAngle) * directionLength,
+        minimapY + math.sin(playerAngle) * directionLength
+    )
+    lg.setLineWidth(1)
+
 end
 
 function game:keypressed(key)
@@ -468,7 +511,7 @@ function game:keypressed(key)
     end
 
     -- Inventory
-    inventory:keypressed(key)
+    self.inventory:keypressed(key)
 
     --Crafting
     self.crafting:keypressed(key)

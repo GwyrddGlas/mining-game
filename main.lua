@@ -1,5 +1,6 @@
 NAME = "Miners Odyssey"
-VERSION = "v0.010 (Pre Alpha 1a)"
+VERSION = "v0.010 (Pre Alpha 1c)"
+config = {}
 
 -- GLOBALS
 lg = love.graphics
@@ -67,11 +68,20 @@ function love.load()
         }
     }
 
+    gameControls = {
+        right = "d",
+        left = "a",
+        down = "s",
+        up = "w",
+        sprint = "lshift",
+        inventory = "i"
+    }
+
     if fs.getInfo("config.lua") then
         config = ttf.load("config.lua")
     else
         config = default_config
-        --save_config()
+        save_config()
     end
 
     -- Creating folders
@@ -189,14 +199,16 @@ function love.keypressed(key)
     if key == "escape" then
         if console:getVisible() then
             console:setVisible(false) 
+        elseif _INVENTORY and _INVENTORY.inventoryOpen then
+            _INVENTORY:toggleInventory()
         else
             state:load("menu")
         end
     end
 
     if key == "f1" then
-        if _INVENTORY.inventoryOpen then
-            _INVENTORY.inventoryOpen = false
+        if _INVENTORY and _INVENTORY.inventoryOpen then
+            _INVENTORY:toggleInventory()
         end
         console:setVisible(true)
     elseif key == "f2" then

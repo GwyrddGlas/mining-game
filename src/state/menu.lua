@@ -144,6 +144,11 @@ local function delete()
     end
 end
 
+local function setNewKey(action, key)
+    gameControls[action] = key
+    print("New key set for " .. action .. ": " .. key)
+end
+
 function menu:getSelectedTextbox(screen)
     for i, v in ipairs(self.screen[screen]) do
         if v.type == "textbox" and v.selected then
@@ -250,25 +255,25 @@ self.screen = {
         button.new("Create Server", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, function()
             local ip = menu.screen.multiplayer.ipAddress.text
             local port = tonumber(menu.screen.multiplayer.port.text)
-            if ip ~= "" and port then
-                network:init(ip, port)
-                network:createServer()
-                note:new("Server created at " .. ip .. ":" .. port, "success")
-            else
-                note:new("Please enter a valid IP and Port", "danger")
-            end
+            --if ip ~= "" and port then
+            --    network:init(ip, port)
+            --    network:createServer()
+            --    note:new("Server created at " .. ip .. ":" .. port, "success")
+            --else
+            --    note:new("Please enter a valid IP and Port", "danger")
+            --end
         end),
         button.new("Connect", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.7, self.width * 0.4, self.height * 0.09, function() 
             local ip = menu.screen.multiplayer.ipAddress.text
             local port = tonumber(menu.screen.multiplayer.port.text)
-            if ip ~= "" and port then
-                network:init(ip, port)
-                if network:connect() then
-                    note:new("Connected to server", "success")
-                end
-            else
-                note:new("Please enter a valid IP and Port", "danger")
-            end
+            --if ip ~= "" and port then
+            --    network:init(ip, port)
+            --    if network:connect() then
+            --        note:new("Connected to server", "success")
+            --    end
+            --else
+            --    note:new("Please enter a valid IP and Port", "danger")
+            --end
         end),
         button.new("Back", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, changeScreen("main")),
     },
@@ -350,21 +355,23 @@ self.screen = {
     },
     controls = {
         label.new("Controls", self.color.success, font.title, 0, lg.getHeight() * 0.15, "center"),
-        keybox.new("Forward", self.color.fg, self.color.fg, self.width * 0.3, self.height * 0.3, 120, self.height * 0.09, "w", function(key)
-            print("New key set: " .. key)
+        keybox.new("Forward", self.color.fg, self.color.fg, self.width * 0.3, self.height * 0.3, 120, self.height * 0.09, gameControls.up, function(key)
+            setNewKey("up", key)
         end),
-        keybox.new("Backward", self.color.fg, self.color.fg, self.width * 0.3, self.height * 0.4, 120, self.height * 0.09, "w", function(key)
-            print("New key set: " .. key)
+        keybox.new("Backward", self.color.fg, self.color.fg, self.width * 0.3, self.height * 0.4, 120, self.height * 0.09, gameControls.down, function(key)
+            setNewKey("down", key)
         end),
-        keybox.new("Left", self.color.fg, self.color.fg, self.width * 0.3, self.height * 0.5, 120, self.height * 0.09, "w", function(key)
-            print("New key set: " .. key)
+        keybox.new("Left", self.color.fg, self.color.fg, self.width * 0.3, self.height * 0.5, 120, self.height * 0.09, gameControls.left, function(key)
+            setNewKey("left", key)
         end),
-        keybox.new("Right", self.color.fg, self.color.fg, self.width * 0.3, self.height * 0.6, 120, self.height * 0.09, "w", function(key)
-            print("New key set: " .. key)
+        keybox.new("Right", self.color.fg, self.color.fg, self.width * 0.3, self.height * 0.6, 120, self.height * 0.09, gameControls.right, function(key)
+            setNewKey("right", key)
         end),
-        
-        keybox.new("Inventory", self.color.fg, self.color.fg, self.width * 0.5, self.height * 0.3, 120, self.height * 0.09, "w", function(key)
-            print("New key set: " .. key)
+        keybox.new("Sprint", self.color.fg, self.color.fg, self.width * 0.5, self.height * 0.3, 120, self.height * 0.09, gameControls.sprint, function(key)
+            setNewKey("sprint", key)
+        end),
+        keybox.new("Inventory", self.color.fg, self.color.fg, self.width * 0.5, self.height * 0.4, 120, self.height * 0.09, gameControls.inventory, function(key)
+            setNewKey("inventory", key)
         end),
         
         button.new("Back", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, changeScreen("options")),
@@ -385,7 +392,6 @@ self.screen = {
                 self.height * 0.09, 
                 function() 
                     state:load("game", {type = "load", worldName = world})
-                    note:new("Selected world: " .. world, "success")
                 end
             )
             -- Delete button for this world

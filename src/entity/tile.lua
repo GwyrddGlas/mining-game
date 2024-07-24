@@ -92,22 +92,26 @@ end
 
 local function convertIconToDefinition(iconValue)
     local iconDefinitions = {
-        [1] = 3,    -- Coal
-        [2] = 4,    -- Iron
-        [3] = 6,    -- Gold
-        [4] = 11,   -- Uranium
-        [5] = 9,    -- Diamond
-        [6] = 8,    -- Ruby
-        [7] = 5,    -- Tanzenite
-        [8] = 10,   -- Copper
-        [9] = 2,    -- Shrub
         [18] = 1,   -- Wall
-        [28] = 13,  -- Crafting
-        [29] = 14,  -- Furnace
-        [33] = 16,  -- Torch
-        [30] = 15,  -- StoneBrick
-       -- [45] = 15,  -- Grass
-        [46] = 17,  -- Dirt
+        [1] = 3,    -- Shrub
+        [2] = 4,    -- Brick
+        [4] = 6,   -- Uranium
+        [5] = 7,    -- Diamond
+        [6] = 8,    -- Ruby
+        [7] = 9,    -- Tanzenite
+        [8] = 10,   -- Copper
+        [8] = 11,   -- Floor?
+        [28] = 12,  -- Crafting
+        [29] = 13,  -- Furnace
+        [30] = 14,  -- StoneBrick
+        [45] = 15,  -- Grass
+        [46] = 16,  -- Dirt
+        [33] = 17,  -- Torch
+        [33] = 18,  -- Chest
+
+
+        [3] = 6,    -- Gold
+        [9] = 2,    -- Shrub
     }
     
     return iconDefinitions[iconValue] or 2 
@@ -115,7 +119,7 @@ end
 
 function entity:place(id)
     if self.tileData.placeable then
-        self:setType(convertIconToDefinition(id))
+        self:setType(2)
         self.chunk.modified = true
     end
 end

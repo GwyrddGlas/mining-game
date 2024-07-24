@@ -1,24 +1,16 @@
-controls = {
-    right = "d",
-    left = "a",
-    down = "s",
-    up = "w",
-    sprint = "space"
-}
-
 return {
     filter = function(e)
         return e.control or false
     end,
 
     process = function(e, dt)
-        local right = kb.isDown(controls.right)
-        local left = kb.isDown(controls.left)
-        local down = kb.isDown(controls.down)
-        local up = kb.isDown(controls.up)
-        local space = kb.isDown(controls.sprint)
+        local right = kb.isDown(gameControls.right)
+        local left = kb.isDown(gameControls.left)
+        local down = kb.isDown(gameControls.down)
+        local up = kb.isDown(gameControls.up)
+        local space = kb.isDown(gameControls.sprint)
         local speed = e.speed
-        if space then speed = e.speed * 5 end
+        if space then speed = e.speed * 1.4 end
 
         e.moving = false
         local xOffset = (e.collisonBoxWidth / 2)

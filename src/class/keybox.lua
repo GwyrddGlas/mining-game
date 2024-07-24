@@ -44,31 +44,31 @@ function keybox:update(dt)
 end
 
 function keybox:draw()
-    local centerX, centerY = self.x + self.width/2, self.y + self.height/2
+    local centerX, centerY = self.x + self.width / 2, self.y + self.height / 2
     local scaledWidth, scaledHeight = self.width * self.scale, self.height * self.scale
-    local drawX, drawY = centerX - scaledWidth/2, centerY - scaledHeight/2
+    local drawX, drawY = centerX - scaledWidth / 2, centerY - scaledHeight / 2
 
-    lg.push()
-    lg.translate(centerX, centerY)
-    lg.scale(self.scale)
-    lg.translate(-centerX, -centerY)
+    love.graphics.push()
+    love.graphics.translate(centerX, centerY)
+    love.graphics.scale(self.scale)
+    love.graphics.translate(-centerX, -centerY)
 
     -- Draw text (to the left of the box)
-    lg.setColor(self.textColor)
-    local font = lg.getFont()
+    love.graphics.setColor(self.textColor)
+    local font = love.graphics.getFont()
     local textY = self.y + (self.height / 2) - ((font:getAscent() - font:getDescent()) / 2)
-    lg.printf(self.text, self.x - 200, textY, 190, "right")  -- Adjust the 200 and 190 values as needed
+    love.graphics.printf(self.text, self.x - 200, textY, 190, "right")  -- Adjust the 200 and 190 values as needed
 
     -- Draw keybox
-    lg.setColor(self.color)
-    lg.rectangle("line", drawX, drawY, scaledWidth, scaledHeight)
+    love.graphics.setColor(self.color)
+    love.graphics.rectangle("line", drawX, drawY, scaledWidth, scaledHeight)
 
     -- Draw key
-    lg.setColor(self.textColor)
+    love.graphics.setColor(self.textColor)
     local keyText = self.isActive and "Press a key..." or self.key
-    lg.printf(keyText, drawX, textY, scaledWidth, "center")
+    love.graphics.printf(keyText, drawX, textY, scaledWidth, "center")
 
-    lg.pop()
+    love.graphics.pop()
 end
 
 function keybox:mousepressed(x, y, button)

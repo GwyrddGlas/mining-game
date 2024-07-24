@@ -123,25 +123,29 @@ function entity:mine(tile)
 end
 
 function entity:place(tile, id)
-    if type(tile) == "table" then
-        local inventory = _PLAYER.inventory
-        local inventoryOrder = _PLAYER.inventoryOrder
-        local selectedItem = _INVENTORY.highlightedItem
-        local itemQuantity = inventory[selectedItem]
+    if type(tile) ~= "table" then
+        return
+    end
 
-        if itemQuantity and itemQuantity > 0 then
-            inventory[selectedItem] = itemQuantity - 1
-            if inventory[selectedItem] <= 0 then
-                inventory[selectedItem] = nil
-                for i, item in ipairs(inventoryOrder) do
-                    if item == selectedItem then
-                        table.remove(inventoryOrder, i)
-                        break
-                    end
+    local inventory = _PLAYER.inventory
+    local inventoryOrder = _PLAYER.inventoryOrder
+    local selectedItem = _INVENTORY.highlightedItem
+    local itemQuantity = inventory[selectedItem]
+
+    if type(itemQuantity) == "number" and itemQuantity > 0 then
+        inventory[selectedItem] = itemQuantity - 1
+        
+        if inventory[selectedItem] <= 0 then
+            inventory[selectedItem] = nil
+            for i, item in ipairs(inventoryOrder) do
+                if item == selectedItem then
+                    table.remove(inventoryOrder, i)
+                    break
                 end
             end
-            tile:place(id)
         end
+
+        tile:place(id)
     end
 end
 
@@ -171,7 +175,7 @@ function entity:draw()
         if self.radiation > 5 then
             if math.random() < 0.1 and self.health > 0 then
                 --local healthLoss = self.radiation * 0.01 Disabled radiation
-                self.health = math.max(0, self.health - healthLoss)
+                --self.health = math.max(0, self.health - healthLoss)
             end
         end
 
