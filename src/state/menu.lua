@@ -2,7 +2,8 @@ local menu = {
     selectedWorld = nil,
     titleOffset = 0,
     titleSpeed = 20,  
-    titleAmplitude = 10 
+    titleAmplitude = 10,
+    skinOffset = 0
 }
 
 local nightSkyImage
@@ -101,6 +102,30 @@ local function removeDirectory(dir)
     fs.remove(dir)
 end
 
+function menu:nextSkin()
+    if self.skinOffset + 3 < #skins then
+        self.skinOffset = self.skinOffset + 1
+        -- Update selectedSkin
+        local newSelectedIndex = self.skinOffset + 1
+        if newSelectedIndex <= #skins then
+            selectedSkin = skins[newSelectedIndex].name
+        end
+    end
+end
+
+function menu:prevSkin()
+    if self.skinOffset > 0 then
+        self.skinOffset = self.skinOffset - 1
+        -- Update selectedSkin
+        local newSelectedIndex = self.skinOffset + 1
+        selectedSkin = skins[newSelectedIndex].name
+    end
+end
+
+function menu:selectCurrentSkin()
+    selectSkin(selectedSkin)
+end
+
 function menu:drawCharacterPreview()
     local previewWidth = 200
     local previewHeight = 400
@@ -121,10 +146,8 @@ function menu:drawCharacterPreview()
         end
     end
     
-    if selectedSkinImage then
-        local scale = 16
-        love.graphics.draw(selectedSkinImage, spriteX, spriteY, 0, scale, scale, selectedSkinImage:getWidth() / 2, selectedSkinImage:getHeight() / 2)
-    end
+    local scale = 16
+    love.graphics.draw(selectedSkinImage, spriteX, spriteY, 0, scale, scale, selectedSkinImage:getWidth() / 2, selectedSkinImage:getHeight() / 2)
 end
 
 local function delete()
@@ -162,58 +185,75 @@ local function drawSkins()
     local screenWidth = love.graphics.getWidth()
     local screenHeight = love.graphics.getHeight()
     local rectX = 200
-    local rectWidth = screenWidth - 400  -- 200px from left and 200px from right
-    local rectHeight = 310  -- skinHeight + 10
+    local rectWidth = screenWidth - 400
+    local rectHeight = 400
     local startY = (screenHeight - rectHeight) / 2
 
-    local skinWidth = 1000
+    local skinWidth = 300
     local skinHeight = 300
-    local skinSpacing = 10
-    local totalSkinWidth = #skins * skinWidth + (#skins - 1) * skinSpacing
+    local skinSpacing = 50
+    local visibleSkins = 3
+    local totalSkinWidth = visibleSkins * skinWidth + (visibleSkins - 1) * skinSpacing
     local startX = rectX + (rectWidth - totalSkinWidth) / 2
 
-    -- Draw background rectangle
-    love.graphics.setColor(45/255, 45/255, 41/255)  
-    love.graphics.setLineWidth(1)
-    love.graphics.rectangle("fill", rectX, startY, rectWidth, rectHeight, 10, 10)
+    -- Draw fancy background
+    love.graphics.setColor(0.2, 0.2, 0.2, 0.8)
+    love.graphics.rectangle("fill", rectX, startY, rectWidth, rectHeight, 20, 20)
 
     -- Draw border
-    love.graphics.setLineWidth(10)
-    love.graphics.setColor(185/255, 185/255, 185/255)
-    love.graphics.rectangle("line", rectX, startY, rectWidth, rectHeight, 10, 10)
+    love.graphics.setColor(0.8, 0.8, 0.8)
+    love.graphics.setLineWidth(5)
+    love.graphics.rectangle("line", rectX, startY, rectWidth, rectHeight, 20, 20)
 
-    for i, skin in ipairs(skins) do
-        local x = startX + (i - 1) * (skinWidth + skinSpacing)
-        local y = startY + 5 
+    -- Draw skins
+    for i = 1, visibleSkins do
+        local index = (menu.skinOffset or 0) + i
+        local skin = skins[index]
+        if skin then
+            local x = startX + (i - 1) * (skinWidth + skinSpacing)
+            local y = startY + 50
 
-        -- Calculate scale to fit skin image within the allocated space
-        local scaleX = skinWidth / skin.id:getWidth()
-        local scaleY = skinHeight / skin.id:getHeight()
-        local scale = math.min(scaleX, scaleY) 
+            -- Draw skin background
+            love.graphics.setColor(0.3, 0.3, 0.3, 0.8)
+            love.graphics.rectangle("fill", x, y, skinWidth, skinHeight, 10, 10)
 
-        -- Center the skin image within its allocated space
-        local spriteWidth = skin.id:getWidth() * scale
-        local spriteHeight = skin.id:getHeight() * scale
-        local spriteX = x + (skinWidth - spriteWidth) / 2
-        local spriteY = y + (skinHeight - spriteHeight) / 4 - 10
+            -- Draw skin image
+            love.graphics.setColor(1, 1, 1)
+            local scale = math.min(skinWidth / skin.id:getWidth(), skinHeight / skin.id:getHeight()) * 0.8
+            local spriteX = x + skinWidth / 2
+            local spriteY = y + skinHeight / 2
+            love.graphics.draw(skin.id, spriteX, spriteY, 0, scale, scale, skin.id:getWidth() / 2, skin.id:getHeight() / 2)
 
-        -- Draw skin image
-        love.graphics.setColor(1, 1, 1)
-        love.graphics.draw(skin.id, spriteX, spriteY, 0, scale, scale)
+            -- Draw skin name
+            love.graphics.setFont(font.regular)
+            local skinNameWidth = font.regular:getWidth(skin.name)
+            love.graphics.print(skin.name, x + (skinWidth - skinNameWidth) / 2, y + skinHeight + 10)
 
-        -- Draw skin name
-        love.graphics.setFont(font.regular)
-        local skinNameWidth = font.regular:getWidth(skin.name)
-        love.graphics.print(skin.name, x + (skinWidth - skinNameWidth) / 2, spriteY + skinHeight - 50)
-
-        -- Handle mouse click
-        if love.mouse.isDown(1) then
-            local mouseX, mouseY = love.mouse.getPosition()
-            if mouseX >= x and mouseX <= x + skinWidth and mouseY >= y and mouseY <= y + skinHeight then
-                selectSkin(skin.name)
+            -- Highlight selected skin
+            if skin.name == selectedSkin then
+                lg.setColor(221/255, 195/255, 105/255, 1)
+                love.graphics.rectangle("line", x, y, skinWidth, skinHeight, 10, 10)
             end
         end
     end
+
+    -- Draw navigation and select buttons using the existing button style
+    local buttonWidth = 150
+    local buttonHeight = 50
+    local buttonY = startY + rectHeight + 20
+
+    -- Left arrow button
+    if menu.skinOffset > 0 then
+        menu.screen.skins.leftButton:draw()
+    end
+
+    -- Right arrow button
+    if menu.skinOffset + visibleSkins < #skins then
+        menu.screen.skins.rightButton:draw()
+    end
+
+    -- Select button
+    menu.screen.skins.selectButton:draw()
 end
 
 function menu:load()
@@ -236,25 +276,26 @@ self.screen = {
         label.new(VERSION, self.color.success, font.regular, self.width*0.47 - font.regular:getWidth(VERSION)*0.4, self.height - 55, "center"),
         label.new("dsc.gg/miners-odyssey", self.color.success, font.regular, 10, self.height - 55, "left"),
         button.new("Singleplayer", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.09, changeScreen("singleplayer")),
-        button.new("Multiplayer", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.09, changeScreen("multiplayer")),
+        --button.new("Multiplayer", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.09, changeScreen("multiplayer")),
         --button.new("Skins", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, changeScreen("skins")),
         --button.new("Mods", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, changeScreen("skins")),
-        button.new("Settings", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, changeScreen("options")),
-        button.new("Quit Game", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.7, self.width * 0.4, self.height * 0.09, exitButton),
+        button.new("Settings", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.09, changeScreen("options")),
+        button.new("Quit Game", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, exitButton),
         button.new("Change", self.color.fg, self.color.bg, self.width * 0.7, self.height * 0.7, self.width * 0.2, self.height * 0.09, changeScreen("skins")),        
     },
     singleplayer = {
         label.new("Singleplayer", self.color.success, font.title, 0, lg.getHeight() * 0.15, "center"),
         button.new("New world", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.09, changeScreen("new")),
         button.new("Load world", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.09, changeScreen("load")),
+        button.new("Back", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, changeScreen("main")),
     },
     multiplayer = {
         label.new("Multiplayer", self.color.success, font.title, 0, lg.getHeight() * 0.15, "center"),
         ipAddress = textbox.new("", "IP Address", self.color.fg, self.color.idle, self.color.bg, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.09),
         port = textbox.new("", "Port", self.color.fg, self.color.idle, self.color.bg, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.09),
         button.new("Create Server", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, function()
-            local ip = menu.screen.multiplayer.ipAddress.text
-            local port = tonumber(menu.screen.multiplayer.port.text)
+            --local ip = menu.screen.multiplayer.ipAddress.text
+            --local port = tonumber(menu.screen.multiplayer.port.text)
             --if ip ~= "" and port then
             --    network:init(ip, port)
             --    network:createServer()
@@ -264,8 +305,8 @@ self.screen = {
             --end
         end),
         button.new("Connect", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.7, self.width * 0.4, self.height * 0.09, function() 
-            local ip = menu.screen.multiplayer.ipAddress.text
-            local port = tonumber(menu.screen.multiplayer.port.text)
+            --local ip = menu.screen.multiplayer.ipAddress.text
+            --local port = tonumber(menu.screen.multiplayer.port.text)
             --if ip ~= "" and port then
             --    network:init(ip, port)
             --    if network:connect() then
@@ -290,7 +331,10 @@ self.screen = {
     },
     skins = {
         label.new("Skins", self.color.success, font.title, 0, lg.getHeight() * 0.15, "center"),
-        button.new("Back", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, changeScreen("main")),
+        leftButton = button.new("<", self.color.fg, self.color.bg, self.width * 0.2, self.height * 0.8, self.width * 0.1, self.height * 0.09, function() menu:prevSkin() end),
+        rightButton = button.new(">", self.color.fg, self.color.bg, self.width * 0.7, self.height * 0.8, self.width * 0.1, self.height * 0.09, function() menu:nextSkin() end),
+        selectButton = button.new("Select", self.color.fg, self.color.bg, self.width * 0.4, self.height * 0.8, self.width * 0.2, self.height * 0.09, function() menu:selectCurrentSkin() end),
+        button.new("Back", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.9, self.width * 0.4, self.height * 0.09, changeScreen("main")),
     },
     sounds = {
         label.new("Sound Settings", self.color.success, font.title, 0, lg.getHeight() * 0.15, "center"),
@@ -320,9 +364,10 @@ self.screen = {
             function(isChecked) 
                 config.graphics.useShaders = isChecked 
             end),              
-        checkbox.new("Vsync", self.color.fg, self.color.fg, self.width * 0.5, self.height * 0.3, self.width * 0.4, self.height * 0.05, config.window.fullscreen, 
+        checkbox.new("Vsync", self.color.fg, self.color.fg, self.width * 0.5, self.height * 0.3, self.width * 0.4, self.height * 0.05, config.window.vsync, 
             function(isChecked) 
                 love.window.setVSync(isChecked)
+                config.graphics.vsync = isChecked
             end),  
         checkbox.new("FullScreen", self.color.fg, self.color.fg, self.width * 0.6, self.height * 0.3, self.width * 0.4, self.height * 0.05, config.window.fullscreen, 
             function(isChecked) 
@@ -372,6 +417,9 @@ self.screen = {
         end),
         keybox.new("Inventory", self.color.fg, self.color.fg, self.width * 0.5, self.height * 0.4, 120, self.height * 0.09, gameControls.inventory, function(key)
             setNewKey("inventory", key)
+        end),
+        keybox.new("Chat", self.color.fg, self.color.fg, self.width * 0.5, self.height * 0.5, 120, self.height * 0.09, gameControls.chat, function(key)
+            setNewKey("chat", key)
         end),
         
         button.new("Back", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, changeScreen("options")),
@@ -511,10 +559,39 @@ function menu:resize(w, h)
     end
 end
 
-function menu:mousepressed(x, y, k)
+function menu:mousepressed(x, y, button)
+    if self.currentScreen == "skins" then
+        local screenWidth = love.graphics.getWidth()
+        local screenHeight = love.graphics.getHeight()
+        local rectX = 200
+        local rectWidth = screenWidth - 400
+        local rectHeight = 400
+        local startY = (screenHeight - rectHeight) / 2
+
+        -- Check left arrow
+        if x < rectX and y > startY and y < startY + rectHeight then
+            self:prevSkin()
+        end
+
+        -- Check right arrow
+        if x > rectX + rectWidth and y > startY and y < startY + rectHeight then
+            self:nextSkin()
+        end
+
+        -- Check "Select" button
+        local buttonWidth = 150
+        local buttonHeight = 50
+        local buttonX = screenWidth / 2 - buttonWidth / 2
+        local buttonY = startY + rectHeight + 20
+        if x > buttonX and x < buttonX + buttonWidth and y > buttonY and y < buttonY + buttonHeight then
+            self:selectCurrentSkin()
+        end
+    end
+
+    -- Existing mousepressed logic
     for _, v in pairs(self.screen[self.currentScreen]) do
         if type(v.mousepressed) == "function" then
-            v:mousepressed(x, y, k)
+            v:mousepressed(x, y, button)
         end
     end
 end

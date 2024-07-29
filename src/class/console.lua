@@ -1,57 +1,96 @@
 local console = {}
 
 local function setColor(r, g, b, a)
-	if type(r) == "table" then
-		r, g, b, a = r[1], r[2], r[3], r[4]
-	end
-	a = a or 255
-
-	love.graphics.setColor(convertColor(r, g, b, a))
+    if type(r) == "table" then
+        r, g, b, a = r[1], r[2], r[3], r[4]
+    end
+    a = a or 255
+    love.graphics.setColor(r/255, g/255, b/255, a/255)
 end
 
+local channels = {
+    ["all"] = {color = {255, 255, 255}, prefix = "[All]"},
+    ["local"] = {color = {200, 200, 200}, prefix = "[Local]"},
+    ["whisper"] = {color = {255, 150, 255}, prefix = "[Whisper]"},
+    ["system"] = {color = {255, 255, 0}, prefix = "[System]"},
+}
+
 local commands = {
-    ["clear"] = function()
-        console:clearHistory()
-        console:print("Console cleared.")
+    ["/clear"] = function(self)
+        self:clearHistory()
+        self:addMessage("Chat cleared.", "system")
     end,
-	["give"] = function(item, quantity)
-        quantity = tonumber(quantity) or 1
-        _INVENTORY:giveItem(item, quantity)
-        console:print("Gave " .. quantity .. " " .. item .. "(s) to the player.")
+    ["/all"] = function(self, message)
+        self:addMessage(message, "all")
+    end,
+    ["/l"] = function(self, message)
+        self:addMessage(message, "local")
+    end,
+    ["/w"] = function(self, target, message)
+        self:addMessage(message, "whisper", target)
+    end,
+    ["/give"] = function(self, ...)
+        local args = {...}
+        if #args < 2 then
+            self:addMessage("Usage: /give <item> <quantity>", "system")
+            return
+        end
+        local item = args[1]
+        local quantity = tonumber(args[2])
+        
+        if not quantity or quantity <= 0 then
+            self:addMessage("Invalid quantity. Please use a positive number.", "system")
+            return
+        end
+        
+        -- Assuming _INVENTORY is a global inventory system
+        if _INVENTORY and _INVENTORY.giveItem then
+            _INVENTORY:giveItem(item, quantity)
+            self:addMessage("Gave " .. quantity .. " " .. item .. "(s) to the player.", "system")
+        else
+            self:addMessage("Inventory system not found or giveItem function not available.", "system")
+        end
     end,
 }
 
---==[[ < INTERNAL METHODS > ]]==--
+function console:init(x, y, width, height, visible, font)
+    self.x = x or 0
+    self.y = y or 0
+    self.width = width or 300
+    self.height = height or 200
+    self.visible = visible or true
+    self.font = font or love.graphics.newFont(14)
+    self.inputHeight = self.font:getHeight() + 10
+    self.chatHeight = self.height - self.inputHeight
 
-function console:updateTextboxIndicator()
-	self.textBox.indicator.x = self.textBox.x + self.margin.x + self.font:getWidth(self.sub(self.textBox.text, 1, self.textBox.indicator.position)) - 2
-	if self.textBox.indicator.x > self.textBox.x + self.textBox.width - self.margin.x - 2 then 
-		self.textBox.indicator.x = self.textBox.x + self.textBox.width - self.margin.x - 2
-	end
+    self.messages = {}
+    self.input = ""
+    self.scroll = 0
+    self.maxMessages = 100
+    self.activeChannel = "all"
 
-	if self.textBox.indicator.position == 0 then
-		self.textBox.indicator.x = self.textBox.x + self.margin.x
-	elseif self.textBox.indicator.position == 1 then
-		self.textBox.indicator.x = self.textBox.x + self.margin.x + self.font:getWidth(self.sub(self.textBox.text, 1, 1)) -2
-	end
-
-	self.textBox.indicator.t = math.pi / 2
+    self.inputBox = {
+        x = self.x,
+        y = self.y + self.chatHeight,
+        width = self.width,
+        height = self.inputHeight
+    }
 end
 
-function console:positionTextboxText()
-	if self.font:getWidth(self.sub(self.textBox.text, 1, self.textBox.indicator.position)) >= self.textBox.width - (self.margin.x * 2) then
-		self.textBox.textX = (self.textBox.x + self.textBox.width - self.margin.x) - self.font:getWidth(self.sub(self.textBox.text, 1, self.textBox.indicator.position)) 
-	else
-		self.textBox.textX = self.textBox.x + self.margin.x
-	end
-end
-
-function console:clearTextBox()
-	self.textBox.history[#self.textBox.history + 1] = self.textBox.text
-	self.textBox.historyPosition = #self.textBox.history
-	self.textBox.text = ""
-	self:updateTextboxIndicator()
-	self:positionTextboxText()
+function console:addMessage(message, channel, from)
+    channel = channel or self.activeChannel
+    local prefix = channels[channel].prefix
+    local color = channels[channel].color
+    if from then
+        prefix = prefix .. " " .. from
+    end
+    
+    local fullMessage = prefix .. ": " .. message
+    table.insert(self.messages, 1, {text = fullMessage, color = color, timer = 5}) 
+    
+    if #self.messages > self.maxMessages then
+        table.remove(self.messages)
+    end
 end
 
 function console:lua(text)
@@ -73,398 +112,105 @@ function console:lua(text)
 end
 
 function console:clearHistory()
-	self.history.text = {}
-	self.history.position = 1
-end
-
-local function wrapString(text, maxWidth, font)
-	maxWidth = maxWidth or love.graphics.getWidth()
-	font = font or love.graphics.getFont()
-
-	local words = {}
-	local str = ""
-	local lineWidth = 0
-	local lineCount = 1
-	text:gsub("([^ ]+)", function(c) words[#words+1] = c.." " end)
-
-	for i,v in ipairs(words) do
-		local n = lineWidth + font:getWidth(v)
-		if n > maxWidth then
-			str = str.."\n"
-			lineCount = lineCount + 1
-			lineWidth = 0
-		end
-		str = str..v
-		lineWidth = lineWidth + font:getWidth(v)
-	end
-	return str, lineCount, (font:getAscent() - font:getDescent()) * lineCount
-end
-	
---STRING FUNCTIONS	
-function console.getCharBytes(string, char)
-	char = char or 1
-	local b = string.byte(string, char)
-	local bytes = 1
-	if b > 0 and b <= 127 then
-      bytes = 1
-   elseif b >= 194 and b <= 223 then
-      bytes = 2
-   elseif b >= 224 and b <= 239 then
-      bytes = 3
-   elseif b >= 240 and b <= 244 then
-      bytes = 4
-   end
-	return bytes
-end
-
-function console.len(str)
-	local pos = 1
-	local len = 0
-	while pos <= #str do
-		len = len + 1
-		pos = pos + console.getCharBytes(str, pos)
-	end
-	return len
-end
-
-function console.sub(str, s, e)
-	s = s or 1
-	e = e or console.len(str)
-
-	if s < 1 then s = 1 end
-	if e < 1 then e = console.len(str) + e + 1 end
-	if e > console.len(str) then e = console.len(str) end
-
-	if s > e then return "" end
-
-	local sByte = 0
-	local eByte = 1
-
-	local pos = 1
-	local i = 0
-	while pos <= #str do
-		i = i + 1
-		if i == s then
-			sByte = pos
-		end
-		pos = pos + console.getCharBytes(str, pos)
-		if i == e then
-			eByte = pos - 1
-			break
-		end
-	end
-
-	return string.sub(str, sByte, eByte)
-end
-
-function console.setAlpha(a)
-	local r, g, b, _a = love.graphics.getColor()
-	setColor(r, g, b, a)
-end
-
---==[[ < PUBLIC METHODS > ]]==--
-
---CALLBACKS
-function console:init(x, y, width, height, visible, font)
-	--Outside variables
-	self.userKeyRepeat = love.keyboard.hasKeyRepeat()
-
-	--Defaults
-	x = x or 0
-	y = y or 0
-	width = width or love.graphics.getWidth()
-	height = height or love.graphics.getHeight()
-	visible = visible or true
-	font = font or love.graphics.newFont(16)
-	love.keyboard.setKeyRepeat(visible)
-
-	--Options
-	self.x = x
-	self.y = y
-	self.margin = {
-		x = 8,
-		y = 4
-	}
-	self.width = width
-	self.height = height
-	self.font = font
-	self.visible = visible
-
-	--Elements
-	self.textBox = {
-		x = self.x,
-		y = self.y + self.height - (self.font:getAscent() - font:getDescent() + (self.margin.y * 2)),
-		textX = self.margin.x,
-		width = self.width,
-		height = (self.font:getAscent() - font:getDescent()) + (self.margin.y * 2),
-		text = "",
-		indicator = {
-			x = self.x + self.margin.x,
-			position = 0,
-			char = "|",
-			t = 0, 
-			alpha = 1,
-			flashRate = 6
-		},
-		color = {
-			box = {0, 0, 0, 200},
-			text = {255, 255, 255, 255}
-		},
-		history = {},
-		historyPosition = 1,
-		mode = "input"
-	}
-
-	self.history = {
-		x = self.x,
-		y = self.y,
-		yOffset = 0,
-		width = self.width,
-		height = self.height - self.textBox.height,
-		totalTextHeight = 0,
-		scrollSpeed = 32,
-		color = {
-			box = {0, 0, 0, 150},
-			text = {200, 200, 200, 255}
-		},
-		text = {},
-		maxHistory = 64
-	}
-end
-
-function console:resize(width, height)
-	self.width = width
-	self.height = height
-	self.textBox.width = width
-	self.textBox.y = height - self.textBox.height
-	self.history.width = width
-	self.history.height = height - self.textBox.height
-	for i,v in ipairs(self.history.text) do
-		local text, lines, height = wrapString(v.textRaw, width, self.font)
-		v.text = text
-		v.lines = lines
-		v.height = height
-	end
+    self.messages = {}
+    self.scroll = 0
 end
 
 function console:update(dt)
-	if self.visible then
-		--Textbox Indicator
-		self.textBox.indicator.t = self.textBox.indicator.t + self.textBox.indicator.flashRate * dt
-		if self.textBox.indicator.t > math.pi then self.textBox.indicator.t = 0 end
-	end
+    for i, message in ipairs(self.messages) do
+        if self.visible then
+            message.timer = message.timer - dt
+        end
+    end
 end
+
 
 function console:draw()
-	if self.visible then
-		--Textbox
-		console.setAlpha(1)
-		love.graphics.setScissor(self.textBox.x, self.textBox.y, self.textBox.width, self.textBox.height)
-		love.graphics.setFont(self.font)
-		setColor(self.textBox.color.box)
-		love.graphics.rectangle("fill", self.textBox.x, self.textBox.y, self.textBox.width, self.textBox.height)
-		setColor(self.textBox.color.text)
-		love.graphics.print(self.textBox.text, self.textBox.textX, self.textBox.y + self.margin.y)
+    if self.visible then
+		love.graphics.setColor(0.2, 0.2, 0.25, 0.6)
+		love.graphics.rectangle("fill", self.inputBox.x, self.inputBox.y, self.inputBox.width, self.inputBox.height, 10, 10)
 
-		--textBox indicator
-		lg.setColor(1, 1, 1, 1)
-		--console.setAlpha(math.sin(self.textBox.indicator.t))
-		love.graphics.print(self.textBox.indicator.char, self.textBox.indicator.x, self.textBox.y + self.margin.y)
-		love.graphics.setScissor()
+        love.graphics.setColor(1, 1, 1, 1)
+        love.graphics.printf(self.input, self.inputBox.x + 5, self.inputBox.y + 5, self.inputBox.width - 10)
 
-		--History
-		console.setAlpha(1)
-		love.graphics.setScissor(self.history.x, self.history.y, self.history.width, self.history.height)
-		setColor(self.history.color.box)
-		love.graphics.rectangle("fill", self.history.x, self.history.y, self.history.width, self.history.height)
-		local y = (self.history.y + self.history.height - self.margin.y) + self.history.yOffset
-		for i=#self.history.text, 1, -1 do
-			local v = self.history.text[i]
-			y = y - v.height
-			setColor(v.color)
-			love.graphics.print(v.text, self.history.x + self.margin.x, y)
-		end
-		love.graphics.setScissor()
-	end
-end
+        -- Draw typing indicator 
+        if #self.input > 0 then
+            love.graphics.setColor(0.5, 0.8, 1, 0.8)
+            love.graphics.circle("fill", self.inputBox.x + self.inputBox.width - 15, self.inputBox.y + self.inputBox.height / 2, 3)
+        end
+    end
 
-function console:textinput(t)
-	if self.visible then
-		if self.textBox.indicator.position == self.len(self.textBox.text) then
-			self.textBox.text = self.textBox.text..t
-		else
-			if self.textBox.indicator.position > 0 then
-				local b = self.sub(self.textBox.text, 1, self.textBox.indicator.position)
-				local e = self.sub(self.textBox.text, self.textBox.indicator.position + 1)
-				self.textBox.text = b..t..e
-			else
-				self.textBox.text = t..self.textBox.text
-			end
-		end
-		self.textBox.indicator.position = self.textBox.indicator.position + 1
-		if self.textBox.indicator.position >= self.len(self.textBox.text) then self.textBox.indicator.position = self.len(self.textBox.text) end
-		self.textBox.mode = "input"
-		self:updateTextboxIndicator()
-		self:positionTextboxText()
-	end
+    -- Draw messages
+    love.graphics.setFont(self.font)
+    local y = self.y + self.chatHeight - self.font:getHeight() - 5
+    local visibleCount = 0
+    for i = 1, math.min(#self.messages, 10 + self.scroll) do
+        local message = self.messages[i]
+        if message.timer > 0 or self.visible then
+            setColor(message.color)
+            love.graphics.printf(message.text, self.x + 5, y, self.width - 10)
+            y = y - self.font:getHeight() - 2
+            visibleCount = visibleCount + 1
+        end
+        if visibleCount >= 10 then
+            break
+        end
+    end
 end
 
 function console:keypressed(key)
-	if self.visible then
-		if key == "backspace" then
-			if #self.textBox.text > 0 then
-				if self.textBox.indicator.position == self.len(self.textBox.text) then
-					self.textBox.text = console.sub(self.textBox.text, 1, -2)
-				else
-					if self.textBox.indicator.position > 0 then
-						if self.textBox.indicator.position > 1 then
-							local b = self.sub(self.textBox.text, 1, self.textBox.indicator.position - 1)
-							local e = self.sub(self.textBox.text, self.textBox.indicator.position + 1)
-							self.textBox.text = b..e
-						else
-							self.textBox.text = self.sub(self.textBox.text, 2)
-						end
-					end
-				end
-				self.textBox.indicator.position = self.textBox.indicator.position - 1
-				if self.textBox.indicator.position < 0 then self.textBox.indicator.position = 0 end
-				self.textBox.mode = "input"
-				self:updateTextboxIndicator()
-				self:positionTextboxText()
-			end
-		elseif key == "up" then
-			if #self.textBox.history > 0 then
-				if self.textBox.mode == "history" then
-					self.textBox.historyPosition = self.textBox.historyPosition - 1
-					if self.textBox.historyPosition < 1 then self.textBox.historyPosition = 1 end
-				else
-					if #self.textBox.text > 0 then
-						self.textBox.history[#self.textBox.history + 1] = self.textBox.text
-					end
-				end
-				self.textBox.text = self.textBox.history[self.textBox.historyPosition]
-				self:updateTextboxIndicator()
-				self:positionTextboxText()
-				self.textBox.mode = "history"
-			end
-		elseif key == "down" then
-			if self.textBox.mode == "history" then
-				self.textBox.historyPosition = self.textBox.historyPosition + 1
-				if self.textBox.historyPosition > #self.textBox.history then self.textBox.historyPosition = #self.textBox.history end
-				self.textBox.text = self.textBox.history[self.textBox.historyPosition]
-				self:updateTextboxIndicator()
-				self:positionTextboxText()
-				self.textBox.mode = "history"
-			end
-		elseif key == "left" then
-			self.textBox.indicator.position = self.textBox.indicator.position - 1
-			if self.textBox.indicator.position < 0 then self.textBox.indicator.position = 0 end
-			self:updateTextboxIndicator()
-			console:positionTextboxText()
-		elseif key == "right" then
-			self.textBox.indicator.position = self.textBox.indicator.position + 1
-			if self.textBox.indicator.position >= self.len(self.textBox.text) then self.textBox.indicator.position = self.len(self.textBox.text) end
-			self:updateTextboxIndicator()
-			console:positionTextboxText()
-		elseif key == "return" then
-			console:lua(self.textBox.text)
-			self:clearTextBox()
-		elseif key == "pageup" then
-			self.history.yOffset = self.history.yOffset + self.history.scrollSpeed
-			if self.history.yOffset > self.history.totalTextHeight then
-				self.history.yOffset = self.history.totalTextHeight
-			end
-		elseif key == "pagedown" then
-			self.history.yOffset = self.history.yOffset - self.history.scrollSpeed
-			if self.history.yOffset < 0 then self.history.yOffset = 0 end
-		elseif key == "v" then
-			if love.keyboard.isDown("lctrl") or love.keyboard.isDown("rctrl") then
-				local pastedText = love.system.getClipboardText()
-				if #pastedText > 0 then
-					if self.textBox.indicator.position == self.len(self.textBox.text) then
-						self.textBox.text = self.textBox.text..pastedText
-					else
-						if self.textBox.indicator.position > 0 then
-							local b = self.sub(self.textBox.text, 1, self.textBox.indicator.position)
-							local e = self.sub(self.textBox.text, self.textBox.indicator.position + 1)
-							self.textBox.text = b..pastedText..e
-						else
-							self.textBox.text = pastedText..self.textBox.text
-						end
-					end
-					self.textBox.indicator.position = self.textBox.indicator.position + self.len(pastedText)
-					self:updateTextboxIndicator()
-					self:positionTextboxText()
-				end
-			end
-		elseif key == "c" then
-			if love.keyboard.isDown("lctrl") or love.keyboard.isDown("rctrl") then
-				if #self.textBox.text > 0 then
-					love.system.setClipboardText(self.textBox.text)
-				end
-			end
-		end
-	end
+    if key == "return" and #self.input >= 1 then
+        self:processInput()
+    elseif key == "backspace" then
+        self.input = self.input:sub(1, -2)
+    end
 end
 
-function console:wheelmoved(sx, sy)
-	local x, y = love.mouse.getPosition()
-	if sy > 0 then
-		if x > self.history.x and x < self.history.x + self.history.width and y > self.history.y and y < self.history.y + self.history.height then
-			self.history.yOffset = self.history.yOffset + self.history.scrollSpeed
-			if self.history.yOffset > (self.history.totalTextHeight - self.history.height + (self.margin.y * 2)) then
-				self.history.yOffset = self.history.totalTextHeight - self.history.height + (self.margin.y * 2)
-			end
-		end
-	elseif sy < 0 then
-		if x > self.history.x and x < self.history.x + self.history.width and y > self.history.y and y < self.history.y + self.history.height then
-			self.history.yOffset = self.history.yOffset - self.history.scrollSpeed
-			if self.history.yOffset < 0 then self.history.yOffset = 0 end
-		end
-	end
+function console:textinput(t)
+	if not self.visible then return end
+    self.input = self.input .. t
 end
 
-function console:print(text, color)
-	if text then
-		text = tostring(text)
-		color = color or self.history.color.text
-		local wrappedText, lines, height = wrapString(text, self.history.width, self.font)
-		self.history.text[#self.history.text + 1] = {
-			textRaw = text,
-			text = wrappedText,
-			lines = lines,
-			height = height,
-			color = color
-		}
-		self.history.totalTextHeight = self.history.totalTextHeight + height
-		self.history.yOffset = 0
-		if #self.history.text > self.history.maxHistory then
-			self.history.totalTextHeight = self.history.totalTextHeight - self.history.text[1].height
-			table.remove(self.history.text, 1)
-		end
-	end
+function console:wheelmoved(x, y)
+    if y > 0 then
+        self.scroll = math.min(self.scroll + 1, #self.messages - 10)
+    elseif y < 0 then
+        self.scroll = math.max(self.scroll - 1, 0)
+    end
 end
 
---Setters/Getters
+function console:processInput()
+    if self.input:sub(1, 1) == "/" then
+        local parts = {}
+        for part in self.input:gmatch("%S+") do
+            table.insert(parts, part)
+        end
+        local command = table.remove(parts, 1)
+        if commands[command] then
+            commands[command](self, unpack(parts))
+        else
+            self:addMessage("Unknown command: " .. command, "system")
+        end
+    else
+        self:addMessage(self.input, self.activeChannel)
+    end
+    self.input = ""
+end
+
 function console:setVisible(visible)
-	self.visible = visible
-	if visible then
-		love.keyboard.setKeyRepeat(true)
-	else
-		love.keyboard.setKeyRepeat(self.userKeyRepeat)
-	end
+    self.visible = visible
 end
 
 function console:getVisible()
-	return self.visible
+    return self.visible
 end
 
 function console:setFont(font)
-	if font then
-		self.font = font
-		self.textBox.height = (font:getAscent() - font:getDescent()) + (self.margin.y * 2)
-		self.textBox.y = self.y + self.height - self.textBox.height
-	end
+    self.font = font
+    self.inputHeight = self.font:getHeight() + 10
+    self.chatHeight = self.height - self.inputHeight
+    self.inputBox.y = self.y + self.chatHeight
+    self.inputBox.height = self.inputHeight
 end
 
 return console

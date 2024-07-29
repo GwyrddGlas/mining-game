@@ -39,19 +39,19 @@ tileData[#tileData+1] = {
 
 tileData[#tileData+1] = {
     type = "Shrub",
-    textureID = 50, 
-    maxHP = 3,
-    drop = {0, 2}, 
-    destructible = true, 
+    textureID = 18, 
+    maxHP = 10,
+    drop = {1, 1},
     solid = false,
-    placeable = false,
-    item = false,
-    itemTextureID = 0,
+    destructible = true,
+    placeable = true,
+    item = "Shrub",
+    itemTextureID = 50,
 }
 
 tileData[#tileData+1] = {
     type = "Coal",
-    textureID = 20, 
+    textureID = 19, 
     maxHP = 10,
     drop = {2, 6},
     destructible = true, 
@@ -63,7 +63,7 @@ tileData[#tileData+1] = {
 
 tileData[#tileData+1] = {
     type = "Iron",
-    textureID = 21, 
+    textureID = 20, 
     maxHP = 12,
     drop = {1, 3}, 
     destructible = true, 
@@ -75,7 +75,7 @@ tileData[#tileData+1] = {
 
 tileData[#tileData+1] = {
     type = "Gold",
-    textureID = 22, 
+    textureID = 21, 
     maxHP = 15,
     drop = {1, 2}, 
     destructible = true, 
@@ -87,7 +87,7 @@ tileData[#tileData+1] = {
 
 tileData[#tileData+1] = {
     type = "Uranium",
-    textureID = 23, 
+    textureID = 22, 
     maxHP = 15,
     drop = {1, 1}, 
     destructible = true, 
@@ -99,7 +99,7 @@ tileData[#tileData+1] = {
 
 tileData[#tileData+1] = {
     type = "Diamond",
-    textureID = 24, 
+    textureID = 23, 
     maxHP = 20,
     drop = {1, 2}, 
     destructible = true, 
@@ -111,7 +111,7 @@ tileData[#tileData+1] = {
 
 tileData[#tileData+1] = {
     type = "Ruby",
-    textureID = 25, 
+    textureID = 24, 
     maxHP = 18,
     drop = {1, 1}, 
     destructible = true, 
@@ -123,7 +123,7 @@ tileData[#tileData+1] = {
 
 tileData[#tileData+1] = {
     type = "Tanzenite",
-    textureID = 26, 
+    textureID = 25, 
     maxHP = 30,
     drop = {1, 1}, 
     destructible = true, 
@@ -135,7 +135,7 @@ tileData[#tileData+1] = {
 
 tileData[#tileData+1] = {
     type = "Copper",
-    textureID = 27, 
+    textureID = 26, 
     maxHP = 15,
     drop = {1, 3}, 
     destructible = true, 
@@ -147,7 +147,7 @@ tileData[#tileData+1] = {
 
 tileData[#tileData+1] = {
     type = "Furnace",
-    textureID = 28, 
+    textureID = 27, 
     maxHP = 8,
     drop = {1, 1}, 
     destructible = true, 
@@ -159,7 +159,7 @@ tileData[#tileData+1] = {
 
 tileData[#tileData+1] = {
     type = "Crafting",
-    textureID = 29, 
+    textureID = 28, 
     maxHP = 8,
     drop = {1, 1}, 
     destructible = true, 
@@ -171,7 +171,7 @@ tileData[#tileData+1] = {
 
 tileData[#tileData+1] = {
     type = "StoneBrick",
-    textureID = 30, 
+    textureID = 29, 
     maxHP = 8,
     drop = {1, 1}, 
     destructible = true, 
@@ -183,7 +183,7 @@ tileData[#tileData+1] = {
 
 tileData[#tileData+1] = {
     type = "Torch",
-    textureID = 31, 
+    textureID = 30, 
     maxHP = 8,
     drop = {1, 1}, 
     destructible = true, 
@@ -195,19 +195,7 @@ tileData[#tileData+1] = {
 
 tileData[#tileData+1] = {
     type = "Grass",
-    textureID = 32, 
-    maxHP = 8,
-    drop = {1, 1}, 
-    destructible = true, 
-    solid = false,
-    item = false,
-    placeable = true,
-    itemTextureID = 0,
-}
-
-tileData[#tileData+1] = {
-    type = "Dirt",
-    textureID = 33, 
+    textureID = 31, 
     maxHP = 8,
     drop = {1, 1}, 
     destructible = true, 
@@ -219,19 +207,7 @@ tileData[#tileData+1] = {
 
 tileData[#tileData+1] = {
     type = "Mushroom",
-    textureID = 34, 
-    maxHP = 8,
-    drop = {1, 1}, 
-    destructible = true, 
-    solid = false,
-    item = false,
-    placeable = true,
-    itemTextureID = 0,
-}
-
-tileData[#tileData+1] = {
-    type = "Chest",
-    textureID = 35, 
+    textureID = 18, 
     maxHP = 8,
     drop = {1, 1}, 
     destructible = true, 

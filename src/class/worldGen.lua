@@ -275,7 +275,6 @@ function worldGen:update(dt)
 end
 
 function worldGen:updateWorld()
-    self.player.inRangeOfRadiation = false
     self:iterateTiles(function(tile)
         -- Gathering adjescent tiles
         local adjescent = {}
@@ -296,17 +295,6 @@ function worldGen:updateWorld()
             end
 
         end
-
-        -- Radiation
-        --local radiationDistance = 5
-        --if tile.type == 6 then
-        --    local distance = fmath.distance(tile.gridX, tile.gridY, self.player.gridX, self.player.gridY)
-        --    if distance < radiationDistance then
-        --        self.player.radiation = self.player.radiation + (radiationDistance - distance) * 0.1
-        --        self.player.inRangeOfRadiation = true
-        --    end
-        --end
-
     end)
 end
 

@@ -28,12 +28,11 @@ function entity:load(data, ecs)
     self.mineSpeed = 10
     self.mineTick = 0
     self.health = 10
-    self.radiation = 0
+    self.stamina = 10
     self.inventory = data.inventory
     self.crafting = data.crafting
     self.inventoryOrder = {}
     self.playerLoaded = data.playerLoaded
-    self.inRangeOfRadiation = false
     self.selectedSkin = "skin1"
     
     self.color = {1, 1, 1}
@@ -166,18 +165,14 @@ function entity:draw()
             self.direction = "left"
         end
         
-        -- Radiation
-        if not self.inRangeOfRadiation then
-            self.radiation = self.radiation - 0.1 * love.timer.getDelta()
-            if self.radiation < 0 then self.radiation = 0 end
-        end
 
-        if self.radiation > 5 then
-            if math.random() < 0.1 and self.health > 0 then
-                --local healthLoss = self.radiation * 0.01 Disabled radiation
-                --self.health = math.max(0, self.health - healthLoss)
-            end
-        end
+
+      -- if self.radiation > 5 then
+      --     if math.random() < 0.1 and self.health > 0 then
+      --         --local healthLoss = self.radiation * 0.01 Disabled radiation
+      --         --self.health = math.max(0, self.health - healthLoss)
+      --     end
+      -- end
 
         lg.setColor(self.color)
         --lg.rectangle("fill", self.x, self.y, config.graphics.tileSize * scale_x, config.graphics.tileSize * scale_x)

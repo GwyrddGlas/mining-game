@@ -93,33 +93,30 @@ end
 local function convertIconToDefinition(iconValue)
     local iconDefinitions = {
         [18] = 1,   -- Wall
-        [1] = 3,    -- Shrub
-        [2] = 4,    -- Brick
-        [4] = 6,   -- Uranium
-        [5] = 7,    -- Diamond
-        [6] = 8,    -- Ruby
-        [7] = 9,    -- Tanzenite
-        [8] = 10,   -- Copper
-        [8] = 11,   -- Floor?
-        [28] = 12,  -- Crafting
-        [29] = 13,  -- Furnace
-        [30] = 14,  -- StoneBrick
-        [45] = 15,  -- Grass
-        [46] = 16,  -- Dirt
-        [33] = 17,  -- Torch
-        [33] = 18,  -- Chest
-
-
+        [1] = 3,    -- Coal
+        [9] = 4,   -- Shrub
+        [7] = 5,   -- Tanzenite
         [3] = 6,    -- Gold
-        [9] = 2,    -- Shrub
+        [4] = 7,    -- Uranium
+        [5] = 8,    -- Diamond
+        [6] = 9,    -- Ruby
+        [10] = 10,    -- idk
+        [2] = 4,    -- Iron
+        [8] = 11,   -- Copper
+        [28] = 13,  -- Crafting
+        [29] = 14,  -- Furnace
+        [44] = 15,  -- StoneBrick
+        [45] = 16,   -- Grass
+        [46] = 17,   -- Mushroom
+        [33] = 15,  -- Torch
     }
     
-    return iconDefinitions[iconValue] or 2 
+    return iconDefinitions[iconValue] or 12
 end
 
 function entity:place(id)
     if self.tileData.placeable then
-        self:setType(2)
+        self:setType(convertIconToDefinition(id))
         self.chunk.modified = true
     end
 end
@@ -146,12 +143,12 @@ function entity:draw()
             local distanceFromPlayer = fmath.distance(self.x, self.y, _PLAYER.x, _PLAYER.y)
             local maxDistance = config.graphics.lightDistance * scale_x
 
-            shade = 1 - (1 / maxDistance) * distanceFromPlayer
+            shade = 1 - (3 / maxDistance) * distanceFromPlayer
             if shade < config.graphics.ambientLight then
                 shade = config.graphics.ambientLight
             end
             if not los then
-                shade = config.graphics.ambientLight
+                shade = config.graphics.ambientLight * 0.2
             end
         end
 

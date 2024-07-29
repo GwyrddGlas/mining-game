@@ -70,16 +70,24 @@ function inventory:swapInventoryItems(item1, item2)
         end
     end
     
-    if not index1 then
-        return
-    end
-
-    if not index2 then
+    if not index1 or not index2 then
         return
     end
     
     inventoryOrder[index1], inventoryOrder[index2] = inventoryOrder[index2], inventoryOrder[index1]
-    inventory[item1], inventory[item2] = inventory[item2], inventory[item1]
+    
+    -- Ensure quantities are not negative
+    inventory[item1] = math.max(0, inventory[item1] or 0)
+end
+
+function inventory:removeItemFromInventory(item)
+    self.player.inventory[item] = nil
+    for i, inventoryItem in ipairs(self.player.inventoryOrder) do
+        if inventoryItem == item then
+            table.remove(self.player.inventoryOrder, i)
+            break
+        end
+    end
 end
 
 function inventory:giveItem(item, quantity)
@@ -87,7 +95,12 @@ function inventory:giveItem(item, quantity)
         self.player.inventory[item] = 0
         table.insert(self.player.inventoryOrder, item)
     end
-    self.player.inventory[item] = self.player.inventory[item] + quantity
+    self.player.inventory[item] = math.max(0, (self.player.inventory[item] or 0) + quantity)
+    
+    -- Remove item from inventory if quantity becomes 0
+    if self.player.inventory[item] == 0 then
+        self:removeItemFromInventory(item)
+    end
 end
 
 function inventory:toggleInventory()
@@ -98,6 +111,11 @@ function inventory:moveInventoryItemToIndex(item, index)
     local inventory = self.player.inventory
     local inventoryOrder = self.player.inventoryOrder
     local quantity = inventory[item]
+    
+    if not quantity or quantity <= 0 then
+        self:removeItemFromInventory(item)
+        return
+    end
     
     -- Find the current index of the item
     local currentIndex
@@ -110,9 +128,7 @@ function inventory:moveInventoryItemToIndex(item, index)
     
     if currentIndex then
         table.remove(inventoryOrder, currentIndex)
-        
         table.insert(inventoryOrder, index, item)
-        
         inventory[item] = quantity
     end
 end
@@ -173,7 +189,7 @@ function inventory:mousepressed(x, y, button)
 end
 
 function inventory:keypressed(key)
-    if key == gameControls.inventory then
+    if key == gameControls.inventory and not console.visible then
         self:toggleInventory()
     end
 end

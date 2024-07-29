@@ -37,6 +37,7 @@ function love.load()
             height = 720,
             fullscreen = true,
             resizable = true,
+            vsync = true
         },
         graphics = {
             useLight = true,
@@ -74,7 +75,8 @@ function love.load()
         down = "s",
         up = "w",
         sprint = "lshift",
-        inventory = "i"
+        inventory = "i",
+        chat = "t"
     }
 
     if fs.getInfo("config.lua") then
@@ -108,7 +110,7 @@ function love.load()
     font = {
         regular = lg.newFont("src/font/monogram.ttf", 24 * scale_x),
         large = lg.newFont("src/font/monogram.ttf", 64 * scale_x),
-        tiny = lg.newFont("src/font/monogram.ttf", 16 * scale_x),
+        tiny = lg.newFont("src/font/monogram.ttf", 18 * scale_x),
         title = lg.newFont("src/font/PressStart2P-Regular.ttf", 40 * scale_x),
     }
 
@@ -146,6 +148,8 @@ function love.load()
 
     console:init(0, 0, lg.getWidth(), lg.getHeight(), false, font.regular)
     console:setVisible(false)
+
+    config.debug.enabled = false
 end
 
 function save_config()
@@ -206,7 +210,7 @@ function love.keypressed(key)
         end
     end
 
-    if key == "f1" then
+    if key == gameControls.chat then
         if _INVENTORY and _INVENTORY.inventoryOpen then
             _INVENTORY:toggleInventory()
         end
@@ -214,6 +218,7 @@ function love.keypressed(key)
     elseif key == "f2" then
         config.debug.enabled = not config.debug.enabled
     end
+
     -- DEBUG KEYS
     if state.loadedStateName == "game" and not console:getVisible() then
         if key == "l" then

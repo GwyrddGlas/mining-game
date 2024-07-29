@@ -257,7 +257,7 @@ function crafting:moveAllItemsToInventory()
             local itemName = itemData.item
             local itemQuantity = itemData.quantity
 
-            if inventory[itemName] and type(itemQuantity) == "integer" then
+            if inventory[itemName] and type(itemQuantity) == "number" then
                 inventory[itemName] = inventory[itemName] + itemQuantity
             else
                 inventory[itemName] = itemQuantity
