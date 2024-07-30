@@ -268,7 +268,7 @@ function menu:load()
         bg = {0, 0, 0},
         idle = {0.4, 0.4, 0.4},
         danger = {0.8, 0.2, 0.2},
-        success = {0.4, 1, 0.4}
+        success = {223/255, 147/255, 95/255}
     }
 
     self.currentScreen = "main"
@@ -277,8 +277,8 @@ self.currentScreen = "main"
 self.screen = {
     main = {
         label.new(NAME, self.color.success, font.title, 0, lg.getHeight() * 0.2, "center"),
-        label.new(VERSION, self.color.success, font.regular, self.width*0.47 - font.regular:getWidth(VERSION)*0.4, self.height - 55, "center"),
-        label.new("dsc.gg/miners-odyssey", self.color.success, font.regular, 10, self.height - 55, "left"),
+        label.new(VERSION, self.color.bg, font.regular, self.width*0.47 - font.regular:getWidth(VERSION)*0.4, self.height - 55, "center"),
+        label.new("dsc.gg/miners-odyssey", self.color.bg, font.regular, 10, self.height - 55, "left"),
         button.new("Singleplayer", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.09, changeScreen("singleplayer")),
         --button.new("Multiplayer", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.09, changeScreen("multiplayer")),
         --button.new("Skins", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, changeScreen("skins")),
