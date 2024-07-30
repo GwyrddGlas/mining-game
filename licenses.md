@@ -162,6 +162,10 @@ This distribution contains code from the following projects (full license text b
 	License: Apache 2.0
 	Copyright (c) 2022 Khronos Group
 
+ - Textures (excluding chest, furnace, torch, ores)
+	Website: https://piiixl.itch.io/textures
+	License:  Creative Commons 4
+
  - Button hover.wav
 	Website: https://freesound.org/s/338229/
 	License: Creative Commons 0
@@ -169,7 +173,7 @@ This distribution contains code from the following projects (full license text b
  - PressStart2P-Regular
 	Website: https://fonts.google.com/specimen/Press+Start+2P
 	License: SIL Open Font License, Version 1.1.	
-
+ 
 ============
 
 zlib license

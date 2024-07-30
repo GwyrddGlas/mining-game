@@ -1,5 +1,4 @@
 local inventory = require("src/class/inventory")
-local crafting = require("src/class/crafting")
 
 local lg = love.graphics
 local fs = love.filesystem
@@ -67,7 +66,6 @@ function game:load(data)
     -- Initializing player
     self.player = self.world:newEntity("src/entity/player.lua", playerX, playerY, {x = playerX, y = playerY, inventory = playerInventory, playerLoaded = playerLoaded})
     self.inventory = inventory:new(self.player)
-    self.crafting = crafting:new(self.player)
 
     -- Exposing for debug purposes
     _PLAYER = self.player
@@ -79,9 +77,6 @@ function game:load(data)
     self.renderBuffer = worldGen.tileSize * 2
     self.hoverEntity = false -- Contains the entity the mouse is over, Used for mining
     self.time = 0 -- Timer used for shader animations
-
-    self.inventory.selectedIndex = 1
-    self.inventory.highlightedItem = self.inventory.inventoryOrder[self.inventory.selectedIndex]
 
     -- Icon tile id's
     self.icon = {
@@ -176,8 +171,6 @@ function game:update(dt)
     -- Updating world
     worldGen:update(dt)
 
-    -- Updating crafting grid
-    crafting:update()
 
     -- Internal timer used for shaders
     self.time = self.time + dt
@@ -212,81 +205,11 @@ function game:update(dt)
     end
 end
 
-function game:drawHud() --optimise math later
-    local iconScale = 30 * scale_x
-    local radiationScale = 34 * scale_x
-    local width, height = lg.getWidth(), lg.getHeight()
-
-    local hotbarX = width * 0.5
-    local hotbarY = height - height * 0.07
-    local hotbarWidth = width * 0.28 
-    local hotbarHeight = height * 0.07
-    local itemSize = hotbarHeight * 0.8
-    local maxHotbarItems = 6
-    local itemSpacing = (hotbarWidth - itemSize * maxHotbarItems) / (maxHotbarItems - 1)
-    local cornerRadius = itemSize * 0.2
-
-    local hotbarPadding = itemSize * 0.08 
-    local adjustedHotbarWidth = hotbarWidth + hotbarPadding * 2
-
-    local itemX = hotbarX - (adjustedHotbarWidth * 0.5) + hotbarPadding
-    local itemY = hotbarY + (hotbarHeight - itemSize) * 0.5
-
-    local selectedIndex = self.inventory.selectedIndex
-
-    -- Draw hotbar background
-    lg.setColor(0.2, 0.2, 0.25, 0.9)  
-    lg.rectangle("fill", hotbarX - adjustedHotbarWidth * 0.5, hotbarY, adjustedHotbarWidth, hotbarHeight, cornerRadius, cornerRadius)
-
-    for i = 1, maxHotbarItems do
-        local x = itemX + (i - 1) * (itemSize + itemSpacing)
-        local y = itemY
+function game:drawHud()
+    self.inventory:draw(self.icon)
+    self.inventory:craftingDraw(self.icon)
     
-        -- Draw item slot
-        if i == selectedIndex then
-            lg.setColor(0.2, 0.6, 0.8, 0.8)  -- Bright blue for selected slot
-        else
-            lg.setColor(0.3, 0.3, 0.4, 0.7)  -- Slightly blue-ish gray for unselected slots
-        end
-        lg.rectangle("fill", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
-    
-        -- Draw item slot border
-        if i == selectedIndex then
-            lg.setColor(0.3, 0.8, 1)  -- Brighter blue border for selected slot
-            lg.setLineWidth(3)
-        else
-            lg.setColor(0.5, 0.5, 0.6, 0.9)  -- Light gray border for unselected slots
-            lg.setLineWidth(2)
-        end
-        lg.rectangle("line", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
-        lg.setLineWidth(1)
-
-        -- Draw item icon and quantity
-        local item = self.player.inventoryOrder[i]
-        if item then
-            local quantity = self.player.inventory[item]
-            if self.icon[item] then
-                if tileAtlas and tiles[self.icon[item]] then
-                    lg.setColor(1, 1, 1)
-                    lg.draw(tileAtlas, tiles[self.icon[item]], x + itemSize * 0.1, y + itemSize * 0.1, 0, itemSize * 0.8 / config.graphics.assetSize, itemSize * 0.8 / config.graphics.assetSize)
-                    
-                    lg.setFont(font.regular)
-                    local quantityText = tostring(quantity)
-                    local textWidth = font.regular:getWidth(quantityText)
-                    local textHeight = font.regular:getHeight()
-                    local textX = x + itemSize - textWidth - itemSize * 0.1
-                    local textY = y + itemSize - textHeight - itemSize * 0.1
-    
-                    lg.setColor(1, 1, 1)
-                    lg.print(quantityText, textX, textY)
-                end
-            end
-        end
-    end
-
     if self.inventory.inventoryOpen then
-        self.inventory:draw(self.icon, itemSize, self.crafting:getCraftingItemSpacing(), cornerRadius, maxHotbarItems)
-        self.crafting:draw(self.icon)
     end
 end
 
@@ -556,9 +479,6 @@ function game:keypressed(key)
     -- Inventory
     self.inventory:keypressed(key)
 
-    --Crafting
-    self.crafting:keypressed(key)
-
     -- Hotbar selection
     if tonumber(key) and tonumber(key) >= 1 and tonumber(key) <= 6 then
         self.inventory.selectedIndex = tonumber(key)
@@ -583,7 +503,6 @@ end
 function game:mousepressed(x, y, button)
     if self.inventory.inventoryOpen then
         self.inventory:mousepressed(x, y, button)
-        self.crafting:mousepressed(x, y, button)
     end
 
     --Placing/Interacting

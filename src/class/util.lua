@@ -15,6 +15,7 @@ end
 function require_folder(folder)
     local fs = love.filesystem
     local folderPath = folder:gsub("%.", "/")
+    
     if fs.getInfo(folderPath) then
         for _, v in ipairs(fs.getDirectoryItems(folderPath)) do
             local path = folderPath .. "/" .. v

@@ -1,3 +1,9 @@
+local lg = love.graphics
+local fs = love.filesystem
+local kb = love.keyboard
+local lm = love.mouse
+local lt = love.thread
+
 local worldGen = {}
 
 function worldGen:load(data)

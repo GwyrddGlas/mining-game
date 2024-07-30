@@ -29,8 +29,9 @@ function entity:load(data, ecs)
     self.mineTick = 0
     self.health = 10
     self.stamina = 10
-    self.inventory = data.inventory
-    self.crafting = data.crafting
+    self.inventory = data.inventory or {}
+    self.craftingGrid = data.craftingGrid or {}
+    self.craftingResult = data.craftingResult
     self.inventoryOrder = {}
     self.playerLoaded = data.playerLoaded
     self.selectedSkin = "skin1"

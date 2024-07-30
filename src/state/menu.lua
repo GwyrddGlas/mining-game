@@ -7,7 +7,10 @@ local menu = {
 }
 
 local nightSkyImage
+local nightSkyCloudsImage
 local nightSkyImageScaleX, nightSkyImageScaleY
+local cloudSpeed = 11
+local cloudOffset = 0
 
 -- Button functions
 local function changeScreen(screen)
@@ -63,7 +66,8 @@ local function loadSkins()
         {name = "skin1", path = skinAnimations.skin1.skin, id = nil}
     }
 
-    nightSkyImage = love.graphics.newImage("src/assets/night_sky_with_moon_and_clouds.png")
+    nightSkyImage = love.graphics.newImage("src/assets/night_sky_with_moon_and_stars.png")
+    nightSkyCloudsImage = love.graphics.newImage("src/assets/clouds.png")
     nightSkyImageScaleX = love.graphics.getWidth() / nightSkyImage:getWidth()
     nightSkyImageScaleY = love.graphics.getHeight() / nightSkyImage:getHeight()
     
@@ -475,6 +479,7 @@ end
 
 function menu:update(dt)
     self.titleOffset = self.titleAmplitude * math.sin(love.timer.getTime() * self.titleSpeed / self.titleAmplitude)
+    cloudOffset = cloudOffset + cloudSpeed * dt
 
     for _, v in pairs(self.screen[self.currentScreen]) do
         if type(v.update) == "function" then
@@ -485,6 +490,16 @@ end
 
 function menu:draw()
     love.graphics.draw(nightSkyImage, 0, 0, 0, nightSkyImageScaleX, nightSkyImageScaleY)
+    
+    -- Draw clouds
+    local cloudWidth = nightSkyCloudsImage:getWidth()
+    local cloudHeight = nightSkyCloudsImage:getHeight()
+    
+    -- Draw the first part of the clouds
+    love.graphics.draw(nightSkyCloudsImage, -cloudOffset, 0)
+    
+    -- Draw the second part of the clouds (to wrap around)
+    love.graphics.draw(nightSkyCloudsImage, -cloudOffset + cloudWidth, 0)
 
     for i, v in pairs(self.screen[self.currentScreen]) do
         if i == 1 and self.currentScreen == "main" then
