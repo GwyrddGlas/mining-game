@@ -206,9 +206,12 @@ function game:update(dt)
         playNextTrack()
     end
 
-    -- Mining
+    --Mining
     if lm.isDown(1) and self.hoverEntity and not self.inventory.inventoryOpen then
-        self.player:mine(self.hoverEntity) 
+        if _PLAYER.stamina > 0 then
+            self.player:mine(self.hoverEntity)
+            _PLAYER.stamina = _PLAYER.stamina - dt * 2
+        end
     end
 end
 
@@ -538,8 +541,11 @@ function game:mousepressed(x, y, button)
 
     --Placing/Interacting
     if button == 2 and self.hoverEntity and not self.inventory.inventoryOpen then
-        local itemId = self.icon[self.inventory.highlightedItem]
-        self.player:place(self.hoverEntity, itemId) 
+        if _PLAYER.stamina > 0.5 then
+            local itemId = self.icon[self.inventory.highlightedItem]
+            self.player:place(self.hoverEntity, itemId)
+            _PLAYER.stamina = _PLAYER.stamina - 0.5
+        end
     end
 end
 

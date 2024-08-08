@@ -123,6 +123,16 @@ function love.load()
     tileAtlas, tiles = loadAtlas("src/assets/tileset.png", 16, 16, 0)
     tileBreakImg, tileBreak = loadAtlas("src/assets/tileBreak.png", 16, 16, 0)
 
+    -- loading shader
+    replaceShader = love.graphics.newShader("src/lib/poster/shaders/replacement.frag")
+    local targetColor = {0.149, 0.361, 0.259, 1.0}
+    local replacementColor = {0.149, 0.361, 0.259, 1.0} 
+    local tolerance = 0.1
+
+    replaceShader:send("targetColor", targetColor)
+    replaceShader:send("replacementColor", replacementColor)
+    replaceShader:send("tolerance", tolerance)
+    
     -- loading audio
     gameAudio = {background = {}, menu = {}}
 

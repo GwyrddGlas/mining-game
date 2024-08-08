@@ -165,15 +165,6 @@ function entity:draw()
         else
             self.direction = "left"
         end
-        
-
-
-      -- if self.radiation > 5 then
-      --     if math.random() < 0.1 and self.health > 0 then
-      --         --local healthLoss = self.radiation * 0.01 Disabled radiation
-      --         --self.health = math.max(0, self.health - healthLoss)
-      --     end
-      -- end
 
         lg.setColor(self.color)
         --lg.rectangle("fill", self.x, self.y, config.graphics.tileSize * scale_x, config.graphics.tileSize * scale_x)
@@ -187,6 +178,8 @@ function entity:draw()
         
         local x = self.x - (self.tileSize / 2)
         local y = self.y - (self.tileSize / 2)
+        
+        love.graphics.setShader(replaceShader)
         self.animation[self.direction]:draw(x, y, self.tileSize / config.graphics.assetSize, self.tileSize / config.graphics.assetSize)
     end
 end

@@ -91,12 +91,12 @@ function colorPicker.draw()
     rec("line", 0, 0, palletw, palleth)
     cir("line", c_x, c_y, radius, 100)
 
-    set(255, 0, 0, 200)
-    prints("Red " .. selectedcolor[1] * 255, prevx, 120)
-    set(0, 255, 0, 200)
-    prints("Green " .. selectedcolor[2] * 255, prevx, 150)
-    set(0, 0, 255, 200)
-    prints("Blue " .. selectedcolor[3] * 255, prevx, 180)
+   --set(255, 0, 0, 200)
+   --prints("Red " .. selectedcolor[1] * 255, prevx, 120)
+   --set(0, 255, 0, 200)
+   --prints("Green " .. selectedcolor[2] * 255, prevx, 150)
+   --set(0, 0, 255, 200)
+   --prints("Blue " .. selectedcolor[3] * 255, prevx, 180)
 
     if love.system.getClipboardText() == "(" .. table.concat(selectedcolor, ",") .. ")" then
         set(0, 0, 250)

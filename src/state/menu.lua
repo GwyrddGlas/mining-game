@@ -80,7 +80,6 @@ local function loadSkins()
     end
 
     characterSprite = love.graphics.newImage("src/assets/player/skin.png")
-    colourPicker.load("src/assets/pallet.png")
 end
 
 local function selectSkin(skinName)
@@ -97,7 +96,8 @@ local function load()
     if menu.selectedWorld then
         state:load("game", {type = "load", worldName = menu.selectedWorld})
     end
-
+    
+    colourPicker.load("src/assets/pallet.png")
     loadSkins()
 end
 
@@ -384,9 +384,9 @@ function menu:load()
             
             slider.new("Bloom", 0, 1, config.graphics.bloom, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(value) config.graphics.bloom = value end),
             slider.new("Light Distance", 0, 600, config.graphics.lightDistance, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(value) config.graphics.ambientLight = value end),
-            slider.new("Brightness", 0, 0.4, config.graphics.brightness, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(value) config.graphics.brightness = value print(value) end),
+            slider.new("Brightness", 0, 0.4, config.graphics.brightness, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(value) config.graphics.brightness = value end),
             slider.new("Ambient Light", 0, 1, config.graphics.ambientLight, self.width * 0.3, self.height * 0.7, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(value) config.graphics.ambientLight = value end),
-            --colorpicker.new("Light Color", config.graphics.lightColor, self.width * 0.3, self.height * 0.55, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(r, g, b) config.graphics.lightColor = {r, g, b} end),
+            --colourPicker.new("Light Color", config.graphics.lightColor, self.width * 0.3, self.height * 0.55, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(r, g, b) config.graphics.lightColor = {r, g, b} end),
             button.new("Reset Graphics Settings", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, function()
                 local defaultGraphics = {
                     useLight = true,
@@ -506,8 +506,10 @@ function menu:update(dt)
     cloudOffset = cloudOffset + cloudSpeed * dt
     colourPicker.update(dt)
 
+    local selected = colourPicker.getSelectedColor()
+    replaceShader:send("replacementColor",{selected[1],selected[2],selected[3], 1.0})
+
     config.settings.playerName = self.screen.skins.characterName.text
-    print(self.screen.skins.characterName.text)
     for _, v in pairs(self.screen[self.currentScreen]) do
         if type(v.update) == "function" then
             v:update(dt)
@@ -544,10 +546,14 @@ function menu:drawCharacterEditor()
     -- Draw the outline around the character sprite
     love.graphics.setColor(self.color.darker2)
     love.graphics.rectangle("line", spriteX + spriteWidth + 45, spriteY - 5, spriteWidth + 10, spriteHeight + 10, 5, 5)
+    love.graphics.setColor(1, 1, 1)
     
     -- Draw the character sprite
-    love.graphics.setColor(1, 1, 1)
+    love.graphics.setShader(replaceShader)
     love.graphics.draw(characterSprite, spriteX, spriteY, 0, scale, scale)
+    love.graphics.setShader()
+
+    colourPicker.draw()
 end
 
 function menu:draw()
@@ -575,6 +581,7 @@ function menu:draw()
         end
         v:draw()
     end
+
 end
 
 function menu:textinput(t)
