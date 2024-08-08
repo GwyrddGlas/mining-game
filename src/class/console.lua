@@ -85,7 +85,7 @@ function console:addMessage(message, channel, from)
         prefix = prefix .. " " .. from
     end
     
-    local fullMessage = prefix .. ": " .. message
+    local fullMessage = prefix .. " " .. tostring(config.settings.playerName) .. ": " .. message
     table.insert(self.messages, 1, {text = fullMessage, color = color, timer = 5}) 
     
     if #self.messages > self.maxMessages then
@@ -117,13 +117,16 @@ function console:clearHistory()
 end
 
 function console:update(dt)
+    if state.loadedStateName == "game" then
+        return 
+    end
+
     for i, message in ipairs(self.messages) do
         if self.visible then
             message.timer = message.timer - dt
         end
     end
 end
-
 
 function console:draw()
     if self.visible then
@@ -159,6 +162,10 @@ function console:draw()
 end
 
 function console:keypressed(key)
+    if not state.loadedStateName == "game" then
+        return 
+    end
+
     if key == "return" and #self.input >= 1 then
         self:processInput()
     elseif key == "backspace" then

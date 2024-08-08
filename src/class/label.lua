@@ -1,7 +1,6 @@
 local label = {}
 local label_meta = {__index = label}
 
-
 function label.new(text, color, font, x, y, align)
     return setmetatable({
         text = text,

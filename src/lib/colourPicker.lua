@@ -1,118 +1,118 @@
-local colourPicker = {}
+-- colorPicker.lua
 
-local slider_size = {x = 16, y = 256}
-local box_size = {x = 256, y = 256}
+local colorPicker = {}
 
-local function rgb_from_hue(hue)
-    local k = (hue / 60) % 6
-    local f = hue % 60 / 60
+local selectedcolor, bordercolor = {0, 0, 0}, {50, 50, 50}
+local x, y, c_x, c_y = 0, 0, 150, 150
+local radius = 25
+local getcopy = false
+local pallet, palletd, palletw, palleth, prevx, hand
+local keyrgb, keyhex = "c", "h"
 
-    local v = 255
-    local p = 0
-    local q = math.floor(v * (1 - f))
-    local t = math.floor(v * f)
+local set = love.graphics.setColor
+local prints = love.graphics.print
+local rec = love.graphics.rectangle
+local cir = love.graphics.circle
 
-    if k == 0 then
-        return v, t, p
-    elseif k == 1 then
-        return q, v, p
-    elseif k == 2 then
-        return p, v, t
-    elseif k == 3 then
-        return p, q, v
-    elseif k == 4 then
-        return t, p, v
+local function setpallet(x, y)
+    local r, g, b = palletd:getPixel(x, y)
+    selectedcolor = {r, g, b}
+end
+
+local function rgbtohex(selected)
+    local hex = {}
+    for i, color in ipairs(selected) do
+        color = string.format("%X", color * 256) --hexadecimal format or "x = lowercase"
+        hex[i] = string.format("%02s", string.sub(color, 1, 2)) --min 00 strings
+    end
+    return table.concat(hex)
+end
+
+function colorPicker.load(imagePath)
+    palletd = love.image.newImageData(imagePath) --pallet 300px
+    palletw, palleth = palletd:getDimensions()
+    pallet = love.graphics.newImage(palletd)
+    prevx = palletw + 50
+    hand = love.mouse.getSystemCursor("hand")
+end
+
+function colorPicker.update(dt)
+    if love.mouse.isDown(1) then
+        istouch = true
     else
-        return v, p, q
+        istouch = nil
+    end
+
+    if love.keyboard.isDown("up") then
+        c_y = c_y > 1 and c_y - 1 or 1
+        setpallet(c_x, c_y)
+    elseif love.keyboard.isDown("down") then
+        c_y = c_y < palleth - 1 and c_y + 1 or palleth - 1
+        setpallet(c_x, c_y)
+    elseif love.keyboard.isDown("left") then
+        c_x = c_x > 1 and c_x - 1 or 1
+        setpallet(c_x, c_y)
+    elseif love.keyboard.isDown("right") then
+        c_x = c_x < palletw - 1 and c_x + 1 or palletw - 1
+        setpallet(c_x, c_y)
+    end
+
+    getcopy = (love.system.getClipboardText() == "(" .. table.concat(selectedcolor, ",") .. ")" or love.system.getClipboardText() == rgbtohex(selectedcolor)) and true or false
+end
+
+function colorPicker.keypressed(key)
+    if key == "escape" then
+        love.event.quit()
+    elseif key == keyrgb or key == "kp1" or key == "1" then
+        love.system.setClipboardText("(" .. table.concat(selectedcolor, ",") .. ")")
+        getcopy = true
+    elseif key == keyhex or key == "kp2" or key == "2" then
+        love.system.setClipboardText(rgbtohex(selectedcolor))
+        getcopy = true
+    elseif key == "return" or key == "kpenter" or key == "kp0" then
+        love.system.setClipboardText("")
+        c_x, c_y = 150, 150
+        setpallet(c_x, c_y)
+        getcopy = true
     end
 end
 
-local function draw_color_box(color_box)
-    local r, g, b = rgb_from_hue(color_box.hue)
-    love.graphics.setColor(r / 255, g / 255, b / 255)
-    love.graphics.rectangle("fill", color_box.pos.x - box_size.x / 2, color_box.pos.y - box_size.y / 2, box_size.x, box_size.y)
+function colorPicker.draw()
+    x, y = love.mouse.getPosition()
 
-    love.graphics.setColor(1, 1, 1)
-    love.graphics.circle("fill", color_box.selected.x, color_box.selected.y, 10)
+    if (x > 0 and x < palletw) and (y > 0 and y < palleth) and istouch then
+        c_x, c_y = x, y
+        setpallet(x, y)
+    end
 
-    -- Draw hue slider
-    for i = 0, 360, 60 do
-        r, g, b = rgb_from_hue(i)
-        love.graphics.setColor(r / 255, g / 255, b / 255)
-        love.graphics.rectangle("fill", color_box.hue_x_pos, color_box.pos.y - box_size.y / 2 + i * (box_size.y / 360), slider_size.x, box_size.y / 6)
+    set(255, 255, 255, 255)
+    love.graphics.draw(pallet)
+    set(bordercolor)
+    rec("line", 0, 0, palletw, palleth)
+    cir("line", c_x, c_y, radius, 100)
+
+    set(255, 0, 0, 200)
+    prints("Red " .. selectedcolor[1] * 255, prevx, 120)
+    set(0, 255, 0, 200)
+    prints("Green " .. selectedcolor[2] * 255, prevx, 150)
+    set(0, 0, 255, 200)
+    prints("Blue " .. selectedcolor[3] * 255, prevx, 180)
+
+    if love.system.getClipboardText() == "(" .. table.concat(selectedcolor, ",") .. ")" then
+        set(0, 0, 250)
+    else
+        set(200, 200, 200)
+    end
+
+    if love.system.getClipboardText() == rgbtohex(selectedcolor) then
+        set(0, 0, 250)
+    else
+        set(200, 200, 200)
     end
 end
 
-local function pick_color(self)
-    local mouse_x, mouse_y = love.mouse.getPosition()
-    mouse_x = (mouse_x / love.graphics.getWidth() * 2 - 1)
-    mouse_y = (mouse_y / love.graphics.getHeight() * -2 + 1)
-
-    if love.mouse.isDown(1) then
-        self.in_hue_range = mouse_x > (self.hue_x_pos / love.graphics.getWidth() * 2 - 1)
-    end
-    if love.mouse.isDown(1) then
-        if self.in_hue_range then
-            self.hue = ((mouse_y + 1) / 2) * 360
-        else
-            local width = ((mouse_x + 1) / 2)
-            local height = ((mouse_y + 1) / 2)
-            self.selected.x = self.pos.x - box_size.x / 2 + width * box_size.x
-            self.selected.y = self.pos.y - box_size.y / 2 + height * box_size.y
-
-            local saturation = 255 * width
-            saturation = math.floor(saturation * height)
-            local b, g, r = rgb_from_hue(self.hue)
-            b = math.floor(b * height)
-            g = math.floor(g * height)
-            r = math.floor(r * height)
-            self.color = {math.max(r, saturation), math.max(g, saturation), math.max(b, saturation), 255}
-        end
-    end
-
-    if love.keyboard.isDown("return") then
-        return 0, self.color
-    elseif love.keyboard.isDown("escape") or love.keyboard.isDown("backspace") then
-        return 2
-    end
-
-    return 1, self.color
+function colorPicker.getSelectedColor()
+    return selectedcolor
 end
 
-function colourPicker.new(pos, hue)
-    local r, g, b = rgb_from_hue(hue or 0)
-    local color = {r, g, b, 255}
-    local color_box = {
-        pos = pos,
-        mouse_pos = {x = 0, y = 0},
-        selected = {x = pos.x, y = pos.y},
-        box_range = {
-            width = function(value) return (value - pos.x + box_size.x / 2) / box_size.x end,
-            height = function(value) return (value - pos.y + box_size.y / 2) / box_size.y end,
-            inverse_width = function(value) return pos.x - box_size.x / 2 + value * box_size.x end,
-            inverse_height = function(value) return pos.y - box_size.y / 2 + value * box_size.y end,
-        },
-        hue_range = {
-            y = function(value) return (value - pos.y + box_size.y / 2) / box_size.y * 360 end,
-            inverse_y = function(value) return pos.y - box_size.y / 2 + value / 360 * box_size.y end
-        },
-        hue_x_pos = pos.x + box_size.x + 20,
-        in_hue_range = false,
-        hue = hue,
-        color = color,
-        get = pick_color
-    }
-
-    return color_box
-end
-
-function colourPicker.update(color_box)
-    local r, c = color_box:get()
-    return r, c
-end
-
-function colourPicker.draw(color_box)
-    draw_color_box(color_box)
-end
-
-return colourPicker
+return colorPicker

@@ -1,4 +1,5 @@
 local inventory = require("src/class/inventory")
+local crafting = require("src/class/crafting")
 
 local lg = love.graphics
 local fs = love.filesystem
@@ -66,6 +67,7 @@ function game:load(data)
     -- Initializing player
     self.player = self.world:newEntity("src/entity/player.lua", playerX, playerY, {x = playerX, y = playerY, inventory = playerInventory, playerLoaded = playerLoaded})
     self.inventory = inventory:new(self.player)
+    self.crafting = crafting:new(self.player)
 
     -- Exposing for debug purposes
     _PLAYER = self.player
@@ -77,6 +79,9 @@ function game:load(data)
     self.renderBuffer = worldGen.tileSize * 2
     self.hoverEntity = false -- Contains the entity the mouse is over, Used for mining
     self.time = 0 -- Timer used for shader animations
+
+    self.inventory.selectedIndex = 1
+    self.inventory.highlightedItem = self.inventory.inventoryOrder[self.inventory.selectedIndex]
 
     -- Icon tile id's
     self.icon = {
@@ -171,6 +176,8 @@ function game:update(dt)
     -- Updating world
     worldGen:update(dt)
 
+    -- Updating crafting grid
+    crafting:update()
 
     -- Internal timer used for shaders
     self.time = self.time + dt
@@ -206,10 +213,31 @@ function game:update(dt)
 end
 
 function game:drawHud()
-    self.inventory:draw(self.icon)
-    self.inventory:craftingDraw(self.icon)
+    local iconScale = 30 * scale_x
+    local radiationScale = 34 * scale_x
+    local width, height = lg.getWidth(), lg.getHeight()
+
+    local hotbarX = width * 0.5
+    local hotbarY = height - height * 0.07
+    local hotbarWidth = width * 0.28 
+    local hotbarHeight = height * 0.07
+    local itemSize = hotbarHeight * 0.8
+    local maxHotbarItems = 6
+    local itemSpacing = (hotbarWidth - itemSize * maxHotbarItems) / (maxHotbarItems - 1)
+    local cornerRadius = itemSize * 0.2
+
+    local hotbarPadding = itemSize * 0.08 
+    local adjustedHotbarWidth = hotbarWidth + hotbarPadding * 2
+
+    local itemX = hotbarX - (adjustedHotbarWidth * 0.5) + hotbarPadding
+    local itemY = hotbarY + (hotbarHeight - itemSize) * 0.5
+
+    self.inventory:draw(self.icon, itemSize, self.crafting:getCraftingItemSpacing(), cornerRadius, maxHotbarItems)
     
     if self.inventory.inventoryOpen then
+        self.crafting:draw(self.icon)
+    else
+        self.inventory:drawHotbar(self.icon)
     end
 end
 
@@ -356,7 +384,7 @@ function game:drawMinimap(all)
     lg.circle("line", minimapX, minimapY, minimapRadius + 2) 
 
     -- Draw compass points
-    local compassColor = {1,1,1, 1}
+    local compassColor = {1,1,1}
     local compassOffset = minimapRadius + 20
     lg.setColor(compassColor)
     lg.setFont(font.regular)
@@ -394,17 +422,16 @@ function game:drawMinimap(all)
         {0.1, 0.1, 0.1, 1},    -- 3: Brown (Coal)
         {0.7529, 0.7529, 0.7529, 1},    -- 4: Silver (Tanzenite)
         {1.0, 1.8, 0.2, 1},    -- 5: Yellow (Gold)
-        {0.2, 0.5, 0.8, 1},    -- 6: Blue (Sapphire)
+        {0, 0.2, 0.8, 1},    -- 6: Green (Uranium)
+        {1, 0.2, 0, 1},    -- 8: Purple (Unknown)
         {0.8, 0.2, 0.2, 1},    -- 7: Red (Ruby)
-        {1, 0.2, 0.8, 1},    -- 8: Purple (Unknown)
-        {0.2, 0.8, 0.8, 1},    -- 9: Cyan (Diamond)
+        {0.2, 0, 0.8, 1},    -- 9: Cyan (Diamond)
         {1.0, 0.5, 0.2, 1},    -- 10: Orange (Copper)
         {0.8, 0.8, 0.2, 1},    -- 11: Yellow-Green (Uranium)
         {1, 1, 1, 1},    -- 12: 
         {1, 1, 1, 1},    -- 13: 
         {1, 1, 1, 1},    -- 14: 
         {102/255, 123/255, 13/255, 1},    -- 15: Grass (Green)
-
     }
     
     local playerColor = {0, 1, 0, 1}
@@ -467,8 +494,8 @@ function game:drawMinimap(all)
         minimapX + math.cos(playerAngle) * directionLength,
         minimapY + math.sin(playerAngle) * directionLength
     )
+    
     lg.setLineWidth(1)
-
 end
 
 function game:keypressed(key)
@@ -478,6 +505,9 @@ function game:keypressed(key)
 
     -- Inventory
     self.inventory:keypressed(key)
+
+    --Crafting
+    self.crafting:keypressed(key)
 
     -- Hotbar selection
     if tonumber(key) and tonumber(key) >= 1 and tonumber(key) <= 6 then
@@ -503,6 +533,7 @@ end
 function game:mousepressed(x, y, button)
     if self.inventory.inventoryOpen then
         self.inventory:mousepressed(x, y, button)
+        self.crafting:mousepressed(x, y, button)
     end
 
     --Placing/Interacting

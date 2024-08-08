@@ -20,7 +20,7 @@ function love.load()
     require("src.class.util")
     require_folder("src.class")
 
-    exString.import()
+    exString.import()   
 
     --Global keypress events love.system.openURL("file://"..love.filesystem.getSaveDirectory())
     keybind:new("keypressed", {"escape","lshift"}, love.event.push, "quit")
@@ -29,6 +29,7 @@ function love.load()
     -- Defining states
     state:define_state("src/state/game.lua", "game")
     state:define_state("src/state/menu.lua", "menu")
+    state:define_state("src/state/paused.lua", "paused")
 
     --Config
     local default_config = {
@@ -57,7 +58,8 @@ function love.load()
         },
         settings = {
             chunkSaveInterval = 10,
-            chunkSize = 6
+            chunkSize = 6,
+            playerName = "Pickle"
         },
         debug = {
             enabled = true,
@@ -76,7 +78,8 @@ function love.load()
         up = "w",
         sprint = "lshift",
         inventory = "i",
-        chat = "t"
+        chat = "t",
+        pause = "escape"
     }
 
     if fs.getInfo("config.lua") then
@@ -167,7 +170,6 @@ function applyMasterVolume()
     if gameAudio.menu[1] then
         gameAudio.menu[1]:setVolume(config.audio.master * config.audio.music)
     end
-    -- Apply to other audio sources (SFX, etc.) here
 end
 
 --The following are callback functions
@@ -186,7 +188,9 @@ function love.draw()
 
     note:draw()
 
-    console:draw()
+    if state.loadedStateName == "game" then
+        console:draw()
+    end
 
     local mx, my = lm.getPosition()
     lg.setColor(1, 1, 1, 1)
@@ -200,11 +204,15 @@ function love.keypressed(key)
     state:keypressed(key)
     console:keypressed(key)
 
-    if key == "escape" then
+    if key == gameControls.pause then
         if console:getVisible() then
             console:setVisible(false) 
         elseif _INVENTORY and _INVENTORY.inventoryOpen then
             _INVENTORY:toggleInventory()
+        elseif state.loadedStateName == "game" then
+            state:load("paused")
+        elseif state.loadedStateName == "paused" then
+            state:load("game")
         else
             state:load("menu")
         end
@@ -214,7 +222,9 @@ function love.keypressed(key)
         if _INVENTORY and _INVENTORY.inventoryOpen then
             _INVENTORY:toggleInventory()
         end
-        console:setVisible(true)
+        if state.loadedStateName == "game" then
+            console:setVisible(true)
+        end
     elseif key == "f2" then
         config.debug.enabled = not config.debug.enabled
     end

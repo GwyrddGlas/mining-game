@@ -11,7 +11,7 @@ love.mouse = require("love.mouse")
 local fs = love.filesystem
 local noise = love.math.noise
 
-local noiseScale = 0.6 -- Global noise scale
+local noiseScale = 1.2 -- Global noise scale
 
 -- Loading biome files
 local biomes = {}
@@ -51,14 +51,14 @@ end
 
 -- Determines the biome, at x & y
 local biomeCount = #biomes
-function biomeNoise(x, y, scale)
+local function biomeNoise(x, y, scale)
     local scaleBase = 0.1 * scale
     local scaleDetail = 0.09 * scale
     return math.floor((noise(x * scaleBase, y * scaleBase, seed + 100) * 0.8 + noise(x * scaleDetail, y * scaleDetail, seed + 100) * 0.2) * biomeCount + 1)
 end
 
 -- A noise function that returs a boolean
-function generateNoise(x, y, scaleBase, scaleDetail, thresh, ratio1, ratio2, seedOffset)
+local function generateNoise(x, y, scaleBase, scaleDetail, thresh, ratio1, ratio2, seedOffset)
     scaleBase = scaleBase * noiseScale
     scaleDetail = scaleDetail * noiseScale
     return noise(x * scaleBase, y * scaleBase, seed + seedOffset) * ratio1 + noise(x * scaleDetail, y * scaleDetail, seed + seedOffset) * ratio2 > thresh and true or false
@@ -88,7 +88,7 @@ if type(chunksToGenerate) == "table" then
         local chunkWorldY = v.y * chunkSize * tileSize
 
         local chunk = {}
-        local biome = 1--biomeNoise(v.x, v.y, noiseScale)
+        local biome = 1
         for y=1, chunkSize do
             chunk[y] = {}
             for x=1, chunkSize do
