@@ -42,7 +42,7 @@ function entity:setType(type)
     self.placed = false
     
     -- Creating bump item if solid
-    if self.tileData.solid then
+    if self.tileData.solid and not  self.bumpWorld:hasItem(self) then
         self.bumpWorld:add(self, self.x, self.y, self.width, self.height) 
     end
 end
@@ -72,6 +72,16 @@ function entity:mine()
                 if random() < 0.05 then
                     nextType = wRand({80, 10, 10}) + 6
                 end
+            end
+
+            --TODO: replace with better system
+            --replace grass with dirt
+            if self.tileData.type == "Grass" then
+                nextType = 17
+            end
+        
+            if self.tileData.type == "Dirt" then
+                nextType = 2
             end
 
             self:setType(nextType)
@@ -133,12 +143,12 @@ function entity:draw()
             local distanceFromPlayer = fmath.distance(self.x, self.y, _PLAYER.x, _PLAYER.y)
             local maxDistance = config.graphics.lightDistance * scale_x
 
-            shade = 1 - (1 / maxDistance) * distanceFromPlayer
+            shade = 1 - (3 / maxDistance) * distanceFromPlayer
             if shade < config.graphics.ambientLight then
                 shade = config.graphics.ambientLight
             end
             if not los then
-                shade = config.graphics.ambientLight
+                shade = config.graphics.ambientLight * 0.2
             end
         end
 

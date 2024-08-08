@@ -1,11 +1,13 @@
 return {
     name = "Grass",
+    tile = 16,
+    
     -- Shape
-    caveScaleBase = 0,
-    caveScaleDetail = 0.33,
-    caveThresh = 0,
-    caveRatio1 = 0,
-    caveRatio2 = 0,
+    caveScaleBase = 0.03,
+    caveScaleDetail = 0.23,
+    caveThresh = 0.63,  
+    caveRatio1 = 0.56,
+    caveRatio2 = 0.3,
 
     ores = {
         {

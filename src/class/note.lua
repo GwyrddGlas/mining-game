@@ -2,7 +2,7 @@ local note = {
     notifications = {},
     color = {
         default = {1, 1, 1},
-        important = {0.1, 0.5, 1},
+        important = {1, 0.5, 0},
         success = {0, 1, 0},
         danger = {1, 0, 0}
     }
@@ -15,7 +15,6 @@ function note:new(text, color, time)
         time = time or 2
     } 
 end
-
 
 function note:update(dt)
     for i,v in ipairs(self.notifications) do

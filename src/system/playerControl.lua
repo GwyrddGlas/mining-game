@@ -4,10 +4,22 @@ return {
     end,
 
     process = function(e, dt)
-        local right, left, down, up = kb.isDown("d"), kb.isDown("a"), kb.isDown("s"), kb.isDown("w") 
-        local space = kb.isDown("space")
+        local right = kb.isDown(gameControls.right)
+        local left = kb.isDown(gameControls.left)
+        local down = kb.isDown(gameControls.down)
+        local up = kb.isDown(gameControls.up)
+        local space = kb.isDown(gameControls.sprint)
         local speed = e.speed
-        if space then speed = e.speed * 5 end
+        local stamina = _PLAYER.stamina
+        if space then 
+            if _PLAYER.stamina > 0 then
+                speed = e.speed * 1.4 
+                _PLAYER.stamina = _PLAYER.stamina - dt
+            end
+        else
+            -- Regenerate stamina when not sprinting
+            _PLAYER.stamina = math.min(_PLAYER.stamina + dt * 0.5, 10)
+        end
 
         e.moving = false
         local xOffset = (e.collisonBoxWidth / 2)
@@ -26,7 +38,6 @@ return {
             ny = ny - speed * dt
             e.moving = true
         end
-
 
         -- Collisions
         local fx, fy, col, len = e.bumpWorld:move(e, nx, ny)

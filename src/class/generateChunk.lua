@@ -11,7 +11,7 @@ love.mouse = require("love.mouse")
 local fs = love.filesystem
 local noise = love.math.noise
 
-local noiseScale = 0.6 -- Global noise scale
+local noiseScale = 1.2 -- Global noise scale
 
 -- Loading biome files
 local biomes = {}
@@ -20,7 +20,7 @@ for _, file in ipairs(fs.getDirectoryItems("src/biome")) do
 end
 
 -- A fractal noise function for more interesting noise
-local function fractalNoise(x, y, seed, scale, iterations, ampScale, freqScale)
+function fractalNoise(x, y, seed, scale, iterations, ampScale, freqScale)
     -- Normal function
     local function normal(value, min, max)
         return (value - min) / (max - min)
@@ -52,8 +52,8 @@ end
 -- Determines the biome, at x & y
 local biomeCount = #biomes
 local function biomeNoise(x, y, scale)
-    local scaleBase = 0.05 * scale
-    local scaleDetail = 0.04 * scale
+    local scaleBase = 0.1 * scale
+    local scaleDetail = 0.09 * scale
     return math.floor((noise(x * scaleBase, y * scaleBase, seed + 100) * 0.8 + noise(x * scaleDetail, y * scaleDetail, seed + 100) * 0.2) * biomeCount + 1)
 end
 
@@ -64,21 +64,16 @@ local function generateNoise(x, y, scaleBase, scaleDetail, thresh, ratio1, ratio
     return noise(x * scaleBase, y * scaleBase, seed + seedOffset) * ratio1 + noise(x * scaleDetail, y * scaleDetail, seed + seedOffset) * ratio2 > thresh and true or false
 end
 
--- Tile definitions. this is dumb
+-- Tile definitions. 
 local wall = 1
 local ground = 2
 local coal = 3
 local iron = 4
-local gold = 6
-local uranium = 7
-local diamond = 8
-local ruby = 9
-local tanzenite = 10
-local copper = 11
-local idk = 12
-local Crafting = 13
-local Furnace = 14
-local Grass = 16
+local gold = 5
+local uranium = 6
+local diamond = 7
+local ruby = 8
+local tanzenite = 9
 
 -- Generating the requested chunks
 if type(chunksToGenerate) == "table" then
@@ -93,14 +88,13 @@ if type(chunksToGenerate) == "table" then
         local chunkWorldY = v.y * chunkSize * tileSize
 
         local chunk = {}
-        local biome = biomeNoise(v.x, v.y, noiseScale)
+        local biome = 1
         for y=1, chunkSize do
             chunk[y] = {}
             for x=1, chunkSize do
                 -- Grid coordinates for the tile
                 local tileX = (v.x * chunkSize) + x
                 local tileY = (v.y * chunkSize) + y
-                
                 -- World coordinates for the tile
                 local worldX = chunkWorldX + (x * tileSize)
                 local worldY = chunkWorldY + (y * tileSize)
@@ -114,11 +108,9 @@ if type(chunksToGenerate) == "table" then
                 -- "sway" is an offset, based on noise, Used to generate slightly different terrain at different coordinates
                 local sway = -1 + (noise(tileY * 0.01, tileX * 0.01, seed) * 2)
                 local swayAmount = 0.05
-                local isCave = generateNoise(tileX, tileY, tileBiome.caveScaleBase, tileBiome.caveScaleDetail, tileBiome.caveThresh + (swayAmount * sway), tileBiome.caveRatio1, tileBiome.caveRatio2, 0)
-                
-                if isCave then
-                    tile = Grass
-                
+                if generateNoise(tileX, tileY, tileBiome.caveScaleBase, tileBiome.caveScaleDetail, tileBiome.caveThresh + (swayAmount * sway), tileBiome.caveRatio1, tileBiome.caveRatio2, 0) then
+                    tile = ground
+
                     for i, ore in ipairs(tileBiome.ores) do
                         if generateNoise(tileX, tileY, ore.scaleBase, ore.scaleDetail, ore.thresh, ore.ratio1, ore.ratio2, ore.seedOffset) then
                             local probability = ore.spawnProbability + (love.math.random() * (1 - ore.spawnProbability))
@@ -126,12 +118,6 @@ if type(chunksToGenerate) == "table" then
                                 tile = i + 2
                             end
                         end
-                    end
-                else
-                    if tileBiome.name == "Grass" then
-                        tile = Grass
-                    else
-                        tile = wall  
                     end
                 end
 

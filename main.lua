@@ -1,6 +1,7 @@
-NAME = "Miner's Odyssey"
-VERSION = "v0.09"
- 
+NAME = "Miners Odyssey"
+VERSION = "v0.010 (Pre Alpha 1c)"
+config = {}
+
 -- GLOBALS
 lg = love.graphics
 fs = love.filesystem
@@ -17,9 +18,9 @@ floor = math.floor
 function love.load()
     -- Loaidng classes
     require("src.class.util")
-    require_folder("src/class")
+    require_folder("src.class")
 
-    exString.import()
+    exString.import()   
 
     --Global keypress events love.system.openURL("file://"..love.filesystem.getSaveDirectory())
     keybind:new("keypressed", {"escape","lshift"}, love.event.push, "quit")
@@ -28,19 +29,22 @@ function love.load()
     -- Defining states
     state:define_state("src/state/game.lua", "game")
     state:define_state("src/state/menu.lua", "menu")
+    state:define_state("src/state/paused.lua", "paused")
 
     --Config
     local default_config = {
         window = {
-            width = 1024,
-            height = 576,
+            width = 1280,
+            height = 720,
             fullscreen = true,
             resizable = true,
+            vsync = true
         },
         graphics = {
             useLight = true,
             useShaders = true,
             bloom = 0.4,
+            brightness = 0.19,
             lightDistance = 500,
             ambientLight = 0.3,
             lightColor = {1, 0.9, 0.8},
@@ -54,7 +58,8 @@ function love.load()
         },
         settings = {
             chunkSaveInterval = 10,
-            chunkSize = 6
+            chunkSize = 6,
+            playerName = "Pickle"
         },
         debug = {
             enabled = true,
@@ -66,11 +71,22 @@ function love.load()
         }
     }
 
+    gameControls = {
+        right = "d",
+        left = "a",
+        down = "s",
+        up = "w",
+        sprint = "lshift",
+        inventory = "i",
+        chat = "t",
+        pause = "escape"
+    }
+
     if fs.getInfo("config.lua") then
         config = ttf.load("config.lua")
     else
         config = default_config
-        --save_config()
+        save_config()
     end
 
     -- Creating folders
@@ -97,7 +113,8 @@ function love.load()
     font = {
         regular = lg.newFont("src/font/monogram.ttf", 24 * scale_x),
         large = lg.newFont("src/font/monogram.ttf", 64 * scale_x),
-        tiny = lg.newFont("src/font/monogram.ttf", 16 * scale_x),
+        tiny = lg.newFont("src/font/monogram.ttf", 18 * scale_x),
+        title = lg.newFont("src/font/PressStart2P-Regular.ttf", 40 * scale_x),
     }
 
     lg.setFont(font.regular)
@@ -107,7 +124,7 @@ function love.load()
     tileBreakImg, tileBreak = loadAtlas("src/assets/tileBreak.png", 16, 16, 0)
 
     -- loading audio
-    gameAudio = {background = {}}
+    gameAudio = {background = {}, menu = {}}
 
     local backgroundMusic = {
         "serenity",
@@ -115,21 +132,27 @@ function love.load()
         "silent_echoes"
     }
 
+    local path = "src/assets/audio/"
     for _, v in ipairs(backgroundMusic) do
-        local path = "src/assets/audio/"
         if love.filesystem.exists(path..v..".mp3") then
-          gameAudio.background[#gameAudio.background+1] = love.audio.newSource(path..tostring(v)..".mp3", "stream")
+            gameAudio.background[#gameAudio.background+1] = love.audio.newSource(path..tostring(v)..".mp3", "stream")
         else 
-          print(v.." not found at path "..path)
+            print(v.." not found at path "..path)
         end
-      end
-      applyMasterVolume()
+    end
+
+    gameAudio.menu[#gameAudio.menu+1] = love.audio.newSource(path.."Dreamers.wav", "stream")
+    gameAudio.menu[1]:play()
+
+    applyMasterVolume()
 
     state:load("menu", {worldName = "test"})
     --state:load("game", {type = "load", worldName = "test"})
 
     console:init(0, 0, lg.getWidth(), lg.getHeight(), false, font.regular)
     console:setVisible(false)
+
+    config.debug.enabled = false
 end
 
 function save_config()
@@ -142,9 +165,11 @@ end
 
 function applyMasterVolume()
     for _, source in pairs(gameAudio.background) do
-      source:setVolume(config.audio.master * config.audio.music)
+        source:setVolume(config.audio.master * config.audio.music)
     end
-    -- Apply to other audio sources (SFX, etc.) here
+    if gameAudio.menu[1] then
+        gameAudio.menu[1]:setVolume(config.audio.master * config.audio.music)
+    end
 end
 
 --The following are callback functions
@@ -163,7 +188,9 @@ function love.draw()
 
     note:draw()
 
-    console:draw()
+    if state.loadedStateName == "game" then
+        console:draw()
+    end
 
     local mx, my = lm.getPosition()
     lg.setColor(1, 1, 1, 1)
@@ -177,19 +204,31 @@ function love.keypressed(key)
     state:keypressed(key)
     console:keypressed(key)
 
-    if key == "escape" then
+    if key == gameControls.pause then
         if console:getVisible() then
             console:setVisible(false) 
+        elseif _INVENTORY and _INVENTORY.inventoryOpen then
+            _INVENTORY:toggleInventory()
+        elseif state.loadedStateName == "game" then
+            state:load("paused")
+        elseif state.loadedStateName == "paused" then
+            state:load("game")
         else
             state:load("menu")
         end
     end
 
-    if key == "f1" then
-        console:setVisible(true)
+    if key == gameControls.chat then
+        if _INVENTORY and _INVENTORY.inventoryOpen then
+            _INVENTORY:toggleInventory()
+        end
+        if state.loadedStateName == "game" then
+            console:setVisible(true)
+        end
     elseif key == "f2" then
         config.debug.enabled = not config.debug.enabled
     end
+
     -- DEBUG KEYS
     if state.loadedStateName == "game" and not console:getVisible() then
         if key == "l" then
@@ -198,12 +237,6 @@ function love.keypressed(key)
         elseif key == "b" then
             config.debug.showChunkBorders = not config.debug.showChunkBorders
             note:new("Show chunk borders: "..tostring(config.debug.showChunkBorders))
-        --elseif key == "c" then
-        --    config.debug.showCollision = not config.debug.showCollision
-        --    note:new("Show collisions: "..tostring(config.debug.showCollision))
-        --elseif key == "p" then
-            config.graphics.useShaders = not config.graphics.useShaders
-            note:new("Shaders: "..tostring(config.graphics.useShaders))
         end
     end
 end

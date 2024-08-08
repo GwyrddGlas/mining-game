@@ -40,12 +40,12 @@ tileData[#tileData+1] = {
 tileData[#tileData+1] = {
     type = "Shrub",
     textureID = 18, 
-    maxHP = 3,
-    drop = {0, 2}, 
-    destructible = true, 
+    maxHP = 10,
+    drop = {1, 1},
     solid = false,
-    placeable = false,
-    item = false,
+    destructible = true,
+    placeable = true,
+    item = "Shrub",
     itemTextureID = 50,
 }
 

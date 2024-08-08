@@ -1,5 +1,6 @@
 return {
     name = "Basic",
+    tile = 2,
     -- Shape
     caveScaleBase = 0.08,
     caveScaleDetail = 0.33,
