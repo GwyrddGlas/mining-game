@@ -147,7 +147,9 @@ function inventory:mousepressed(x, y, button)
             for col = 1, inventoryColumns do
                 local slotX = inventoryX + inventoryPadding + (col - 1) * (itemSize + itemSpacing)
                 local slotY = inventoryY + inventoryPadding + (row - 1) * (itemSize + itemSpacing)
-                if x >= slotX and x <= slotX + itemSize and y >= slotY and y <= slotY + itemSize then
+                -- Check if the mouse is anywhere within the slot
+                if x >= slotX and x < slotX + itemSize + itemSpacing and 
+                   y >= slotY and y < slotY + itemSize + itemSpacing then
                     local index = (row - 1) * inventoryColumns + col
                     clickedItem = self:getInventoryItemAtIndex(index)
                     if button == 1 and self.selectedItem then
@@ -160,9 +162,10 @@ function inventory:mousepressed(x, y, button)
                     else
                         self.selectedItem = clickedItem
                     end
-                    --return
+                    break
                 end
             end
+            if clickedItem then break end
         end
     else
         self.selectedItem = nil

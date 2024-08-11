@@ -68,7 +68,7 @@ function console:init(x, y, width, height, visible, font)
     self.scroll = 0
     self.maxMessages = 100
     self.activeChannel = "all"
-
+    self.isOpen = false
     self.inputBox = {
         x = self.x,
         y = self.y + self.chatHeight,
@@ -86,7 +86,7 @@ function console:addMessage(message, channel, from)
     end
     
     local fullMessage = prefix .. " " .. tostring(config.settings.playerName) .. ": " .. message
-    table.insert(self.messages, 1, {text = fullMessage, color = color, timer = 5}) 
+    table.insert(self.messages, 1, {text = fullMessage, color = color, timer = 6}) 
     
     if #self.messages > self.maxMessages then
         table.remove(self.messages)
@@ -117,21 +117,23 @@ function console:clearHistory()
 end
 
 function console:update(dt)
-    if state.loadedStateName == "game" then
+    if not state.loadedStateName == "game" then
         return 
     end
 
-    for i, message in ipairs(self.messages) do
-        if self.visible then
-            message.timer = message.timer - dt
+    for i = 1, #self.messages do
+        local message = self.messages[i]
+        message.timer = message.timer - dt
+        if message.timer <= 0 and not self.visible then
+            table.remove(self.messages, i)
         end
     end
 end
 
 function console:draw()
     if self.visible then
-		love.graphics.setColor(0.2, 0.2, 0.25, 0.6)
-		love.graphics.rectangle("fill", self.inputBox.x, self.inputBox.y, self.inputBox.width, self.inputBox.height, 10, 10)
+        love.graphics.setColor(0.2, 0.2, 0.25, 0.6)
+        love.graphics.rectangle("fill", self.inputBox.x, self.inputBox.y, self.inputBox.width, self.inputBox.height, 10, 10)
 
         love.graphics.setColor(1, 1, 1, 1)
         love.graphics.printf(self.input, self.inputBox.x + 5, self.inputBox.y + 5, self.inputBox.width - 10)
@@ -149,7 +151,7 @@ function console:draw()
     local visibleCount = 0
     for i = 1, math.min(#self.messages, 10 + self.scroll) do
         local message = self.messages[i]
-        if message.timer > 0 or self.visible then
+        if message.timer > 0 then
             setColor(message.color)
             love.graphics.printf(message.text, self.x + 5, y, self.width - 10)
             y = y - self.font:getHeight() - 2

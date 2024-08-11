@@ -56,7 +56,7 @@ local function createButton()
 end
 
 local skins = {}
-local selectedSkin = "skin1"
+local selectedSkin = "default"
 local picker
 local characterSprite
 

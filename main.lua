@@ -59,7 +59,8 @@ function love.load()
         settings = {
             chunkSaveInterval = 10,
             chunkSize = 6,
-            playerName = "Pickle"
+            playerName = "Pickle",
+            skinColour = {}
         },
         debug = {
             enabled = true,

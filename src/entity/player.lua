@@ -34,7 +34,7 @@ function entity:load(data, ecs)
     self.craftingResult = data.craftingResult
     self.inventoryOrder = {}
     self.playerLoaded = data.playerLoaded
-    self.selectedSkin = "skin1"
+    self.selectedSkin = "default"
     
     self.color = {1, 1, 1}
 
