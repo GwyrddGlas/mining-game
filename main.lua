@@ -60,7 +60,10 @@ function love.load()
             chunkSaveInterval = 10,
             chunkSize = 6,
             playerName = "Pickle",
-            skinColour = {}
+            skinColour = {
+                colour = {0.149, 0.361, 0.259, 1.0},
+                colour2 = {25/255, 60/255, 62/255, 1.0} 
+            }
         },
         debug = {
             enabled = true,
@@ -114,7 +117,7 @@ function love.load()
     font = {
         regular = lg.newFont("src/font/monogram.ttf", 24 * scale_x),
         large = lg.newFont("src/font/monogram.ttf", 64 * scale_x),
-        tiny = lg.newFont("src/font/monogram.ttf", 18 * scale_x),
+        tiny = lg.newFont("src/font/monogram.ttf", 16 * scale_x),
         title = lg.newFont("src/font/PressStart2P-Regular.ttf", 40 * scale_x),
     }
 
@@ -127,11 +130,13 @@ function love.load()
     -- loading shader
     replaceShader = love.graphics.newShader("src/lib/poster/shaders/replacement.frag")
     local targetColor = {0.149, 0.361, 0.259, 1.0}
-    local replacementColor = {0.149, 0.361, 0.259, 1.0} 
+    local replacementColor = config.settings.skinColour.colour
+    local replacementColor2 = config.settings.skinColour.colour2
     local tolerance = 0.1
 
     replaceShader:send("targetColor", targetColor)
     replaceShader:send("replacementColor", replacementColor)
+    replaceShader:send("replacementColor2", replacementColor2)
     replaceShader:send("tolerance", tolerance)
     
     -- loading audio
@@ -160,7 +165,7 @@ function love.load()
     state:load("menu", {worldName = "test"})
     --state:load("game", {type = "load", worldName = "test"})
 
-    console:init(0, 0, lg.getWidth(), lg.getHeight(), false, font.regular)
+    console:init(500, 200, font.tiny)
     console:setVisible(false)
 
     config.debug.enabled = false
@@ -188,7 +193,7 @@ function love.update(dt)
     keybind:trigger("keydown")
     state:update(dt)
     note:update(dt)
-    console:update(dt)
+--    console:update(dt)
     smoof:update(dt)
     floatText:update(dt)
 end

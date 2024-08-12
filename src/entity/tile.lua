@@ -51,6 +51,10 @@ function entity:mine()
     if self.tileData.destructible then
         self.hp = self.hp - 1
         if self.hp < 0 then
+            if _PLAYER.stamina > 0 then
+                _PLAYER.stamina = _PLAYER.stamina - 1
+            end
+
             local nextType = 2
             -- Drops
             local dropCount = random(self.tileData.drop[1], self.tileData.drop[2])

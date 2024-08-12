@@ -144,6 +144,10 @@ function game:load(data)
         {"horizontalBlur", "amount", 3},
     })
 
+    local replacementColor = config.settings.skinColour.colour
+    local replacementColor2 = config.settings.skinColour.colour2
+    updateSkinColors({replacementColor[1],replacementColor[2],replacementColor[3], 1.0}, {replacementColor2[1],replacementColor2[2],replacementColor2[3], 1.0})
+
     self.inventory.inventoryOpen = false
 
     playBackgroundMusic()
@@ -208,10 +212,7 @@ function game:update(dt)
 
     --Mining
     if lm.isDown(1) and self.hoverEntity and not self.inventory.inventoryOpen then
-        if _PLAYER.stamina > 0 then
-            self.player:mine(self.hoverEntity)
-            _PLAYER.stamina = _PLAYER.stamina - dt * 2
-        end
+        self.player:mine(self.hoverEntity)
     end
 end
 
@@ -378,11 +379,11 @@ function game:drawMinimap(all)
     lg.circle("fill", minimapX, minimapY, minimapRadius)
     
     -- Draw blue-ish border
-    lg.setColor(0.2, 0.2, 0.25)
+    love.graphics.setColor(21/255, 29/255, 40/255) 
     lg.setLineWidth(3)
     lg.circle("line", minimapX, minimapY, minimapRadius)
     
-    lg.setColor(0.15, 0.15, 0.2)  -- Adjust this color to fit well with the existing blue-ish color
+    love.graphics.setColor(21/255, 29/255, 40/255) 
     lg.setLineWidth(5)  -- Slightly thicker line for the outline
     lg.circle("line", minimapX, minimapY, minimapRadius + 2) 
 

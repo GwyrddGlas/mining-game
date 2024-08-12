@@ -501,15 +501,27 @@ function menu:load()
     self.deleteConfirmed = false
 end
 
+function updateSkinColors(color1, color2)
+    config.settings.skinColour.colour = color1
+    config.settings.skinColour.colour2 = color2
+    replaceShader:send("replacementColor", color1)
+    replaceShader:send("replacementColor2", color2)
+    save_config()
+end
+
 function menu:update(dt)
     self.titleOffset = self.titleAmplitude * math.sin(love.timer.getTime() * self.titleSpeed / self.titleAmplitude)
     cloudOffset = cloudOffset + cloudSpeed * dt
     colourPicker.update(dt)
 
     local selected = colourPicker.getSelectedColor()
-    replaceShader:send("replacementColor",{selected[1],selected[2],selected[3], 1.0})
 
-    config.settings.playerName = self.screen.skins.characterName.text
+    updateSkinColors({selected[1],selected[2],selected[3], 1.0}, {selected[1],selected[2],selected[3], 1.0})
+
+    local skinNameSave = self.screen.skins.characterName.text
+    config.settings.playerName = skinNameSave ~= "" and skinNameSave or "Pickle"
+
+
     for _, v in pairs(self.screen[self.currentScreen]) do
         if type(v.update) == "function" then
             v:update(dt)

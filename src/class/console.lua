@@ -8,6 +8,12 @@ local function setColor(r, g, b, a)
     love.graphics.setColor(r/255, g/255, b/255, a/255)
 end
 
+local playerNameColor = {255, 165, 0}
+local outlineColor = {50, 50, 50, 255} 
+local chatBubbleColor = {40, 40, 45, 0.8}  
+local chatBubblePadding = 5 
+local fixedInputHeight = 30
+
 local channels = {
     ["all"] = {color = {255, 255, 255}, prefix = "[All]"},
     ["local"] = {color = {200, 200, 200}, prefix = "[Local]"},
@@ -53,15 +59,18 @@ local commands = {
     end,
 }
 
-function console:init(x, y, width, height, visible, font)
-    self.x = x or 0
-    self.y = y or 0
-    self.width = width or 300
-    self.height = height or 200
-    self.visible = visible or true
-    self.font = font or love.graphics.newFont(14)
-    self.inputHeight = self.font:getHeight() + 10
+function console:init(width, height, font)
+    self.width = width or 500
+    self.height = height or 250
+
+    self.font = font
+
+    self.inputHeight = fixedInputHeight
     self.chatHeight = self.height - self.inputHeight
+
+    -- Position the console at the bottom-left corner of the screen
+    self.x = 0
+    self.y = love.graphics.getHeight() - self.height
 
     self.messages = {}
     self.input = ""
@@ -85,8 +94,13 @@ function console:addMessage(message, channel, from)
         prefix = prefix .. " " .. from
     end
     
-    local fullMessage = prefix .. " " .. tostring(config.settings.playerName) .. ": " .. message
-    table.insert(self.messages, 1, {text = fullMessage, color = color, timer = 6}) 
+    local fullMessage = {
+        prefix = prefix,
+        playerName = tostring(config.settings.playerName),
+        text = ": " .. message,
+        color = color
+    }
+    table.insert(self.messages, 1, fullMessage)
     
     if #self.messages > self.maxMessages then
         table.remove(self.messages)
@@ -116,51 +130,54 @@ function console:clearHistory()
     self.scroll = 0
 end
 
-function console:update(dt)
-    if not state.loadedStateName == "game" then
-        return 
-    end
-
-    for i = 1, #self.messages do
-        local message = self.messages[i]
-        message.timer = message.timer - dt
-        if message.timer <= 0 and not self.visible then
-            table.remove(self.messages, i)
-        end
-    end
-end
-
 function console:draw()
-    if self.visible then
-        love.graphics.setColor(0.2, 0.2, 0.25, 0.6)
-        love.graphics.rectangle("fill", self.inputBox.x, self.inputBox.y, self.inputBox.width, self.inputBox.height, 10, 10)
+    local screenWidth = love.graphics.getWidth()
+    local screenHeight = love.graphics.getHeight()
 
-        love.graphics.setColor(1, 1, 1, 1)
-        love.graphics.printf(self.input, self.inputBox.x + 5, self.inputBox.y + 5, self.inputBox.width - 10)
+    local rectWidth = 500
+    local rectHeight = 250
 
-        -- Draw typing indicator 
-        if #self.input > 0 then
-            love.graphics.setColor(0.5, 0.8, 1, 0.8)
-            love.graphics.circle("fill", self.inputBox.x + self.inputBox.width - 15, self.inputBox.y + self.inputBox.height / 2, 3)
-        end
-    end
+    local rectX = 20
+    local rectY = screenHeight - rectHeight - 20
+    
+    love.graphics.setLineWidth(5)
+    
+    -- Draw the outline
+    love.graphics.setColor(45/255, 54/255, 72/255) 
+    love.graphics.rectangle("line", rectX, rectY, rectWidth, rectHeight, 5, 5)
 
-    -- Draw messages
+    -- Draw the filled rectangle
+    love.graphics.setColor(21/255, 29/255, 40/255, 0.6) 
+    love.graphics.rectangle("fill", rectX, rectY, rectWidth, rectHeight, 5, 5)
+
     love.graphics.setFont(self.font)
-    local y = self.y + self.chatHeight - self.font:getHeight() - 5
-    local visibleCount = 0
-    for i = 1, math.min(#self.messages, 10 + self.scroll) do
-        local message = self.messages[i]
-        if message.timer > 0 then
-            setColor(message.color)
-            love.graphics.printf(message.text, self.x + 5, y, self.width - 10)
-            y = y - self.font:getHeight() - 2
-            visibleCount = visibleCount + 1
-        end
-        if visibleCount >= 10 then
-            break
-        end
+
+    local messageY = rectY + rectHeight - self.font:getHeight() - 10 
+    local maxMessageWidth = rectWidth - 20
+
+    -- Draw each message
+    local visibleMessages = {}
+    local startIndex = math.max(#self.messages - 9, 1)
+    for i = startIndex, #self.messages do
+       local message = self.messages[i]
+       local messageText = message.prefix .. " " .. message.text
+       
+       setColor(message.color)
+       love.graphics.printf(message.prefix .. " ", rectX + 10, messageY, maxMessageWidth)
+       
+       love.graphics.setColor(playerNameColor[1]/255, playerNameColor[2]/255, playerNameColor[3]/255)
+       local nameWidth = self.font:getWidth(message.playerName .. " ")
+       love.graphics.print(message.playerName .. " ", rectX + 10 + love.graphics.getFont():getWidth(message.prefix .. " "), messageY)
+       
+       love.graphics.setColor(message.color[1]/255, message.color[2]/255, message.color[3]/255)
+       love.graphics.print(message.text, rectX + 10 + nameWidth + love.graphics.getFont():getWidth(message.prefix .. " "), messageY)
+       
+       messageY = messageY - (self.font:getHeight() + chatBubblePadding)
     end
+ 
+    -- Draw the input text
+    love.graphics.setColor(255, 255, 255)
+    love.graphics.print(self.input, rectX + 5, rectY + rectHeight - self.font:getHeight() - 10  + 5)
 end
 
 function console:keypressed(key)
@@ -176,7 +193,7 @@ function console:keypressed(key)
 end
 
 function console:textinput(t)
-	if not self.visible then return end
+    if not self.visible then return end
     self.input = self.input .. t
 end
 
@@ -214,8 +231,8 @@ function console:getVisible()
     return self.visible
 end
 
-function console:setFont(font)
-    self.font = font
+function console:setFont(fontSize)
+    self.font = fontSize and font[fontSize] or love.graphics.newFont(14)
     self.inputHeight = self.font:getHeight() + 10
     self.chatHeight = self.height - self.inputHeight
     self.inputBox.y = self.y + self.chatHeight
