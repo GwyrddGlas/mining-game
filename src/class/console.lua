@@ -13,6 +13,7 @@ local outlineColor = {50, 50, 50, 255}
 local chatBubbleColor = {40, 40, 45, 0.8}  
 local chatBubblePadding = 5 
 local fixedInputHeight = 30
+local maxMessageLength = 25
 
 local channels = {
     ["all"] = {color = {255, 255, 255}, prefix = "[All]"},
@@ -181,20 +182,25 @@ function console:draw()
 end
 
 function console:keypressed(key)
-    if not state.loadedStateName == "game" then
+    if state.loadedStateName ~= "game" and not self.isOpen then
         return 
     end
 
     if key == "return" and #self.input >= 1 then
         self:processInput()
+        self.isOpen = false
     elseif key == "backspace" then
         self.input = self.input:sub(1, -2)
     end
 end
 
 function console:textinput(t)
-    if not self.visible then return end
-    self.input = self.input .. t
+    if not self.isOpen then return end
+
+    -- Enforce max message length
+    if #self.input < maxMessageLength then
+        self.input = self.input .. t
+    end
 end
 
 function console:wheelmoved(x, y)

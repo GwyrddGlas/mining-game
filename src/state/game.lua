@@ -144,9 +144,9 @@ function game:load(data)
         {"horizontalBlur", "amount", 3},
     })
 
-    local replacementColor = config.settings.skinColour.colour
-    local replacementColor2 = config.settings.skinColour.colour2
-    updateSkinColors({replacementColor[1],replacementColor[2],replacementColor[3], 1.0}, {replacementColor2[1],replacementColor2[2],replacementColor2[3], 1.0})
+    local replacementColor = config.skinColour.colour
+    local replacementColor2 = config.skinColour.colour2
+    updateSkinColours({replacementColor[1],replacementColor[2],replacementColor[3], 1.0}, {replacementColor2[1],replacementColor2[2],replacementColor2[3], 1.0})
 
     self.inventory.inventoryOpen = false
 
@@ -542,11 +542,8 @@ function game:mousepressed(x, y, button)
 
     --Placing/Interacting
     if button == 2 and self.hoverEntity and not self.inventory.inventoryOpen then
-        if _PLAYER.stamina > 0.5 then
-            local itemId = self.icon[self.inventory.highlightedItem]
-            self.player:place(self.hoverEntity, itemId)
-            _PLAYER.stamina = _PLAYER.stamina - 0.5
-        end
+        local itemId = self.icon[self.inventory.highlightedItem]
+        self.player:place(self.hoverEntity, itemId)
     end
 end
 

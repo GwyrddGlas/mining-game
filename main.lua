@@ -22,15 +22,6 @@ function love.load()
 
     exString.import()   
 
-    --Global keypress events love.system.openURL("file://"..love.filesystem.getSaveDirectory())
-    keybind:new("keypressed", {"escape","lshift"}, love.event.push, "quit")
-    keybind:new("keypressed", {"escape","lctrl"}, love.system.openURL, "file://"..love.filesystem.getSaveDirectory())
-
-    -- Defining states
-    state:define_state("src/state/game.lua", "game")
-    state:define_state("src/state/menu.lua", "menu")
-    state:define_state("src/state/paused.lua", "paused")
-
     --Config
     local default_config = {
         window = {
@@ -60,10 +51,11 @@ function love.load()
             chunkSaveInterval = 10,
             chunkSize = 6,
             playerName = "Pickle",
-            skinColour = {
-                colour = {0.149, 0.361, 0.259, 1.0},
-                colour2 = {25/255, 60/255, 62/255, 1.0} 
-            }
+       
+        },
+        skinColour = {
+            colour = {0.149, 0.361, 0.259, 1.0},
+            colour2 = {25/255, 60/255, 62/255, 1.0} 
         },
         debug = {
             enabled = true,
@@ -97,10 +89,15 @@ function love.load()
     if not fs.getInfo("worlds") then
         fs.createDirectory("worlds")
     end
-
+    
     -- Creating window
     love.window.setMode(config.window.width, config.window.height, {fullscreen=config.window.fullscreen, resizable=config.window.resizable })
     love.window.setTitle(NAME.." ["..VERSION.."]")
+
+    -- Defining states
+    state:define_state("src/state/game.lua", "game")
+    state:define_state("src/state/menu.lua", "menu")
+    state:define_state("src/state/paused.lua", "paused")
 
     -- POSTER
     poster = require("src.lib.poster")
@@ -130,13 +127,10 @@ function love.load()
     -- loading shader
     replaceShader = love.graphics.newShader("src/lib/poster/shaders/replacement.frag")
     local targetColor = {0.149, 0.361, 0.259, 1.0}
-    local replacementColor = config.settings.skinColour.colour
-    local replacementColor2 = config.settings.skinColour.colour2
+
     local tolerance = 0.1
 
     replaceShader:send("targetColor", targetColor)
-    replaceShader:send("replacementColor", replacementColor)
-    replaceShader:send("replacementColor2", replacementColor2)
     replaceShader:send("tolerance", tolerance)
     
     -- loading audio
@@ -221,39 +215,32 @@ function love.keypressed(key)
     console:keypressed(key)
 
     if key == gameControls.pause then
-        if console:getVisible() then
-            console:setVisible(false) 
-        elseif _INVENTORY and _INVENTORY.inventoryOpen then
-            _INVENTORY:toggleInventory()
-        elseif state.loadedStateName == "game" then
-            state:load("paused")
-        elseif state.loadedStateName == "paused" then
-            state:load("game")
+        if console.isOpen then
+            -- If the chat is open, close it without pausing the game
+            console.isOpen = false
         else
-            state:load("menu")
+            -- If the chat is not open, handle the pause functionality
+            if _INVENTORY and _INVENTORY.inventoryOpen then
+                _INVENTORY:toggleInventory()
+            end
+            
+            if state.loadedStateName == "game" then
+                state:load("paused")
+            elseif state.loadedStateName == "paused" then
+                state:load("game")
+            else
+                state:load("menu")
+            end
         end
-    end
-
-    if key == gameControls.chat then
+    elseif key == gameControls.chat then
         if _INVENTORY and _INVENTORY.inventoryOpen then
             _INVENTORY:toggleInventory()
         end
         if state.loadedStateName == "game" then
-            console:setVisible(true)
+            console.isOpen = true
         end
     elseif key == "f2" then
         config.debug.enabled = not config.debug.enabled
-    end
-
-    -- DEBUG KEYS
-    if state.loadedStateName == "game" and not console:getVisible() then
-        if key == "l" then
-            config.graphics.useLight = not config.graphics.useLight
-            note:new("Lights: "..tostring(config.graphics.useLight))
-        elseif key == "b" then
-            config.debug.showChunkBorders = not config.debug.showChunkBorders
-            note:new("Show chunk borders: "..tostring(config.debug.showChunkBorders))
-        end
     end
 end
 

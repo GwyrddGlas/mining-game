@@ -192,7 +192,7 @@ function inventory:mousepressed(x, y, button)
 end
 
 function inventory:keypressed(key)
-    if key == gameControls.inventory and not console.visible then
+    if key == gameControls.inventory and not console.isOpen then
         self:toggleInventory()
     end
 end

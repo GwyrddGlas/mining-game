@@ -497,16 +497,19 @@ function menu:load()
         end
     end
 
+    if not config.skinColour then
+        clear_config()
+    end
+
     load()
     self.deleteConfirmed = false
 end
 
-function updateSkinColors(color1, color2)
-    config.settings.skinColour.colour = color1
-    config.settings.skinColour.colour2 = color2
-    replaceShader:send("replacementColor", color1)
-    replaceShader:send("replacementColor2", color2)
-    save_config()
+function updateSkinColours(colour1, colour2)
+   config.skinColour.colour = colour1
+   config.skinColour.colour2 = colour2
+    replaceShader:send("replacementColor", colour1)
+    --replaceShader:send("replacementcolour2", colour2)
 end
 
 function menu:update(dt)
@@ -516,7 +519,7 @@ function menu:update(dt)
 
     local selected = colourPicker.getSelectedColor()
 
-    updateSkinColors({selected[1],selected[2],selected[3], 1.0}, {selected[1],selected[2],selected[3], 1.0})
+    updateSkinColours({selected[1],selected[2],selected[3], 1.0}, {selected[1],selected[2],selected[3], 1.0})
 
     local skinNameSave = self.screen.skins.characterName.text
     config.settings.playerName = skinNameSave ~= "" and skinNameSave or "Pickle"
