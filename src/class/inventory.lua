@@ -134,6 +134,10 @@ function inventory:moveInventoryItemToIndex(item, index)
 end
 
 function inventory:mousepressed(x, y, button)
+    if not self.inventoryOpen then
+        return
+    end
+
     local inventoryX, inventoryY, inventoryWidth, inventoryHeight = self:getInventoryBounds()
     local itemSize = self:getInventoryItemSize()
     local itemSpacing = self:getInventoryItemSpacing()
@@ -172,8 +176,6 @@ function inventory:mousepressed(x, y, button)
     end
 
     if button == 2 and clickedItem then
-        print("right click")
-
         -- Find the first available slot in the crafting grid
         local craftingGrid = self.player.craftingGrid
         local craftingGridOrder = self.player.craftingGridOrder

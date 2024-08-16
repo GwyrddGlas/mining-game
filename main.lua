@@ -137,9 +137,8 @@ function love.load()
     gameAudio = {background = {}, menu = {}}
 
     local backgroundMusic = {
-        "serenity",
-        "dreaming",
-        "silent_echoes"
+        "Dreamers",
+        "Whisper of the Wind"
     }
 
     local path = "src/assets/audio/"
@@ -151,7 +150,7 @@ function love.load()
         end
     end
 
-    gameAudio.menu[#gameAudio.menu+1] = love.audio.newSource(path.."Dreamers.wav", "stream")
+    gameAudio.menu[#gameAudio.menu+1] = love.audio.newSource(path.."Dreamers.mp3", "stream")
     gameAudio.menu[1]:play()
 
     applyMasterVolume()

@@ -13,10 +13,13 @@ function pauseScreen:load()
     
     self.elements = {
         label.new("Paused", self.color.success, font.title, 0, self.height * 0.2, "center"),
+        --button.new("Resume", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.09, function() self:resume() end),
+        --button.new("Settings", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.09, function() self:openSettings() end),
+        --button.new("Main Menu", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, function() self:returnToMainMenu() end),
+        --button.new("Quit Game", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.7, self.width * 0.4, self.height * 0.09, function() love.event.quit() end),
         button.new("Resume", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.09, function() self:resume() end),
-        button.new("Settings", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.09, function() self:openSettings() end),
-        button.new("Main Menu", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, function() self:returnToMainMenu() end),
-        button.new("Quit Game", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.7, self.width * 0.4, self.height * 0.09, function() love.event.quit() end),
+        button.new("Main Menu", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.09, function() self:returnToMainMenu() end),
+        button.new("Quit Game", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, function() love.event.quit() end),
     }
 end
 

@@ -19,7 +19,7 @@ function crafting:new(player)
 end
 
 function crafting:getCraftingBounds()
-    local inventoryX, inventoryY, inventoryWidth, inventoryHeight = inventory:getInventoryBounds()
+    local inventoryX, inventoryY, inventoryWidth, inventoryHeight = _INVENTORY:getInventoryBounds()
     local craftingRows, craftingColumns = 3, 3
     local itemSize = self:getCraftingItemSize()
     local itemSpacing = self:getCraftingItemSpacing()

@@ -8,6 +8,13 @@ local function setColor(r, g, b, a)
     love.graphics.setColor(r/255, g/255, b/255, a/255)
 end
 
+local function truncateMessage(message, maxLength)
+    if #message > maxLength then
+        return message:sub(1, maxLength - 3) .. "..."
+    end
+    return message
+end
+
 local playerNameColor = {255, 165, 0}
 local outlineColor = {50, 50, 50, 255} 
 local chatBubbleColor = {40, 40, 45, 0.8}  
@@ -39,23 +46,23 @@ local commands = {
     ["/give"] = function(self, ...)
         local args = {...}
         if #args < 2 then
-            self:addMessage("Usage: /give <item> <quantity>", "system")
+            self:addMessage(truncateMessage("Usage: /give <item> <quantity>", maxMessageLength), "system")
             return
         end
         local item = args[1]
         local quantity = tonumber(args[2])
         
         if not quantity or quantity <= 0 then
-            self:addMessage("Invalid quantity. Please use a positive number.", "system")
+            self:addMessage(truncateMessage("Invalid quantity. Please use a positive number.", maxMessageLength), "system")
             return
         end
         
         -- Assuming _INVENTORY is a global inventory system
         if _INVENTORY and _INVENTORY.giveItem then
             _INVENTORY:giveItem(item, quantity)
-            self:addMessage("Gave " .. quantity .. " " .. item .. "(s) to the player.", "system")
+            self:addMessage(truncateMessage("Gave " .. quantity .. " " .. item .. "(s).", maxMessageLength), "system")
         else
-            self:addMessage("Inventory system not found or giveItem function not available.", "system")
+            self:addMessage(truncateMessage("Inventory system not found or giveItem function not available.", maxMessageLength), "system")
         end
     end,
 }
@@ -91,16 +98,24 @@ function console:addMessage(message, channel, from)
     channel = channel or self.activeChannel
     local prefix = channels[channel].prefix
     local color = channels[channel].color
-    if from then
-        prefix = prefix .. " " .. from
-    end
+    
+    local truncatedMessage = truncateMessage(message, maxMessageLength)
     
     local fullMessage = {
         prefix = prefix,
-        playerName = tostring(config.settings.playerName),
-        text = ": " .. message,
         color = color
     }
+    
+    if channel == "system" then
+        fullMessage.text = " " .. truncatedMessage
+    else
+        if from then
+            prefix = prefix .. " " .. from
+        end
+        fullMessage.playerName = tostring(config.settings.playerName)
+        fullMessage.text = ": " .. truncatedMessage
+    end
+    
     table.insert(self.messages, 1, fullMessage)
     
     if #self.messages > self.maxMessages then
@@ -161,17 +176,21 @@ function console:draw()
     local startIndex = math.max(#self.messages - 9, 1)
     for i = startIndex, #self.messages do
        local message = self.messages[i]
-       local messageText = message.prefix .. " " .. message.text
        
        setColor(message.color)
-       love.graphics.printf(message.prefix .. " ", rectX + 10, messageY, maxMessageWidth)
+       love.graphics.printf(message.prefix, rectX + 10, messageY, maxMessageWidth)
        
-       love.graphics.setColor(playerNameColor[1]/255, playerNameColor[2]/255, playerNameColor[3]/255)
-       local nameWidth = self.font:getWidth(message.playerName .. " ")
-       love.graphics.print(message.playerName .. " ", rectX + 10 + love.graphics.getFont():getWidth(message.prefix .. " "), messageY)
-       
-       love.graphics.setColor(message.color[1]/255, message.color[2]/255, message.color[3]/255)
-       love.graphics.print(message.text, rectX + 10 + nameWidth + love.graphics.getFont():getWidth(message.prefix .. " "), messageY)
+       if message.playerName then
+           love.graphics.setColor(playerNameColor[1]/255, playerNameColor[2]/255, playerNameColor[3]/255)
+           local nameWidth = self.font:getWidth(message.playerName .. " ")
+           love.graphics.print(message.playerName .. " ", rectX + 10 + love.graphics.getFont():getWidth(message.prefix .. " "), messageY)
+           
+           love.graphics.setColor(message.color[1]/255, message.color[2]/255, message.color[3]/255)
+           love.graphics.print(message.text, rectX + 10 + nameWidth + love.graphics.getFont():getWidth(message.prefix .. " "), messageY)
+       else
+           love.graphics.setColor(message.color[1]/255, message.color[2]/255, message.color[3]/255)
+           love.graphics.print(message.text, rectX + 10 + love.graphics.getFont():getWidth(message.prefix), messageY)
+       end
        
        messageY = messageY - (self.font:getHeight() + chatBubblePadding)
     end
