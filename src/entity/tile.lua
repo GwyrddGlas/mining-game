@@ -42,7 +42,7 @@ function entity:setType(type)
     self.placed = false
     
     -- Creating bump item if solid
-    if self.tileData.solid then
+    if self.tileData.solid and not  self.bumpWorld:hasItem(self) then
         self.bumpWorld:add(self, self.x, self.y, self.width, self.height) 
     end
 end
@@ -51,6 +51,10 @@ function entity:mine()
     if self.tileData.destructible then
         self.hp = self.hp - 1
         if self.hp < 0 then
+            if _PLAYER.stamina > 0 then
+                _PLAYER.stamina = _PLAYER.stamina - 1
+            end
+
             local nextType = 2
             -- Drops
             local dropCount = random(self.tileData.drop[1], self.tileData.drop[2])
@@ -74,6 +78,16 @@ function entity:mine()
                 end
             end
 
+            --TODO: replace with better system
+            --replace grass with dirt
+            if self.tileData.type == "Grass" then
+                nextType = 17
+            end
+        
+            if self.tileData.type == "Dirt" then
+                nextType = 2
+            end
+
             self:setType(nextType)
             self.chunk.modified = true
         end
@@ -83,7 +97,7 @@ end
 local function convertIconToDefinition(iconValue)
     local iconDefinitions = {
         [18] = 1,   -- Wall
-        [1] = 3,    -- Coal
+        [1] = 2,    -- Coal
         [9] = 4,   -- Shrub
         [7] = 5,   -- Tanzenite
         [3] = 6,    -- Gold
@@ -105,8 +119,9 @@ local function convertIconToDefinition(iconValue)
 end
 
 function entity:place(id)
-    if self.tileData.placeable then
-        self:setType(convertIconToDefinition(id))
+    local newTileType = convertIconToDefinition(id)
+    if self.tileData.placeable and tileData[newTileType] and tileData[newTileType].placeable then
+        self:setType(newTileType)
         self.chunk.modified = true
     end
 end
@@ -128,17 +143,17 @@ function entity:draw()
         end)
 
         -- Calculating lighting
-        local shade = 1
+        local shade = 0
         if config.graphics.useLight then
             local distanceFromPlayer = fmath.distance(self.x, self.y, _PLAYER.x, _PLAYER.y)
             local maxDistance = config.graphics.lightDistance * scale_x
 
-            shade = 1 - (1 / maxDistance) * distanceFromPlayer
+            shade = 1 - (3 / maxDistance) * distanceFromPlayer
             if shade < config.graphics.ambientLight then
                 shade = config.graphics.ambientLight
             end
             if not los then
-                shade = config.graphics.ambientLight
+                shade = config.graphics.ambientLight * 0.2
             end
         end
 
@@ -154,8 +169,6 @@ function entity:draw()
             if self.tileData.item then
                 lg.draw(tileAtlas, tiles[self.tileData.itemTextureID], self.x, self.y, 0, self.width / config.graphics.assetSize, self.height / config.graphics.assetSize)
             end
-        else
-            print("Warning: tileData is nil for tile at position: " .. self.gridX .. ", " .. self.gridY)
         end
 
         -- Drawing light

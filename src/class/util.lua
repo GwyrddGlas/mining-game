@@ -13,18 +13,22 @@ function wRand(weights)
 end
 
 function require_folder(folder)
-    if fs.getInfo(folder) then
-        for i,v in ipairs(fs.getDirectoryItems(folder)) do
-            if fs.getInfo(folder.."/"..v).type == "directory" then
-                _G[v] = require(folder.."."..v)
-            else
-                if get_file_type(v) == "lua" then
-                    _G[get_file_name(v)] = require(folder.."."..get_file_name(v))
-                end
+    local fs = love.filesystem
+    local folderPath = folder:gsub("%.", "/")
+    
+    if fs.getInfo(folderPath) then
+        for _, v in ipairs(fs.getDirectoryItems(folderPath)) do
+            local path = folderPath .. "/" .. v
+            local info = fs.getInfo(path)
+            if info.type == "directory" then
+                _G[v] = require(folder .. "." .. v)
+            elseif info.type == "file" and path:match("%.lua$") then
+                local moduleName = v:match("(.+)%.lua$")
+                _G[moduleName] = require(folder .. "." .. moduleName)
             end
         end
     else
-        error(string.format("Folder '%s' does not exists", folder))
+        error(string.format("Folder '%s' does not exist", folder))
     end
 end
 

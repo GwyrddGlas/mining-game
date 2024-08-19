@@ -17,7 +17,7 @@ function state:load(state_name, data)
     self.state = nil
     if self.state_list[state_name] then
         self.loadedStateName = state_name
-        self.state = fs.load(self.state_list[state_name])()
+        self.state = love.filesystem.load(self.state_list[state_name])()
         if type(self.state.load) == "function" and self.state then
             self.state:load(data)
         end
@@ -32,6 +32,11 @@ end
 
 function state:get_state()
     return self.state
+end
+
+-- New function to get the current state name
+function state:get_current_state_name()
+    return self.loadedStateName
 end
 
 --The following are callback functions

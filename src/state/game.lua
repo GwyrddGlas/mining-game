@@ -1,6 +1,12 @@
 local inventory = require("src/class/inventory")
 local crafting = require("src/class/crafting")
 
+local lg = love.graphics
+local fs = love.filesystem
+local kb = love.keyboard
+local lm = love.mouse
+local lt = love.thread
+
 local game = {}
 
 local currentIndex = 1
@@ -87,17 +93,19 @@ function game:load(data)
         Ruby = 6,
         Tanzenite = 7,
         Copper = 8,
-        Shrub = 9,
+        Shrub = 9, --stick
         Wall = 18,
         Crafting = 28,
         Furnace = 29,
+        StoneBrick = 30,
+        Grass = 31,
+        Dirt = 32,
         Torch = 33,
+        Chest = 34,
         health = 41,
         halfHeart = 42,
         radiation = 43,
-        StoneBrick = 44,
-        Grass = 45,
-        Mushroom = 46
+        Mushroom = 51,
     }
 
     -- Poster stuff
@@ -110,7 +118,7 @@ function game:load(data)
         {"waveDistortion", "intensity", 0},
         {"waveDistortion", "scale", config.graphics.tileSize * scale_x * 0.5},
         {"waveDistortion", "phase", 0},
-        {"brightness", "amount", 0.19},
+        {"brightness", "amount", config.graphics.brightness},
         {"contrast", "amount", 1.2},
         {"saturation", "amount", 1.2},
         {"vignette", "radius", 1},
@@ -136,13 +144,15 @@ function game:load(data)
         {"horizontalBlur", "amount", 3},
     })
 
+    self.inventory.inventoryOpen = false
+
     playBackgroundMusic()
+    gameAudio.menu[1]:stop()
 end
 
 function game:unload()
     ecs.unload()
     self.world = nil
-    self.inventory.inventoryOpen = false
 end
 
 function game:update(dt)
@@ -174,8 +184,8 @@ function game:update(dt)
     if self.time > math.pi * 2 then self.time = 0 end
     
     -- Settings macros
-    self.shaders:setMacro("rad", self.player.radiation)
-    self.shaders:setMacro("time", self.time)
+    --self.shaders:setMacro("rad", self.player.radiation)
+    --self.shaders:setMacro("time", self.time)
 
     -- Handle dying
     if self.player.health <= 0 then
@@ -184,7 +194,6 @@ function game:update(dt)
         end
         
         self.player.health = 10
-        self.player.radiation = 0
         
         for item, _ in pairs(self.player.inventory) do
             self.player.inventory[item] = nil
@@ -197,13 +206,13 @@ function game:update(dt)
         playNextTrack()
     end
 
-    -- Mining
+    --Mining
     if lm.isDown(1) and self.hoverEntity and not self.inventory.inventoryOpen then
-        self.player:mine(self.hoverEntity) 
+        self.player:mine(self.hoverEntity)
     end
 end
 
-function game:drawHud() --optimise math later
+function game:drawHud()
     local iconScale = 30 * scale_x
     local radiationScale = 34 * scale_x
     local width, height = lg.getWidth(), lg.getHeight()
@@ -223,99 +232,13 @@ function game:drawHud() --optimise math later
     local itemX = hotbarX - (adjustedHotbarWidth * 0.5) + hotbarPadding
     local itemY = hotbarY + (hotbarHeight - itemSize) * 0.5
 
-    local selectedIndex = self.inventory.selectedIndex
-
-    -- Draw hotbar background
-    lg.setColor(0.2, 0.2, 0.25, 0.9)  
-    lg.rectangle("fill", hotbarX - adjustedHotbarWidth * 0.5, hotbarY, adjustedHotbarWidth, hotbarHeight, cornerRadius, cornerRadius)
-
-    for i = 1, maxHotbarItems do
-        local x = itemX + (i - 1) * (itemSize + itemSpacing)
-        local y = itemY
+    self.inventory:draw(self.icon, itemSize, self.crafting:getCraftingItemSpacing(), cornerRadius, maxHotbarItems)
     
-        -- Draw item slot
-        if i == selectedIndex then
-            lg.setColor(0.2, 0.6, 0.8, 0.8)  -- Bright blue for selected slot
-        else
-            lg.setColor(0.3, 0.3, 0.4, 0.7)  -- Slightly blue-ish gray for unselected slots
-        end
-        lg.rectangle("fill", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
-    
-        -- Draw item slot border
-        if i == selectedIndex then
-            lg.setColor(0.3, 0.8, 1)  -- Brighter blue border for selected slot
-            lg.setLineWidth(3)
-        else
-            lg.setColor(0.5, 0.5, 0.6, 0.9)  -- Light gray border for unselected slots
-            lg.setLineWidth(2)
-        end
-        lg.rectangle("line", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
-        lg.setLineWidth(1)
-
-        -- Draw item icon and quantity
-        local item = self.player.inventoryOrder[i]
-        if item then
-            local quantity = self.player.inventory[item]
-            if self.icon[item] then
-                if tileAtlas and tiles[self.icon[item]] then
-                    lg.setColor(1, 1, 1)
-                    lg.draw(tileAtlas, tiles[self.icon[item]], x + itemSize * 0.1, y + itemSize * 0.1, 0, itemSize * 0.8 / config.graphics.assetSize, itemSize * 0.8 / config.graphics.assetSize)
-                    
-                    lg.setFont(font.regular)
-                    local quantityText = tostring(quantity)
-                    local textWidth = font.regular:getWidth(quantityText)
-                    local textHeight = font.regular:getHeight()
-                    local textX = x + itemSize - textWidth - itemSize * 0.1
-                    local textY = y + itemSize - textHeight - itemSize * 0.1
-    
-                    lg.setColor(1, 1, 1)
-                    lg.print(quantityText, textX, textY)
-                end
-            end
-        end
-    end
-
-    local function drawIconValue(icon, value, x, y, sizeScale, isHealth)
-        sizeScale = sizeScale or iconScale
-        isHealth = isHealth or false
-
-        if isHealth then
-            local heartCount = math.floor(value / 2)
-            local halfHeart = value % 2 ~= 0
-            local heartSpacing = -10
-
-            for i = 1, heartCount do
-                lg.setColor(1, 1, 1, 1)
-                lg.draw(tileAtlas, tiles[self.icon[icon]], x + (i - 1) * (sizeScale + heartSpacing), y, 0, sizeScale / config.graphics.assetSize, sizeScale / config.graphics.assetSize)
-            end
-
-            if halfHeart then
-                lg.setColor(1, 1, 1, 1)
-                lg.draw(tileAtlas, tiles[self.icon[icon] + 1], x + heartCount * (sizeScale + heartSpacing), y, 0, sizeScale / config.graphics.assetSize, sizeScale / config.graphics.assetSize)
-            end
-        else
-            lg.setColor(1, 1, 1, 1)
-            lg.draw(tileAtlas, tiles[self.icon[icon]], x, y, 0, sizeScale / config.graphics.assetSize, sizeScale / config.graphics.assetSize)
-            lg.setFont(font.regular)
-            local formattedValue = math.floor(value * 100) / 100
-            lg.print(formattedValue, x + sizeScale, y + sizeScale * 0.2)
-        end
-    end 
-
     if self.inventory.inventoryOpen then
-        self.inventory:draw(self.icon, itemSize, self.crafting:getCraftingItemSpacing(), cornerRadius, maxHotbarItems)
         self.crafting:draw(self.icon)
+    else
+        self.inventory:drawHotbar(self.icon)
     end
-
-    --Health
-    local healthX = hotbarX - hotbarWidth * 0.5 + itemSize * 0.2
-    local healthY = hotbarY + (hotbarHeight - itemSize) * 0.5 - 45 * scale_y
-    drawIconValue("health", math.floor(self.player.health), healthX, healthY, iconScale, true)
-
-    -- Radiation
-    local radiationX = healthX + 200 * scale_x
-    local radiationY = healthY
-    drawIconValue("radiation", math.floor(self.player.radiation), radiationX, radiationY, radiationScale)
 end
 
 function game:draw()
@@ -331,7 +254,6 @@ function game:draw()
     lg.setColor(1, 1, 1, 1)
     if config.graphics.useShaders then
         self.canvas:draw(self.shaders)
-
         lg.setBlendMode("add")
         lg.setColor(1, 1, 1, config.graphics.bloom)
         self.canvas:draw(self.bloom, self.bloom)
@@ -350,13 +272,8 @@ function game:draw()
         lg.printf("FPS: "..love.timer.getFPS()..
         "\nRam: " .. tostring(math.floor(collectgarbage("count")/1024)+100).." MB"..
         "\nVRam: " .. tostring(math.floor(love.graphics.getStats().texturememory/1024/1024)).." MB"..
-        "\nEntities: "..#self.visibleEntities.."/"..all_len..
-        "\nX: "..floor(self.player.x).." ("..self.player.gridX..") Y: "..floor(self.player.y).." ("..self.player.gridY..")"..
-        "\nChunkX: "..self.player.chunkX.." ChunkY: "..self.player.chunkY..
         "\nLoaded chunks: "..worldGen.loadedChunkCount..
-        "\nBump items: "..bumpItems..
-        "\nWorld name: "..self.worldName..
-        "\nWorld seed: "..tostring(self.seed), -12, 12, lg.getWidth(), "center")
+        "\nBump items: "..bumpItems, -12, 12, lg.getWidth(), "center")
         worldGen:draw()
     end
 
@@ -375,36 +292,127 @@ function game:draw()
     end
 
     self:drawMinimap(all)
+    self:drawHealthBar()
+    self:drawStaminaBar()
+end
+
+function game:drawHealthBar()
+    local minimapRadius = 125
+    local minimapX = 30 + minimapRadius
+    local minimapY = 30 + minimapRadius
+    
+    local barWidth = minimapRadius * 2
+    local barHeight = 20
+    local barX = minimapX - minimapRadius
+    local barY = minimapY + minimapRadius + 80
+
+    -- Draw background
+    lg.setColor(0.3, 0.3, 0.3, 0.8)
+    lg.rectangle("fill", barX, barY, barWidth, barHeight, 10, 10)
+
+    -- Draw health
+    local healthPercentage = self.player.health / 10
+    lg.setColor(0.8, 0.2, 0.2, 1)  -- Brighter red
+    lg.rectangle("fill", barX, barY, barWidth * healthPercentage, barHeight, 10, 10)
+
+    -- Draw border
+    lg.setColor(1, 1, 1, 1)
+    lg.rectangle("line", barX, barY, barWidth, barHeight, 10, 10)
+end
+
+function game:drawStaminaBar()
+    local minimapRadius = 120
+    local minimapX = 30 + minimapRadius
+    local minimapY = 30 + minimapRadius
+    
+    local barWidth = minimapRadius * 1.5
+    local barHeight = 20
+    local barX = minimapX - minimapRadius
+    local barY = minimapY + minimapRadius + 115 
+    local cornerRadius = 10
+
+    -- Draw background
+    lg.setColor(0.3, 0.3, 0.3, 0.8)
+    lg.rectangle("fill", barX, barY, barWidth, barHeight, cornerRadius, cornerRadius)
+
+    -- Calculate stamina width
+    local staminaPercentage = self.player.stamina / 10 
+    local staminaWidth = barWidth * staminaPercentage
+
+    -- Create stencil for rounded stamina bar
+    lg.stencil(function()
+        lg.rectangle("fill", barX, barY, barWidth, barHeight, cornerRadius, cornerRadius)
+    end, "replace", 1)
+
+    lg.setStencilTest("greater", 0)
+
+    local barHeight = 20 
+    
+    local gradient = lg.newMesh({
+        {0, 0, 0, 0, 0, 0.5, 0.3, 1},  -- Brighter green
+        {staminaWidth, 0, 1, 0, 0, 0.5, 0.3, 1},  -- Brighter green
+        {staminaWidth, barHeight, 1, 1, 0, 0.7, 0.5, 1},  -- Brighter green
+        {0, barHeight, 0, 1, 0, 0.7, 0.5, 1}  -- Brighter green
+    }, "fan")
+    
+    lg.setColor(1, 1, 1, 1) 
+    lg.draw(gradient, barX, barY)
+    lg.setStencilTest() 
+
+    -- Draw border
+    lg.setColor(1, 1, 1, 1)
+    lg.rectangle("line", barX, barY, barWidth, barHeight, cornerRadius, cornerRadius)
 end
 
 function game:drawMinimap(all)
-    local minimapScale = 5
-    local minimapWidth = 250
-    local minimapHeight = 250
-    local minimapX = 20
-    local minimapY = 20
-    local minimapCenterX = minimapX + minimapWidth / 2
-    local minimapCenterY = minimapY + minimapHeight / 2
-    
-    -- Draw minimap background
+    local minimapRadius = 125
+    local minimapX = 30 + minimapRadius
+    local minimapY = 30 + minimapRadius
+    local minimapScale = 8
+
+    -- Draw circular background
     lg.setColor(0.1, 0.1, 0.1, 0.8)
-    lg.rectangle("fill", minimapX, minimapY, minimapWidth, minimapHeight)
+    lg.circle("fill", minimapX, minimapY, minimapRadius)
     
-    -- Draw minimap outline
-    lg.setColor(1, 1, 1, 0.8)
-    lg.setLineWidth(2)
-    lg.rectangle("line", minimapX, minimapY, minimapWidth, minimapHeight)
-    lg.setLineWidth(1)
+    -- Draw pruple-ish border
+    love.graphics.setColor(102/255, 104/255, 133/255) 
+    lg.setLineWidth(3)
+    lg.circle("line", minimapX, minimapY, minimapRadius)
+    
+    lg.setLineWidth(5)  -- Slightly thicker line for the outline
+    lg.circle("line", minimapX, minimapY, minimapRadius + 2) 
+
+    -- Draw compass points
+    local compassColor = {1,1,1}
+    local compassOffset = minimapRadius + 20
+    lg.setColor(compassColor)
+    lg.setFont(font.regular)
+    lg.print("N", minimapX - 5, minimapY - compassOffset - 15)
+    lg.print("S", minimapX - 5, minimapY + compassOffset - 15)
+    lg.print("W", minimapX - compassOffset - 7, minimapY - 7)
+    lg.print("E", minimapX + compassOffset - 7, minimapY - 7)
     
     -- Draw minimap coordinates
     lg.setColor(1, 1, 1, 1)
     lg.setFont(font.tiny)
-    lg.print(string.format("x: %i", self.player.gridX), minimapX , minimapY + minimapHeight)
-    local yPos = string.format("y: %i", self.player.gridY)
-    local yPosWidth = lg.getFont():getWidth(yPos)
-    lg.print(yPos, minimapX + minimapWidth - yPosWidth, minimapY + minimapHeight)    
+    local xText = string.format("x: %i", self.player.gridX)
+    local xTextWidth = lg.getFont():getWidth(xText)
+    local xTextX = minimapX - minimapRadius
+    local xTextY = minimapY + minimapRadius + 15 
+    lg.print(xText, xTextX, xTextY)
     
-    lg.setScissor(minimapX, minimapY, minimapWidth, minimapHeight)
+    -- Draw y-coordinate
+    local yText = string.format("y: %i", self.player.gridY)
+    local yTextWidth = lg.getFont():getWidth(yText)
+    local yTextX = minimapX + minimapRadius - yTextWidth
+    local yTextY = minimapY + minimapRadius + 15
+    lg.print(yText, yTextX, yTextY)    
+    
+    -- Set circular stencil
+    lg.stencil(function()
+        lg.circle("fill", minimapX, minimapY, minimapRadius - 2)
+    end, "replace", 1)
+    lg.setStencilTest("greater", 0)
     
     local miniMapColors = {
         {0.2, 0.2, 0.2, 1},    -- 0: Black (Wall)
@@ -413,25 +421,20 @@ function game:drawMinimap(all)
         {0.1, 0.1, 0.1, 1},    -- 3: Brown (Coal)
         {0.7529, 0.7529, 0.7529, 1},    -- 4: Silver (Tanzenite)
         {1.0, 1.8, 0.2, 1},    -- 5: Yellow (Gold)
-        {0.2, 0.5, 0.8, 1},    -- 6: Blue (Sapphire)
+        {0, 0.2, 0.8, 1},    -- 6: Green (Uranium)
+        {1, 0.2, 0, 1},    -- 8: Purple (Unknown)
         {0.8, 0.2, 0.2, 1},    -- 7: Red (Ruby)
-        {1, 0.2, 0.8, 1},    -- 8: Purple (Unknown)
-        {0.2, 0.8, 0.8, 1},    -- 9: Cyan (Diamond)
+        {0.2, 0, 0.8, 1},    -- 9: Cyan (Diamond)
         {1.0, 0.5, 0.2, 1},    -- 10: Orange (Copper)
         {0.8, 0.8, 0.2, 1},    -- 11: Yellow-Green (Uranium)
         {1, 1, 1, 1},    -- 12: 
         {1, 1, 1, 1},    -- 13: 
         {1, 1, 1, 1},    -- 14: 
         {102/255, 123/255, 13/255, 1},    -- 15: Grass (Green)
-        {1, 1, 1, 1},    -- 16
-
     }
     
     local playerColor = {0, 1, 0, 1}
     local playerSize = minimapScale
-    
-    local startX = self.player.gridX * minimapScale - minimapWidth / 2
-    local startY = self.player.gridY * minimapScale - minimapHeight / 2
     
     for i, v in ipairs(all) do
         if v.entityType == "tile" then
@@ -441,8 +444,8 @@ function game:drawMinimap(all)
                 lg.setColor(color[1], color[2], color[3], color[4])
                 lg.rectangle(
                     "fill",
-                    minimapCenterX + (v.gridX - self.player.gridX) * minimapScale,
-                    minimapCenterY + (v.gridY - self.player.gridY) * minimapScale,
+                    minimapX + (v.gridX - self.player.gridX) * minimapScale,
+                    minimapY + (v.gridY - self.player.gridY) * minimapScale,
                     minimapScale,
                     minimapScale
                 )
@@ -451,15 +454,47 @@ function game:drawMinimap(all)
             lg.setColor(playerColor[1], playerColor[2], playerColor[3], playerColor[4])
             lg.rectangle(
                 "fill",
-                minimapCenterX - playerSize / 2,
-                minimapCenterY - playerSize / 2,
+                minimapX - playerSize / 2,
+                minimapY - playerSize / 2,
                 playerSize,
                 playerSize
             )
         end
     end
     
-    lg.setScissor()
+    -- Reset stencil test
+    lg.setStencilTest()
+    
+    local function atan2(y, x)
+        if x > 0 then
+            return math.atan(y/x)
+        elseif x < 0 and y >= 0 then
+            return math.atan(y/x) + math.pi
+        elseif x < 0 and y < 0 then
+            return math.atan(y/x) - math.pi
+        elseif x == 0 and y > 0 then
+            return math.pi/2
+        elseif x == 0 and y < 0 then
+            return -math.pi/2
+        else -- x == 0 and y == 0
+            return 0
+        end
+    end
+
+    -- Draw player direction indicator
+    local directionLength = 15
+    local mx, my = camera:getMouse()
+    local playerAngle = atan2(my - self.player.y, mx - self.player.x)
+    lg.setColor(1, 1, 1, 0.8)
+    lg.setLineWidth(2)
+    lg.line(
+        minimapX,
+        minimapY,
+        minimapX + math.cos(playerAngle) * directionLength,
+        minimapY + math.sin(playerAngle) * directionLength
+    )
+    
+    lg.setLineWidth(1)
 end
 
 function game:keypressed(key)
@@ -468,7 +503,7 @@ function game:keypressed(key)
     end
 
     -- Inventory
-    inventory:keypressed(key)
+    self.inventory:keypressed(key)
 
     --Crafting
     self.crafting:keypressed(key)
@@ -500,10 +535,10 @@ function game:mousepressed(x, y, button)
         self.crafting:mousepressed(x, y, button)
     end
 
-    --Placing
+    --Placing/Interacting
     if button == 2 and self.hoverEntity and not self.inventory.inventoryOpen then
         local itemId = self.icon[self.inventory.highlightedItem]
-        self.player:place(self.hoverEntity, itemId) 
+        self.player:place(self.hoverEntity, itemId)
     end
 end
 

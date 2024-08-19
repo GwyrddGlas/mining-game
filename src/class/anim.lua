@@ -88,7 +88,9 @@ function anim:update(dt)
 end
 
 function anim:draw(x, y, scaleX, scaleY)
+    love.graphics.setShader(replaceShader)
     lg.draw(self.image, self.frames[self.currentFrame], math.floor(x), math.floor(y), 0, scaleX, scaleY) 
+    love.graphics.setShader()
 end
 
 return anim

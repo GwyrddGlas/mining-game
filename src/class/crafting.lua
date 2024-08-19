@@ -9,16 +9,17 @@ function crafting:new(player)
     self.player = player
     player.craftingGridOrder = player.craftingGridOrder or {}
 
-    craft.selectedRecipe = nil
+    craft.selectedItem = nil
     craft.craftingGrid = {}
     craft.craftingGridOrder = {}
     craft.craftingResult = nil
     craft.recipes = {}
+    craft.nextItemId = 1
     return craft
 end
 
 function crafting:getCraftingBounds()
-    local inventoryX, inventoryY, inventoryWidth, inventoryHeight = inventory:getInventoryBounds()
+    local inventoryX, inventoryY, inventoryWidth, inventoryHeight = _INVENTORY:getInventoryBounds()
     local craftingRows, craftingColumns = 3, 3
     local itemSize = self:getCraftingItemSize()
     local itemSpacing = self:getCraftingItemSpacing()
@@ -80,44 +81,44 @@ function crafting:moveInventoryItemToCraftingGrid(item, index)
     local craftingGridOrder = self.player.craftingGridOrder
     local quantity = inventory[item]
     
-    -- Remove the item from the inventory
-    inventory[item] = nil
-    for i, existingItem in ipairs(self.player.inventoryOrder) do
-        if existingItem == item then
-            table.remove(self.player.inventoryOrder, i)
-            break
-        end
-    end
-    
-    -- Check if the slot in the crafting grid is already occupied
-    if craftingGrid[index] then
-        local existingItem = craftingGrid[index].item
-        local existingQuantity = craftingGrid[index].quantity
+    if quantity and quantity > 0 then
+        -- Remove one item from the inventory
+        inventory[item] = inventory[item] - 1
         
-        -- If the items are the same, combine the quantities
-        if existingItem == item then
-            craftingGrid[index].quantity = existingQuantity + quantity
-        else
-            -- If the items are different, return the existing item to the inventory
-            inventory[existingItem] = existingQuantity
-            table.insert(self.player.inventoryOrder, existingItem)
-            
-            -- Remove the existing item from the crafting grid
-            for i, gridItem in ipairs(craftingGridOrder) do
-                if gridItem == existingItem then
-                    table.remove(craftingGridOrder, i)
+        -- If the quantity becomes zero, remove the item from the inventory order
+        if inventory[item] <= 0 then
+            inventory[item] = nil
+            for i, existingItem in ipairs(self.player.inventoryOrder) do
+                if existingItem == item then
+                    table.remove(self.player.inventoryOrder, i)
                     break
                 end
             end
-            
-            -- Add the new item to the crafting grid
-            table.insert(craftingGridOrder, index, item)
-            craftingGrid[index] = {item = item, quantity = quantity}
         end
-    else
-        -- Add the item to the empty slot in the crafting grid
-        table.insert(craftingGridOrder, index, item)
-        craftingGrid[index] = {item = item, quantity = quantity}
+        
+        -- Check if there's already a stack of this item in the crafting grid
+        local existingStack = nil
+        for i, gridItem in pairs(craftingGrid) do
+            if gridItem.item == item then
+                existingStack = gridItem
+                break
+            end
+        end
+        
+        if existingStack then
+            -- If a stack exists, add to it
+            existingStack.quantity = existingStack.quantity + 1
+        else
+            -- If no stack exists, create a new one
+            local newItem = {
+                id = self.nextItemId,
+                item = item,
+                quantity = 1
+            }
+            self.nextItemId = self.nextItemId + 1
+            craftingGrid[index] = newItem
+            table.insert(craftingGridOrder, index, newItem)
+        end
     end
 end
 
@@ -196,14 +197,16 @@ function crafting:swapItems(index, clickedItem)
     local selectedIndex = self.selectedItem.index
     local selectedItem = self.player.craftingGrid[selectedIndex]
 
-    if clickedItem then
-        self.player.craftingGrid[selectedIndex] = clickedItem
-        self.player.craftingGridOrder[selectedIndex] = clickedItem.item
-    end
-    
-    if selectedItem then 
-        self.player.craftingGrid[index] = selectedItem
-        self.player.craftingGridOrder[index] = selectedItem.item
+    self.player.craftingGrid[selectedIndex] = clickedItem
+    self.player.craftingGrid[index] = selectedItem
+
+    -- Update craftingGridOrder
+    for i, item in ipairs(self.player.craftingGridOrder) do
+        if item.id == clickedItem.id then
+            self.player.craftingGridOrder[i] = selectedItem
+        elseif item.id == selectedItem.id then
+            self.player.craftingGridOrder[i] = clickedItem
+        end
     end
 end
 
@@ -211,16 +214,21 @@ function crafting:moveSelectedItemToEmptySlot(index)
     local selectedIndex = self.selectedItem.index
     local selectedItem = self.player.craftingGrid[selectedIndex]
 
-    if selectedItem then 
-        self.player.craftingGrid[selectedIndex] = nil
-        self.player.craftingGrid[index] = selectedItem
-        self.player.craftingGridOrder[selectedIndex] = nil
-        self.player.craftingGridOrder[index] = selectedItem.item
+    self.player.craftingGrid[selectedIndex] = nil
+    self.player.craftingGrid[index] = selectedItem
+
+    -- Update craftingGridOrder
+    for i, item in ipairs(self.player.craftingGridOrder) do
+        if item.id == selectedItem.id then
+            table.remove(self.player.craftingGridOrder, i)
+            table.insert(self.player.craftingGridOrder, index, selectedItem)
+            break
+        end
     end
 end
 
 function crafting:selectItem(index, clickedItem)
-    self.selectedItem = {item = clickedItem.item, index = index}
+    self.selectedItem = {id = clickedItem.id, item = clickedItem.item, index = index}
 end
 
 function crafting:handleRightClick(index, clickedItem)
@@ -369,7 +377,7 @@ function crafting:draw(icon)
     local craftingY = height * 0.5 - craftingHeight * 0.5
         
     -- Draw crafting UI background
-    lg.setColor(0.2, 0.2, 0.25, 0.9)  -- Slightly blue-ish dark background
+    lg.setColor(83/255, 83/255, 83/255, 0.9)  -- Dark gray background from inventory
     lg.rectangle("fill", craftingX, craftingY, inventoryWidth, inventoryHeight, cornerRadius, cornerRadius)
 
     -- Draw crafting grid slots
@@ -380,16 +388,16 @@ function crafting:draw(icon)
             
             local index = (row - 1) * craftingColumns + col -- Calculate the index here
             
-            lg.setColor(0.3, 0.3, 0.4, 0.7)  -- Slightly blue-ish gray for slots
+            lg.setColor(51/255, 51/255, 51/255)  -- Darker gray for slots from inventory
             lg.rectangle("fill", slotX, slotY, itemSize, itemSize, cornerRadius, cornerRadius)
-            lg.setColor(0.5, 0.5, 0.6, 0.9)  -- Light gray border
+            lg.setColor(99/255, 99/255, 99/255, 0.9)  -- Light gray border from inventory
             lg.setLineWidth(2)
             lg.rectangle("line", slotX, slotY, itemSize, itemSize, cornerRadius, cornerRadius)
             lg.setLineWidth(1)
             
             --selected
             if self.selectedItem and index == self.selectedItem.index then
-                lg.setColor(0.2, 0.6, 0.8, 0.8)  -- Bright blue for selected item
+                lg.setColor(0.2, 0.6, 0.8, 0.8)  -- Keep this color as it matches the inventory
                 lg.setLineWidth(3)
                 lg.rectangle("line", slotX, slotY, itemSize, itemSize, cornerRadius, cornerRadius)
                 lg.setLineWidth(1)
@@ -398,7 +406,7 @@ function crafting:draw(icon)
             --hover
             local mouseX, mouseY = love.mouse.getPosition()
             if mouseX >= slotX and mouseX <= slotX + itemSize and mouseY >= slotY and mouseY <= slotY + itemSize then
-                lg.setColor(0.3, 0.8, 1)  -- Brighter blue for hover effect
+                lg.setColor(0.2, 0.6, 0.8, 0.8)  -- Bright blue for selected item                lg.setLineWidth(3)
                 lg.setLineWidth(3)
                 lg.rectangle("line", slotX, slotY, itemSize, itemSize, cornerRadius, cornerRadius)
                 lg.setLineWidth(1)
@@ -411,15 +419,24 @@ function crafting:draw(icon)
                 local item = itemData.item
                 local quantity = itemData.quantity
                 local quantityText = tostring(quantity)
-
+        
                 local textWidth = font.regular:getWidth(quantityText)
                 local textHeight = font.regular:getHeight()
                 local textX = slotX + itemSize - textWidth - itemSize * 0.1
                 local textY = slotY + itemSize - textHeight - itemSize * 0.1
                 lg.setColor(1, 1, 1)
-                lg.draw(tileAtlas, tiles[icon[item]],  slotX + itemSize * 0.1, slotY + itemSize * 0.1, 0, itemSize * 0.8 / config.graphics.assetSize, itemSize * 0.8 / config.graphics.assetSize)
-                
-                lg.print(quantityText, textX, textY)
+                if tiles[icon[item]] then
+                    lg.draw(tileAtlas, tiles[icon[item]],  slotX + itemSize * 0.1, slotY + itemSize * 0.1, 0, itemSize * 0.8 / config.graphics.assetSize, itemSize * 0.8 / config.graphics.assetSize) 
+                    lg.print(quantityText, textX, textY)
+                end
+        
+                -- Draw selection highlight
+                if self.selectedItem and itemData.id == self.selectedItem.id then
+                    lg.setColor(0.2, 0.6, 0.8, 0.8)
+                    lg.setLineWidth(3)
+                    lg.rectangle("line", slotX, slotY, itemSize, itemSize, cornerRadius, cornerRadius)
+                    lg.setLineWidth(1)
+                end
             end
         end
     end
@@ -432,15 +449,15 @@ function crafting:draw(icon)
     local resultBackgroundHeight = itemSize
     local resultBackgroundX = craftingX + craftingWidth + itemSpacing
     local resultBackgroundY = craftingY
-    lg.setColor(0.2, 0.2, 0.25, 0.9)  -- Slightly blue-ish dark background
+    lg.setColor(83/255, 83/255, 83/255, 0.9)  -- Dark gray background from inventory
    -- lg.rectangle("fill", resultBackgroundX, craftingY + craftingHeight / 2 - itemSize / 2, resultBackgroundWidth, resultBackgroundHeight, cornerRadius, cornerRadius)
 
     -- Draw crafting result slot
     resultSlotX =  craftingX + craftingWidth + itemSpacing
     resultSlotY =  craftingY + craftingHeight / 2 - itemSize / 2
-    lg.setColor(0.3, 0.3, 0.4, 0.7)  -- Slightly blue-ish gray for slots
+    lg.setColor(51/255, 51/255, 51/255, 0.7)  -- Darker gray for slots from inventory
     lg.rectangle("fill", resultSlotX, resultSlotY, itemSize, itemSize, cornerRadius, cornerRadius)
-    lg.setColor(0.5, 0.5, 0.6, 0.9)  -- Light gray border
+    lg.setColor(99/255, 99/255, 99/255, 0.9)  -- Light gray border from inventory
     lg.setLineWidth(2)
     lg.rectangle("line", resultSlotX, resultSlotY, itemSize, itemSize, cornerRadius, cornerRadius)
     lg.setLineWidth(1)

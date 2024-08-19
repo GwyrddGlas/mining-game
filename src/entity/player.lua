@@ -28,13 +28,13 @@ function entity:load(data, ecs)
     self.mineSpeed = 10
     self.mineTick = 0
     self.health = 10
-    self.radiation = 0
-    self.inventory = data.inventory
-    self.crafting = data.crafting
+    self.stamina = 10
+    self.inventory = data.inventory or {}
+    self.craftingGrid = data.craftingGrid or {}
+    self.craftingResult = data.craftingResult
     self.inventoryOrder = {}
     self.playerLoaded = data.playerLoaded
-    self.inRangeOfRadiation = false
-    self.selectedSkin = "skin1"
+    self.selectedSkin = "default"
     
     self.color = {1, 1, 1}
 
@@ -123,14 +123,23 @@ function entity:mine(tile)
 end
 
 function entity:place(tile, id)
-    if type(tile) == "table" then
-        local inventory = _PLAYER.inventory
-        local inventoryOrder = _PLAYER.inventoryOrder
-        local selectedItem = _INVENTORY.highlightedItem
-        local itemQuantity = inventory[selectedItem]
+    if type(tile) ~= "table" then
+        return
+    end
 
-        if itemQuantity and itemQuantity > 0 then
+    local inventory = _PLAYER.inventory
+    local inventoryOrder = _PLAYER.inventoryOrder
+    local selectedItem = _INVENTORY.highlightedItem
+    local itemQuantity = inventory[selectedItem]
+
+    if type(itemQuantity) == "number" and itemQuantity > 0 then
+        local originalType = tile.type
+
+        tile:place(id)
+
+        if tile.type ~= originalType then
             inventory[selectedItem] = itemQuantity - 1
+            
             if inventory[selectedItem] <= 0 then
                 inventory[selectedItem] = nil
                 for i, item in ipairs(inventoryOrder) do
@@ -140,7 +149,6 @@ function entity:place(tile, id)
                     end
                 end
             end
-            tile:place(id)
         end
     end
 end
@@ -161,19 +169,6 @@ function entity:draw()
         else
             self.direction = "left"
         end
-        
-        -- Radiation
-        if not self.inRangeOfRadiation then
-            self.radiation = self.radiation - 0.1 * love.timer.getDelta()
-            if self.radiation < 0 then self.radiation = 0 end
-        end
-
-        if self.radiation > 5 then
-            if math.random() < 0.1 and self.health > 0 then
-                local healthLoss = self.radiation * 0.01
-                self.health = math.max(0, self.health - healthLoss)
-            end
-        end
 
         lg.setColor(self.color)
         --lg.rectangle("fill", self.x, self.y, config.graphics.tileSize * scale_x, config.graphics.tileSize * scale_x)
@@ -187,6 +182,8 @@ function entity:draw()
         
         local x = self.x - (self.tileSize / 2)
         local y = self.y - (self.tileSize / 2)
+        
+        love.graphics.setShader(replaceShader)
         self.animation[self.direction]:draw(x, y, self.tileSize / config.graphics.assetSize, self.tileSize / config.graphics.assetSize)
     end
 end
