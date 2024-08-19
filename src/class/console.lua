@@ -215,7 +215,7 @@ end
 
 function console:textinput(t)
     if not self.isOpen then return end
-
+    
     -- Enforce max message length
     if #self.input < maxMessageLength then
         self.input = self.input .. t

@@ -28,12 +28,32 @@ local function rgbtohex(selected)
     return table.concat(hex)
 end
 
-function colorPicker.load(imagePath)
+function colorPicker.load(imagePath, initialColor)
     palletd = love.image.newImageData(imagePath) --pallet 300px
     palletw, palleth = palletd:getDimensions()
     pallet = love.graphics.newImage(palletd)
     prevx = palletw + 50
     hand = love.mouse.getSystemCursor("hand")
+
+    -- Set initial color if provided
+    if initialColor then
+        selectedcolor = initialColor
+        -- Find the closest matching color on the palette
+        local minDist = math.huge
+        for y = 0, palleth - 1 do
+            for x = 0, palletw - 1 do
+                local r, g, b = palletd:getPixel(x, y)
+                local dist = (r - initialColor[1])^2 + (g - initialColor[2])^2 + (b - initialColor[3])^2
+                if dist < minDist then
+                    minDist = dist
+                    c_x, c_y = x, y
+                end
+            end
+        end
+    else
+        c_x, c_y = 150, 150
+        setpallet(c_x, c_y)
+    end
 end
 
 function colorPicker.update(dt)

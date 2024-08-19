@@ -49,7 +49,7 @@ function love.load()
         },
         settings = {
             chunkSaveInterval = 10,
-            chunkSize = 6,
+        chunkSize = 6,
             playerName = "Pickle",
        
         },
@@ -83,6 +83,10 @@ function love.load()
     else
         config = default_config
         save_config()
+    end
+
+    if not config.skinColour.colour then --temp
+        clear_config()
     end
 
     -- Creating folders
@@ -127,10 +131,15 @@ function love.load()
     -- loading shader
     replaceShader = love.graphics.newShader("src/lib/poster/shaders/replacement.frag")
     local targetColor = {0.149, 0.361, 0.259, 1.0}
+    replacementColor = config.skinColour.colour
+    replacementColor2 = config.skinColour.colour2
+    
+    print("replacementColor: "..replacementColor[1].." "..replacementColor[2].." "..replacementColor[3])
 
     local tolerance = 0.1
 
     replaceShader:send("targetColor", targetColor)
+    replaceShader:send("replacementColor", replacementColor)
     replaceShader:send("tolerance", tolerance)
     
     -- loading audio
@@ -225,10 +234,13 @@ function love.keypressed(key)
             
             if state.loadedStateName == "game" then
                 state:load("paused")
+                gamePaused = true
             elseif state.loadedStateName == "paused" then
                 state:load("game")
+                gamePaused = false
             else
                 state:load("menu")
+                gamePaused = false
             end
         end
     elseif key == gameControls.chat then

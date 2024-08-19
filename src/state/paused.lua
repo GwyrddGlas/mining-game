@@ -5,8 +5,10 @@ local pauseScreen = {
         fg = {1, 1, 1},
         bg = {0, 0, 0},
         success = {223/255, 147/255, 95/255},
-    }
+    },
 }
+
+gamePaused = false
 
 function pauseScreen:load()
     self.width, self.height = love.graphics.getDimensions()

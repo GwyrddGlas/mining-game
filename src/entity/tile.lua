@@ -97,7 +97,7 @@ end
 local function convertIconToDefinition(iconValue)
     local iconDefinitions = {
         [18] = 1,   -- Wall
-        [1] = 3,    -- Coal
+        [1] = 2,    -- Coal
         [9] = 4,   -- Shrub
         [7] = 5,   -- Tanzenite
         [3] = 6,    -- Gold
@@ -119,8 +119,9 @@ local function convertIconToDefinition(iconValue)
 end
 
 function entity:place(id)
-    if self.tileData.placeable then
-        self:setType(convertIconToDefinition(id))
+    local newTileType = convertIconToDefinition(id)
+    if self.tileData.placeable and tileData[newTileType] and tileData[newTileType].placeable then
+        self:setType(newTileType)
         self.chunk.modified = true
     end
 end
@@ -142,7 +143,7 @@ function entity:draw()
         end)
 
         -- Calculating lighting
-        local shade = 1
+        local shade = 0
         if config.graphics.useLight then
             local distanceFromPlayer = fmath.distance(self.x, self.y, _PLAYER.x, _PLAYER.y)
             local maxDistance = config.graphics.lightDistance * scale_x
@@ -168,8 +169,6 @@ function entity:draw()
             if self.tileData.item then
                 lg.draw(tileAtlas, tiles[self.tileData.itemTextureID], self.x, self.y, 0, self.width / config.graphics.assetSize, self.height / config.graphics.assetSize)
             end
-        else
-            print("Warning: tileData is nil for tile at position: " .. self.gridX .. ", " .. self.gridY)
         end
 
         -- Drawing light

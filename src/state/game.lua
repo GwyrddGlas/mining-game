@@ -144,10 +144,6 @@ function game:load(data)
         {"horizontalBlur", "amount", 3},
     })
 
-    local replacementColor = config.skinColour.colour
-    local replacementColor2 = config.skinColour.colour2
-    updateSkinColours({replacementColor[1],replacementColor[2],replacementColor[3], 1.0}, {replacementColor2[1],replacementColor2[2],replacementColor2[3], 1.0})
-
     self.inventory.inventoryOpen = false
 
     playBackgroundMusic()
@@ -311,12 +307,12 @@ function game:drawHealthBar()
     local barY = minimapY + minimapRadius + 80
 
     -- Draw background
-    lg.setColor(0.2, 0.2, 0.2, 0.8)
-    lg.rectangle("fill", barX, barY, barWidth, barHeight)
+    lg.setColor(0.3, 0.3, 0.3, 0.8)
+    lg.rectangle("fill", barX, barY, barWidth, barHeight, 10, 10)
 
     -- Draw health
     local healthPercentage = self.player.health / 10
-    lg.setColor(0.5, 0.1, 0.1, 1)
+    lg.setColor(0.8, 0.2, 0.2, 1)  -- Brighter red
     lg.rectangle("fill", barX, barY, barWidth * healthPercentage, barHeight, 10, 10)
 
     -- Draw border
@@ -336,7 +332,7 @@ function game:drawStaminaBar()
     local cornerRadius = 10
 
     -- Draw background
-    lg.setColor(0.2, 0.2, 0.2, 0.8)
+    lg.setColor(0.3, 0.3, 0.3, 0.8)
     lg.rectangle("fill", barX, barY, barWidth, barHeight, cornerRadius, cornerRadius)
 
     -- Calculate stamina width
@@ -353,10 +349,10 @@ function game:drawStaminaBar()
     local barHeight = 20 
     
     local gradient = lg.newMesh({
-        {0, 0, 0, 0, 0, 0.3, 0.2, 1},
-        {staminaWidth, 0, 1, 0, 0, 0.3, 0.2, 1},
-        {staminaWidth, barHeight, 1, 1, 0, 0.5, 0.4, 1},
-        {0, barHeight, 0, 1, 0, 0.5, 0.4, 1}
+        {0, 0, 0, 0, 0, 0.5, 0.3, 1},  -- Brighter green
+        {staminaWidth, 0, 1, 0, 0, 0.5, 0.3, 1},  -- Brighter green
+        {staminaWidth, barHeight, 1, 1, 0, 0.7, 0.5, 1},  -- Brighter green
+        {0, barHeight, 0, 1, 0, 0.7, 0.5, 1}  -- Brighter green
     }, "fan")
     
     lg.setColor(1, 1, 1, 1) 
@@ -378,12 +374,11 @@ function game:drawMinimap(all)
     lg.setColor(0.1, 0.1, 0.1, 0.8)
     lg.circle("fill", minimapX, minimapY, minimapRadius)
     
-    -- Draw blue-ish border
-    love.graphics.setColor(21/255, 29/255, 40/255) 
+    -- Draw pruple-ish border
+    love.graphics.setColor(102/255, 104/255, 133/255) 
     lg.setLineWidth(3)
     lg.circle("line", minimapX, minimapY, minimapRadius)
     
-    love.graphics.setColor(21/255, 29/255, 40/255) 
     lg.setLineWidth(5)  -- Slightly thicker line for the outline
     lg.circle("line", minimapX, minimapY, minimapRadius + 2) 
 

@@ -13,6 +13,7 @@ local nightSkyCloudsImage
 local nightSkyImageScaleX, nightSkyImageScaleY
 local cloudSpeed = 11
 local cloudOffset = 0
+local skinColourToggle = false
 
 -- Button functions
 local function changeScreen(screen)
@@ -97,7 +98,7 @@ local function load()
         state:load("game", {type = "load", worldName = menu.selectedWorld})
     end
     
-    colourPicker.load("src/assets/pallet.png")
+    colourPicker.load("src/assets/pallet.png", config.skinColour.colour)
     loadSkins()
 end
 
@@ -158,7 +159,9 @@ function menu:drawCharacterPreview()
     end
     
     local scale = 16
+    love.graphics.setShader(replaceShader)
     love.graphics.draw(selectedSkinImage, spriteX, spriteY, 0, scale, scale, selectedSkinImage:getWidth() / 2, selectedSkinImage:getHeight() / 2)
+    love.graphics.setShader()
 end
 
 local function delete()
@@ -260,7 +263,7 @@ function menu:load()
         success = {223/255, 147/255, 95/255},
         darker1 = {200.7/255, 132.3/255, 85.5/255},
         darker2 = {180/255, 119/255, 76.5/255} 
-    }   
+    }
 
     self.currentScreen = "main"
 
@@ -331,8 +334,9 @@ function menu:load()
             label.new("Name", self.color.bg, font.tiny, self.width * 0.38, self.height * 0.42, "left"),
             characterName = textbox.new("", "Pickle", self.color.fg, self.color.idle, self.color.bg, self.width * 0.38, self.height * 0.45, self.width * 0.15, self.height * 0.05),
             --label.new("Colour", self.color.bg, font.tiny, self.width * 0.38, self.height * 0.52, "left"),
-            button.new("Colour", self.color.fg, self.color.bg, self.width * 0.38, self.height * 0.51, self.width * 0.06, self.height * 0.05, function()
-                
+            button.new("Colour Picker", self.color.fg, self.color.bg, self.width * 0.38, self.height * 0.51, self.width * 0.15, self.height * 0.05, function(f)
+                skinColourToggle = not skinColourToggle
+                print(tostring(f))
             end),
             
             button.new("Save", self.color.fg, self.color.bg, self.width * 0.38, self.height * 0.65, self.width * 0.15, self.height * 0.05, function()
@@ -497,15 +501,12 @@ function menu:load()
         end
     end
 
-    if not config.skinColour then
-        clear_config()
-    end
-
     load()
     self.deleteConfirmed = false
 end
 
 function updateSkinColours(colour1, colour2)
+    colour2 = colour2 or colour1
    config.skinColour.colour = colour1
    config.skinColour.colour2 = colour2
     replaceShader:send("replacementColor", colour1)
@@ -523,7 +524,6 @@ function menu:update(dt)
 
     local skinNameSave = self.screen.skins.characterName.text
     config.settings.playerName = skinNameSave ~= "" and skinNameSave or "Pickle"
-
 
     for _, v in pairs(self.screen[self.currentScreen]) do
         if type(v.update) == "function" then
@@ -568,7 +568,9 @@ function menu:drawCharacterEditor()
     love.graphics.draw(characterSprite, spriteX, spriteY, 0, scale, scale)
     love.graphics.setShader()
 
-    colourPicker.draw()
+    if skinColourToggle then
+        colourPicker.draw()
+    end
 end
 
 function menu:draw()

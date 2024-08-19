@@ -175,22 +175,22 @@ function inventory:mousepressed(x, y, button)
         self.selectedItem = nil
     end
 
-    if button == 2 and clickedItem then
-        -- Find the first available slot in the crafting grid
-        local craftingGrid = self.player.craftingGrid
-        local craftingGridOrder = self.player.craftingGridOrder
-        local index = 1
-        while craftingGrid[index] do
-            index = index + 1
-            if index > 9 then
-                break
-            end
-        end
-        if index <= 9 then
-            -- Move the item to the next available slot in the crafting grid
-            self.player.crafting:moveInventoryItemToCraftingGrid(clickedItem, index)
-        end
-    end
+    --if button == 2 and clickedItem then
+    --    -- Find the first available slot in the crafting grid
+    --    local craftingGrid = self.player.craftingGrid
+    --    local craftingGridOrder = self.player.craftingGridOrder
+    --    local index = 1
+    --    while craftingGrid[index] do
+    --        index = index + 1
+    --        if index > 9 then
+    --            break
+    --        end
+    --    end
+    --    if index <= 9 then
+    --        -- Move the item to the next available slot in the crafting grid
+    --        self.player.crafting:moveInventoryItemToCraftingGrid(clickedItem, index)
+    --    end
+    --end
 end
 
 function inventory:keypressed(key)

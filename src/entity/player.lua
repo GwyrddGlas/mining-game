@@ -133,19 +133,23 @@ function entity:place(tile, id)
     local itemQuantity = inventory[selectedItem]
 
     if type(itemQuantity) == "number" and itemQuantity > 0 then
-        inventory[selectedItem] = itemQuantity - 1
-        
-        if inventory[selectedItem] <= 0 then
-            inventory[selectedItem] = nil
-            for i, item in ipairs(inventoryOrder) do
-                if item == selectedItem then
-                    table.remove(inventoryOrder, i)
-                    break
+        local originalType = tile.type
+
+        tile:place(id)
+
+        if tile.type ~= originalType then
+            inventory[selectedItem] = itemQuantity - 1
+            
+            if inventory[selectedItem] <= 0 then
+                inventory[selectedItem] = nil
+                for i, item in ipairs(inventoryOrder) do
+                    if item == selectedItem then
+                        table.remove(inventoryOrder, i)
+                        break
+                    end
                 end
             end
         end
-
-        tile:place(id)
     end
 end
 
