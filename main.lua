@@ -1,5 +1,5 @@
 NAME = "Miners Odyssey"
-VERSION = "v0.010 (Pre Alpha 1c)"
+VERSION = "v0.02 (Pre Alpha 2)"
 config = {}
 
 -- GLOBALS
@@ -34,10 +34,10 @@ function love.load()
         graphics = {
             useLight = true,
             useShaders = true,
-            bloom = 0.4,
+            bloom = 0.5,
             brightness = 0.19,
             lightDistance = 500,
-            ambientLight = 0.3,
+            ambientLight = 0.4,
             lightColor = {1, 0.9, 0.8},
             tileSize = 40,
             assetSize = 16
@@ -49,9 +49,8 @@ function love.load()
         },
         settings = {
             chunkSaveInterval = 10,
-        chunkSize = 6,
+            chunkSize = 6,
             playerName = "Pickle",
-       
         },
         skinColour = {
             colour = {0.149, 0.361, 0.259, 1.0},

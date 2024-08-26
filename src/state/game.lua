@@ -102,9 +102,9 @@ function game:load(data)
         Dirt = 32,
         Torch = 33,
         Chest = 34,
+        Water = 35,
         health = 41,
         halfHeart = 42,
-        radiation = 43,
         Mushroom = 51,
     }
 
@@ -293,6 +293,7 @@ function game:draw()
 
     self:drawMinimap(all)
     self:drawHealthBar()
+    self:drawMagicBar()
     self:drawStaminaBar()
 end
 
@@ -314,6 +315,30 @@ function game:drawHealthBar()
     local healthPercentage = self.player.health / 10
     lg.setColor(0.8, 0.2, 0.2, 1)  -- Brighter red
     lg.rectangle("fill", barX, barY, barWidth * healthPercentage, barHeight, 10, 10)
+
+    -- Draw border
+    lg.setColor(1, 1, 1, 1)
+    lg.rectangle("line", barX, barY, barWidth, barHeight, 10, 10)
+end
+
+function game:drawMagicBar()
+    local minimapRadius = 125
+    local minimapX = 30 + minimapRadius
+    local minimapY = 30 + minimapRadius
+    
+    local barWidth = minimapRadius * 1.2
+    local barHeight = 20
+    local barX = minimapX - minimapRadius
+    local barY = minimapY + minimapRadius + 130 
+
+    -- Draw background
+    lg.setColor(0.2, 0.1, 0.3, 0.8)  -- Dark purple background
+    lg.rectangle("fill", barX, barY, barWidth, barHeight, 10, 10)
+
+    -- Draw Magic
+    local magicPercentage = self.player.magic / 10
+    lg.setColor(0.2, 0.4, 0.8, 1)  -- Softer blue for magic
+    lg.rectangle("fill", barX, barY, barWidth * magicPercentage, barHeight, 10, 10)
 
     -- Draw border
     lg.setColor(1, 1, 1, 1)

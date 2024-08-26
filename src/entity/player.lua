@@ -29,6 +29,7 @@ function entity:load(data, ecs)
     self.mineTick = 0
     self.health = 10
     self.stamina = 10
+    self.magic = 10
     self.inventory = data.inventory or {}
     self.craftingGrid = data.craftingGrid or {}
     self.craftingResult = data.craftingResult
@@ -183,7 +184,6 @@ function entity:draw()
         local x = self.x - (self.tileSize / 2)
         local y = self.y - (self.tileSize / 2)
         
-        love.graphics.setShader(replaceShader)
         self.animation[self.direction]:draw(x, y, self.tileSize / config.graphics.assetSize, self.tileSize / config.graphics.assetSize)
     end
 end

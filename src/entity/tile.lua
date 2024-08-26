@@ -126,6 +126,7 @@ function entity:place(id)
     end
 end
 
+local minSolidVisible = 0.3
 function entity:draw()
     if _PLAYER and _PLAYER.control then
         -- Checking if tile is visible to player 
@@ -147,13 +148,18 @@ function entity:draw()
         if config.graphics.useLight then
             local distanceFromPlayer = fmath.distance(self.x, self.y, _PLAYER.x, _PLAYER.y)
             local maxDistance = config.graphics.lightDistance * scale_x
-
+        
             shade = 1 - (3 / maxDistance) * distanceFromPlayer
             if shade < config.graphics.ambientLight then
                 shade = config.graphics.ambientLight
             end
             if not los then
                 shade = config.graphics.ambientLight * 0.2
+            end
+        
+            -- Ensure solid blocks are always somewhat visible
+            if self.tileData.solid then
+                shade = math.max(shade, minSolidVisible)
             end
         end
 
@@ -173,7 +179,8 @@ function entity:draw()
 
         -- Drawing light
         lg.setBlendMode("multiply", "premultiplied")
-        lg.setColor(config.graphics.lightColor[1], config.graphics.lightColor[2], config.graphics.lightColor[3], shade)
+        local r, g, b = config.graphics.lightColor[1], config.graphics.lightColor[2], config.graphics.lightColor[3]
+        lg.setColor(r * shade, g * shade, b * shade, 1)
         lg.rectangle("fill", self.x, self.y, self.width, self.height)
         lg.setBlendMode("alpha")
 

@@ -15,6 +15,12 @@ local cloudSpeed = 11
 local cloudOffset = 0
 local skinColourToggle = false
 
+local lg = love.graphics
+local fs = love.filesystem
+local kb = love.keyboard
+local lm = love.mouse
+local lt = love.thread
+
 -- Button functions
 local function changeScreen(screen)
     return function()
@@ -145,7 +151,7 @@ function menu:drawCharacterPreview()
     local y = self.height * 0.7 - previewHeight
 
     -- Draw character sprite
-    love.graphics.setColor(1, 1, 1)
+    lg.setColor(1, 1, 1)
     local spriteX = x + previewWidth / 2
     local spriteY = y + previewHeight / 2
     
@@ -159,9 +165,9 @@ function menu:drawCharacterPreview()
     end
     
     local scale = 16
-    love.graphics.setShader(replaceShader)
-    love.graphics.draw(selectedSkinImage, spriteX, spriteY, 0, scale, scale, selectedSkinImage:getWidth() / 2, selectedSkinImage:getHeight() / 2)
-    love.graphics.setShader()
+    lg.setShader(replaceShader)
+    lg.draw(selectedSkinImage, spriteX, spriteY, 0, scale, scale, selectedSkinImage:getWidth() / 2, selectedSkinImage:getHeight() / 2)
+    lg.setShader()
 end
 
 local function delete()
@@ -183,7 +189,6 @@ end
 
 local function setNewKey(action, key)
     gameControls[action] = key
-    print("New key set for " .. action .. ": " .. key)
 end
 
 function menu:getSelectedTextbox(screen)
@@ -377,14 +382,7 @@ function menu:load()
                 function(isChecked) 
                     love.window.setVSync(isChecked)
                     config.graphics.vsync = isChecked
-                end),  
-            checkbox.new("FullScreen", self.color.fg, self.color.fg, self.width * 0.6, self.height * 0.3, self.width * 0.4, self.height * 0.05, config.window.fullscreen, 
-                function(isChecked) 
-                    config.window.fullscreen = isChecked 
-                    love.window.setFullscreen(isChecked)
-                    local w, h = love.graphics.getDimensions()
-                    menu:resize(w, h)
-                end),             
+                end),       
             
             slider.new("Bloom", 0, 1, config.graphics.bloom, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(value) config.graphics.bloom = value end),
             slider.new("Light Distance", 0, 600, config.graphics.lightDistance, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(value) config.graphics.ambientLight = value end),
@@ -470,8 +468,8 @@ function menu:load()
                 self.width * 0.3, 
                 self.height * 0.09, 
                 function() 
-                    state:load("game", {type = "load", worldName = world})
                     gameName = world
+                    state:load("game", {type = "load", worldName = world})
                 end
             )
             -- Delete button for this world
@@ -540,17 +538,17 @@ function menu:drawCharacterEditor()
     local bgY = (self.height - bgHeight) / 2
 
     -- Draw the darker outline layers to create a 3D effect
-    love.graphics.setColor(self.color.darker2)
-    love.graphics.rectangle("line", bgX - 5, bgY - 5, bgWidth + 10, bgHeight + 10, 5, 5)
-    love.graphics.setLineWidth(6)
+    lg.setColor(self.color.darker2)
+    lg.rectangle("line", bgX - 5, bgY - 5, bgWidth + 10, bgHeight + 10, 5, 5)
+    lg.setLineWidth(6)
     
-    love.graphics.setColor(self.color.darker1)
-    love.graphics.rectangle("line", bgX - 3, bgY - 3, bgWidth + 6, bgHeight + 6, 5, 5)
-    love.graphics.setLineWidth(4)
+    lg.setColor(self.color.darker1)
+    lg.rectangle("line", bgX - 3, bgY - 3, bgWidth + 6, bgHeight + 6, 5, 5)
+    lg.setLineWidth(4)
 
     -- Draw the centered background
-    love.graphics.setColor(self.color.success)
-    love.graphics.rectangle("fill", bgX, bgY, bgWidth, bgHeight)
+    lg.setColor(self.color.success)
+    lg.rectangle("fill", bgX, bgY, bgWidth, bgHeight)
 
     local scale = 7
     local spriteX = bgX - 150
@@ -559,14 +557,14 @@ function menu:drawCharacterEditor()
     local spriteHeight = characterSprite:getHeight() * scale
 
     -- Draw the outline around the character sprite
-    love.graphics.setColor(self.color.darker2)
-    love.graphics.rectangle("line", spriteX + spriteWidth + 45, spriteY - 5, spriteWidth + 10, spriteHeight + 10, 5, 5)
-    love.graphics.setColor(1, 1, 1)
+    lg.setColor(self.color.darker2)
+    lg.rectangle("line", spriteX + spriteWidth + 45, spriteY - 5, spriteWidth + 10, spriteHeight + 10, 5, 5)
+    lg.setColor(1, 1, 1)
     
     -- Draw the character sprite
-    love.graphics.setShader(replaceShader)
-    love.graphics.draw(characterSprite, spriteX, spriteY, 0, scale, scale)
-    love.graphics.setShader()
+    lg.setShader(replaceShader)
+    lg.draw(characterSprite, spriteX, spriteY, 0, scale, scale)
+    lg.setShader()
 
     if skinColourToggle then
         colourPicker.draw()
