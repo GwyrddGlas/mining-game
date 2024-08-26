@@ -51,98 +51,98 @@ tileData[#tileData+1] = {
 
 tileData[#tileData+1] = {
     type = "Coal",
-    textureID = 19, 
+    textureID = 18, 
     maxHP = 10,
-    drop = {2, 6},
-    destructible = true, 
+    drop = {1, 1},
     solid = false,
-    item = false,
+    destructible = true, 
+    item = "Coal",
     placeable = false,
-    itemTextureID = 0,
+    itemTextureID = 19,
 }
 
 tileData[#tileData+1] = {
     type = "Iron",
-    textureID = 20, 
+    textureID = 18, 
     maxHP = 12,
     drop = {1, 1}, 
     destructible = true, 
     solid = false,
-    item = false,
+    item = "Iron",
     placeable = false,
-    itemTextureID = 0,
+    itemTextureID = 20,
 }
 
 tileData[#tileData+1] = {
     type = "Gold",
-    textureID = 21, 
+    textureID = 18, 
     maxHP = 15,
     drop = {1, 1}, 
     destructible = true, 
     solid = false,
-    item = false,
+    item = "Gold",
     placeable = false,
-    itemTextureID = 0,
+    itemTextureID = 21,
 }
 
 tileData[#tileData+1] = {
     type = "Uranium",
-    textureID = 22, 
+    textureID = 18, 
     maxHP = 15,
     drop = {1, 1}, 
     destructible = true, 
     solid = false,
-    item = false,
+    item = "Uranium",
     placeable = false,
-    itemTextureID = 0,
+    itemTextureID = 22,
 }
 
 tileData[#tileData+1] = {
     type = "Diamond",
-    textureID = 23, 
+    textureID = 18, 
     maxHP = 20,
     drop = {1, 1}, 
     destructible = true, 
     solid = false,
-    item = false,
+    item = "Diamond",
     placeable = false,
-    itemTextureID = 0,
+    itemTextureID = 23,
 }
 
 tileData[#tileData+1] = {
     type = "Ruby",
-    textureID = 24, 
+    textureID = 18, 
     maxHP = 18,
     drop = {1, 1}, 
     destructible = true, 
     solid = false,
-    item = false,
+    item = "Ruby",
     placeable = false,
-    itemTextureID = 0,
+    itemTextureID = 24,
 }
 
 tileData[#tileData+1] = {
     type = "Tanzenite",
-    textureID = 25, 
+    textureID = 18, 
     maxHP = 30,
     drop = {1, 1}, 
     destructible = true, 
     solid = false,
-    item = false,
+    item = "Tanzenite",
     placeable = false,
-    itemTextureID = 0,
+    itemTextureID = 25,
 }
 
 tileData[#tileData+1] = {
     type = "Copper",
-    textureID = 26, 
+    textureID = 18, 
     maxHP = 15,
     drop = {1, 1}, 
     destructible = true, 
     solid = false,
-    item = false,
+    item = "Copper",
     placeable = false,
-    itemTextureID = 0,
+    itemTextureID = 26,
 }
 
 tileData[#tileData+1] = {
