@@ -103,6 +103,7 @@ function game:load(data)
         Torch = 33,
         Chest = 34,
         Water = 35,
+        Teleporter = 36,
         health = 41,
         halfHeart = 42,
         Mushroom = 51,

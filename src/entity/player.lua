@@ -123,6 +123,12 @@ function entity:mine(tile)
     end
 end
 
+function entity:interact(tile)
+    if tile.entityType == "tile" and tile.interactable then
+        tile:onInteract(self)
+    end
+end
+
 function entity:place(tile, id)
     if type(tile) ~= "table" then
         return

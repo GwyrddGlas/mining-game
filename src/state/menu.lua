@@ -1,5 +1,12 @@
 local colourPicker = require("src.lib.colourPicker")
 
+local lg = love.graphics
+local fs = love.filesystem
+local kb = love.keyboard
+local lm = love.mouse
+local lt = love.thread
+local gameControls = config.settings.gameControls
+
 local menu = {
     selectedWorld = nil,
     titleOffset = 0,
@@ -14,12 +21,6 @@ local nightSkyImageScaleX, nightSkyImageScaleY
 local cloudSpeed = 11
 local cloudOffset = 0
 local skinColourToggle = false
-
-local lg = love.graphics
-local fs = love.filesystem
-local kb = love.keyboard
-local lm = love.mouse
-local lt = love.thread
 
 -- Button functions
 local function changeScreen(screen)

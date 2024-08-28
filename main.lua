@@ -1,4 +1,4 @@
-NAME = "Miners Odyssey"
+NAME = "Subterra"
 VERSION = "v0.02 (Pre Alpha 2)"
 config = {}
 
@@ -51,6 +51,16 @@ function love.load()
             chunkSaveInterval = 10,
             chunkSize = 6,
             playerName = "Pickle",
+            gameControls = {
+                right = "d",
+                left = "a",
+                down = "s",
+                up = "w",
+                sprint = "lshift",
+                inventory = "i",
+                chat = "t",
+                pause = "escape"
+            }
         },
         skinColour = {
             colour = {0.149, 0.361, 0.259, 1.0},
@@ -66,26 +76,11 @@ function love.load()
         }
     }
 
-    gameControls = {
-        right = "d",
-        left = "a",
-        down = "s",
-        up = "w",
-        sprint = "lshift",
-        inventory = "i",
-        chat = "t",
-        pause = "escape"
-    }
-
     if fs.getInfo("config.lua") then
         config = ttf.load("config.lua")
     else
         config = default_config
         save_config()
-    end
-
-    if not config.skinColour.colour then --temp
-        clear_config()
     end
 
     -- Creating folders
@@ -216,6 +211,8 @@ function love.draw()
 end
 
 function love.keypressed(key)
+    local gameControls = config.settings.gameControls
+
     keybind:keypressed(key)
     keybind:trigger("keypressed", key)
     state:keypressed(key)

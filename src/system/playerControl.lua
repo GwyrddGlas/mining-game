@@ -1,3 +1,5 @@
+local gameControls = config.settings.gameControls
+
 return {
     filter = function(e)
         return e.control or false

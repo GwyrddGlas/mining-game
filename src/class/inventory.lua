@@ -85,13 +85,14 @@ function inventory:removeItemFromInventory(item)
 end
 
 function inventory:giveItem(item, quantity)
+    item = item:gsub("^%l", string.upper)
+
     if not self.player.inventory[item] then
         self.player.inventory[item] = 0
         table.insert(self.player.inventoryOrder, item)
     end
     self.player.inventory[item] = math.max(0, (self.player.inventory[item] or 0) + quantity)
     
-    -- Remove item from inventory if quantity becomes 0
     if self.player.inventory[item] == 0 then
         self:removeItemFromInventory(item)
     end
@@ -166,6 +167,8 @@ function inventory:mousepressed(x, y, button)
 end
 
 function inventory:keypressed(key)
+    local gameControls = config.settings.gameControls
+
     if key == gameControls.inventory and not console.isOpen then
         self:toggleInventory()
     end

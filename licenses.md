@@ -174,6 +174,10 @@ This distribution contains code from the following projects (full license text b
 	Website: https://fonts.google.com/specimen/Press+Start+2P
 	License: SIL Open Font License, Version 1.1.	
  
+ - bresenham.lua
+	Website: unknown
+	License: MIT 2012
+	Copyright (c) 2011 Enrique García Cota
 ============
 
 zlib license
