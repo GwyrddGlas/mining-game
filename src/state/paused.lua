@@ -95,11 +95,6 @@ function pauseScreen:resume()
     state:load("game", {type = "load", worldName = gameName})
 end
 
-function pauseScreen:openSettings()
-    -- Implement your settings screen logic here
-    print("Opening settings")
-end
-
 function pauseScreen:returnToMainMenu()
     state:load("menu")
 end

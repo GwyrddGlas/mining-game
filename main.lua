@@ -220,10 +220,8 @@ function love.keypressed(key)
 
     if key == gameControls.pause then
         if console.isOpen then
-            -- If the chat is open, close it without pausing the game
             console.isOpen = false
         else
-            -- If the chat is not open, handle the pause functionality
             if _INVENTORY and _INVENTORY.inventoryOpen then
                 _INVENTORY:toggleInventory()
             end
