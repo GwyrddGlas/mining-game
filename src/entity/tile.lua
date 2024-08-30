@@ -148,11 +148,12 @@ function entity:draw()
         -- Check if the torch is selected
         local isTorchSelected = _INVENTORY.highlightedItem == torchID
         
-        -- Calculating lighting
-        local shade = 0
+        -- Calculating base lighting (shadows and ambient light)
+        local shade = config.graphics.ambientLight
+        local maxDistance = config.graphics.lightDistance * scale_x
+        local distanceFromPlayer = fmath.distance(self.x, self.y, _PLAYER.x, _PLAYER.y)
+
         if config.graphics.useLight then
-            local distanceFromPlayer = fmath.distance(self.x, self.y, _PLAYER.x, _PLAYER.y)
-            local maxDistance = config.graphics.lightDistance * scale_x
 
             shade = 1 - (3 / maxDistance) * distanceFromPlayer
             if shade < config.graphics.ambientLight then
@@ -166,14 +167,26 @@ function entity:draw()
             if self.tileData.solid then
                 shade = math.max(shade, minSolidVisible)
             end
+        end
 
-                  -- Apply additional light if the torch is selected
-            if isTorchSelected then
-                local torchLightRadius = 100 -- Adjust based on your game's light distance
-                local torchShade = 1 - (2 / torchLightRadius) * distanceFromPlayer
-                print("Torch: "..tostring(isTorchSelected))
+        -- Add torch light if torch is selected
+        if isTorchSelected then
+            local torchLightRadius = maxDistance
+            local torchShade = 1 - (2 / torchLightRadius) * distanceFromPlayer
+            shade = math.max(shade, torchShade)
+        end
+  
+        -- Drawing tile
+        lg.setColor(self.color)
 
-                shade = math.max(shade, torchShade)
+        if self.tileData then
+            if self.tileData.textureID then
+                lg.draw(tileAtlas, tiles[self.tileData.textureID], self.x, self.y, 0, self.width / config.graphics.assetSize, self.height / config.graphics.assetSize)
+            end
+
+            -- Drawing tile item
+            if self.tileData.item then
+                lg.draw(tileAtlas, tiles[self.tileData.itemTextureID], self.x, self.y, 0, self.width / config.graphics.assetSize, self.height / config.graphics.assetSize)
             end
         end
   
