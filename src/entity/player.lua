@@ -75,20 +75,6 @@ function entity:load(data, ecs)
     self:updateGridCoordinates()
 end
 
-function entity:changeSkin(skinName)
-    if self.skinAnimations[skinName] then
-        self.selectedSkin = skinName
-        self.animation = {
-            right = anim.new(self.skinAnimations[self.selectedSkin].right, config.graphics.assetSize, config.graphics.assetSize),
-            left = anim.new(self.skinAnimations[self.selectedSkin].left, config.graphics.assetSize, config.graphics.assetSize),
-            forward = anim.new(self.skinAnimations[self.selectedSkin].forward, config.graphics.assetSize, config.graphics.assetSize),
-            backward = anim.new(self.skinAnimations[self.selectedSkin].backward, config.graphics.assetSize, config.graphics.assetSize)
-        }
-    else
-        print("Invalid skin name: " .. skinName)
-    end
-end
-
 function entity:updateChunkCoordinates()
     self.oChunkX = self.chunkX
     self.oChunkY = self.chunkY

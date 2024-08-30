@@ -18,9 +18,9 @@ function textbox.new(text, placeholder, color, textColor, textColorSelected, x, 
         inputFilter = inputFilter or defaultInputFilter,
         maxLength = maxLength or 100,
         selected = false,
-        buttonLeft = tiles[60],
-        buttonCenter = tiles[61],
-        buttonRight = tiles[62]
+        buttonLeft = tiles[57],
+        buttonCenter = tiles[58],
+        buttonRight = tiles[59],
     }, textbox_meta)
 end
 
