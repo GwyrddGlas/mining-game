@@ -92,7 +92,7 @@ function pauseScreen:resize(w, h)
 end
 
 function pauseScreen:resume()
-    state:load("game", {type = "load", worldName = gameName})
+    state:resume_previous_state()
 end
 
 function pauseScreen:returnToMainMenu()
