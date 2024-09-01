@@ -1,19 +1,19 @@
 NAME = "Subterra"
-VERSION = "v0.02 (Pre Alpha 2)"
+VERSION = "v0.02"
 config = {}
 
 -- GLOBALS
-lg = love.graphics
-fs = love.filesystem
-kb = love.keyboard
-lm = love.mouse
-lt = love.thread
-random = math.random
-noise = love.math.noise
-sin = math.sin
-cos = math.cos
-f = string.format
-floor = math.floor
+local lg = love.graphics
+local fs = love.filesystem
+local kb = love.keyboard
+local lm = love.mouse
+local lt = love.thread
+local random = math.random
+local noise = love.math.noise
+local sin = math.sin
+local cos = math.cos
+local f = string.format
+local floor = math.floor
 
 function love.load()
     -- Loaidng classes
@@ -230,7 +230,7 @@ function love.keypressed(key)
                 state:load("paused")
                 gamePaused = true
             elseif state.loadedStateName == "paused" then
-                state:load("game")
+                state:resume_previous_state()
                 gamePaused = false
             else
                 state:load("menu")

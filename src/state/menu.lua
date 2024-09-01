@@ -119,30 +119,6 @@ local function removeDirectory(dir)
     fs.remove(dir)
 end
 
-function menu:nextSkin()
-    if self.skinOffset + 3 < #skins then
-        self.skinOffset = self.skinOffset + 1
-        -- Update selectedSkin
-        local newSelectedIndex = self.skinOffset + 1
-        if newSelectedIndex <= #skins then
-            selectedSkin = skins[newSelectedIndex].name
-        end
-    end
-end
-
-function menu:prevSkin()
-    if self.skinOffset > 0 then
-        self.skinOffset = self.skinOffset - 1
-        -- Update selectedSkin
-        local newSelectedIndex = self.skinOffset + 1
-        selectedSkin = skins[newSelectedIndex].name
-    end
-end
-
-function menu:selectCurrentSkin()
-    selectSkin(selectedSkin)
-end
-
 function menu:drawCharacterPreview()
     local previewWidth = 200
     local previewHeight = 400
@@ -278,10 +254,10 @@ function menu:load()
             label.new("dsc.gg/miners-odyssey", self.color.fg, font.regular, 10, self.height - 55, "left"),
             button.new("Singleplayer", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.09, changeScreen("singleplayer")),
             button.new("Multiplayer", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.09, changeScreen("multiplayer")),
-            --button.new("Mods", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, changeScreen("skins")),
-            button.new("Settings", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, changeScreen("options")),
-            button.new("Quit Game", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.7, self.width * 0.4, self.height * 0.09, exitButton),
-            button.new("Change", self.color.fg, self.color.bg, self.width * 0.7, self.height * 0.7, self.width * 0.2, self.height * 0.09, changeScreen("skins")),        
+            button.new("Credits", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, changeScreen("skins")),
+            button.new("Settings", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.7, self.width * 0.4, self.height * 0.09, changeScreen("options")),
+            button.new("Quit Game", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, exitButton),
+            button.new("Change", self.color.fg, self.color.bg, self.width * 0.7, self.height * 0.8, self.width * 0.2, self.height * 0.09, changeScreen("skins")),        
         },
         singleplayer = {
             label.new("Singleplayer", self.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
@@ -647,34 +623,6 @@ function menu:resize(w, h)
 end
 
 function menu:mousepressed(x, y, button)
-    if self.currentScreen == "skins" then
-        local screenWidth = love.graphics.getWidth()
-        local screenHeight = love.graphics.getHeight()
-        local rectX = 200
-        local rectWidth = screenWidth - 400
-        local rectHeight = 400
-        local startY = (screenHeight - rectHeight) / 2
-
-        -- Check left arrow
-        if x < rectX and y > startY and y < startY + rectHeight then
-            self:prevSkin()
-        end
-
-        -- Check right arrow
-        if x > rectX + rectWidth and y > startY and y < startY + rectHeight then
-            self:nextSkin()
-        end
-
-        -- Check "Select" button
-        local buttonWidth = 150
-        local buttonHeight = 50
-        local buttonX = screenWidth / 2 - buttonWidth / 2
-        local buttonY = startY + rectHeight + 20
-        if x > buttonX and x < buttonX + buttonWidth and y > buttonY and y < buttonY + buttonHeight then
-            self:selectCurrentSkin()
-        end
-    end
-
     -- Existing mousepressed logic
     for _, v in pairs(self.screen[self.currentScreen]) do
         if type(v.mousepressed) == "function" then

@@ -59,13 +59,11 @@ function minimap:draw(player, all, camera, position)
     lg.setColor(0.1, 0.1, 0.1, 0.8)
     lg.circle("fill", minimapX, minimapY, minimapRadius)
     
-    lg.setColor(102/255, 104/255, 133/255) 
-    lg.setLineWidth(3)
+    lg.setColor(1,1,1) 
+    lg.setLineWidth(2)
     lg.circle("line", minimapX, minimapY, minimapRadius)
     
-    lg.setLineWidth(5) 
-    lg.circle("line", minimapX, minimapY, minimapRadius + 2) 
-
+    
     -- Draw compass points
     local compassColor = {1,1,1}
     local compassOffset = minimapRadius + 20

@@ -50,10 +50,22 @@ tileData[#tileData+1] = {
 }
 
 tileData[#tileData+1] = {
-    type = "Coal",
+    type = "MagicPlant",
     textureID = 18, 
     maxHP = 10,
     drop = {1, 1},
+    solid = false,
+    destructible = true,
+    placeable = true,
+    item = false,
+    itemTextureID = 49,
+}
+
+tileData[#tileData+1] = {
+    type = "Coal",
+    textureID = 18, 
+    maxHP = 10,
+    drop = {1, 3},
     solid = false,
     destructible = true, 
     item = "Coal",
@@ -101,7 +113,7 @@ tileData[#tileData+1] = {
     type = "Diamond",
     textureID = 18, 
     maxHP = 20,
-    drop = {1, 1}, 
+    drop = {1, 2}, 
     destructible = true, 
     solid = false,
     item = "Diamond",

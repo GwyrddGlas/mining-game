@@ -1,5 +1,17 @@
 local entity = {}
 
+local lg = love.graphics
+local fs = love.filesystem
+local kb = love.keyboard
+local lm = love.mouse
+local lt = love.thread
+local random = math.random
+local noise = love.math.noise
+local sin = math.sin
+local cos = math.cos
+local f = string.format
+local floor = math.floor
+
 function entity:load(data, ecs)
     self.bumpWorld = ecs.bumpWorld
     self.entityType = "player"
@@ -29,7 +41,7 @@ function entity:load(data, ecs)
     self.mineTick = 0
     self.health = 10
     self.stamina = 10
-    self.magic = 10
+    self.magic = 1
     self.inventory = data.inventory or {}
     self.craftingGrid = data.craftingGrid or {}
     self.craftingResult = data.craftingResult

@@ -1,6 +1,18 @@
 local inventory = {}
 local crafting = require("src/class/crafting")
 
+local lg = love.graphics
+local fs = love.filesystem
+local kb = love.keyboard
+local lm = love.mouse
+local lt = love.thread
+local random = math.random
+local noise = love.math.noise
+local sin = math.sin
+local cos = math.cos
+local f = string.format
+local floor = math.floor
+
 function inventory:new(player)
     local inv = setmetatable({}, {__index = inventory})
     self.player = player -- Assign player to self.player
@@ -23,7 +35,7 @@ end
 
 function inventory:getInventoryBounds()
     local width, height = lg.getWidth(), lg.getHeight()
-    local inventoryRows, inventoryColumns = 3, 6
+    local inventoryRows, inventoryColumns = 4, 8
     local itemSize = self:getInventoryItemSize()
     local itemSpacing = self:getInventoryItemSpacing()
     local inventoryWidth = inventoryColumns * (itemSize + itemSpacing) - itemSpacing
@@ -42,7 +54,7 @@ function inventory:getInventoryItemSpacing()
 end
 
 function inventory:getInventoryColumns()
-    return 6
+    return 8
 end
 
 function inventory:getInventoryItemAtIndex(index)
@@ -128,7 +140,7 @@ function inventory:mousepressed(x, y, button)
     local itemSize = self:getInventoryItemSize()
     local itemSpacing = self:getInventoryItemSpacing()
     local inventoryColumns = self:getInventoryColumns()
-    local inventoryRows = 3
+    local inventoryRows = 4
     local inventoryPadding = itemSize * 0.2
     local clickedIndex = nil
     
@@ -195,9 +207,9 @@ function inventory:drawHotbar(icon)
     local hotbarWidth = width * 0.28 
     local hotbarHeight = height * 0.07
     local itemSize = hotbarHeight * 0.8
-    local maxHotbarItems = 6
-    local itemSpacing = (hotbarWidth - itemSize * maxHotbarItems) / (maxHotbarItems - 1)
-    local cornerRadius = itemSize * 0.2
+    local maxHotbarItems = 8
+    local itemSpacing = itemSize *0.2
+    local cornerRadius = 2
 
     local hotbarPadding = itemSize * 0.08 
     local adjustedHotbarWidth = hotbarWidth + hotbarPadding * 2
@@ -208,8 +220,8 @@ function inventory:drawHotbar(icon)
     local selectedIndex = self.selectedIndex
 
     -- Draw hotbar background
-    lg.setColor(83/255, 83/255, 83/255, 0.9)  -- Dark gray background from inventory
-    lg.rectangle("fill", hotbarX - adjustedHotbarWidth * 0.5, hotbarY, adjustedHotbarWidth, hotbarHeight, cornerRadius, cornerRadius)
+    --lg.setColor(83/255, 83/255, 83/255, 0.9)  -- Dark gray background from inventory
+    --lg.rectangle("fill", hotbarX - adjustedHotbarWidth * 0.5, hotbarY, adjustedHotbarWidth, hotbarHeight, cornerRadius, cornerRadius)
 
     for i = 1, maxHotbarItems do
         local x = itemX + (i - 1) * (itemSize + itemSpacing)
@@ -263,7 +275,7 @@ function inventory:draw(icon, itemSize, itemSpacing, cornerRadius, maxHotbarItem
         return 
     end
 
-    local inventoryRows = 3
+    local inventoryRows = 4
     local inventoryColumns = maxHotbarItems
     local inventoryPadding = itemSize * 0.2
     local width, height = lg.getWidth(), lg.getHeight()

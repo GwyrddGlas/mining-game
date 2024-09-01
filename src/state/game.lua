@@ -108,6 +108,7 @@ function game:load(data)
         Teleporter = 36,
         health = 41,
         halfHeart = 42,
+        MagicPlant = 49,
         Mushroom = 51,
     }
 
@@ -185,10 +186,6 @@ function game:update(dt)
     -- Internal timer used for shaders
     self.time = self.time + dt
     if self.time > math.pi * 2 then self.time = 0 end
-    
-    -- Settings macros
-    --self.shaders:setMacro("rad", self.player.radiation)
-    --self.shaders:setMacro("time", self.time)
 
     -- Handle dying
     if self.player.health <= 0 then
@@ -225,7 +222,7 @@ function game:drawHud()
     local hotbarWidth = width * 0.28 
     local hotbarHeight = height * 0.07
     local itemSize = hotbarHeight * 0.8
-    local maxHotbarItems = 6
+    local maxHotbarItems = 8
     local itemSpacing = (hotbarWidth - itemSize * maxHotbarItems) / (maxHotbarItems - 1)
     local cornerRadius = itemSize * 0.2
 
@@ -236,12 +233,8 @@ function game:drawHud()
     local itemY = hotbarY + (hotbarHeight - itemSize) * 0.5
 
     self.inventory:draw(self.icon, itemSize, self.crafting:getCraftingItemSpacing(), cornerRadius, maxHotbarItems)
-    
-    if self.inventory.inventoryOpen then
-        self.crafting:draw(self.icon)
-    else
-        self.inventory:drawHotbar(self.icon)
-    end
+
+    self.inventory:drawHotbar(self.icon)
 end
 
 function game:draw()
@@ -315,7 +308,7 @@ function game:keypressed(key)
     self.crafting:keypressed(key)
 
     -- Hotbar selection
-    if tonumber(key) and tonumber(key) >= 1 and tonumber(key) <= 6 then
+    if tonumber(key) and tonumber(key) >= 1 and tonumber(key) <= 8 then
         self.inventory.selectedIndex = tonumber(key)
         self.inventory.highlightedItem = self.inventory.inventoryOrder[self.inventory.selectedIndex]
     end
@@ -324,8 +317,8 @@ end
 function game:wheelmoved(x, y)
     self.inventory.selectedIndex = self.inventory.selectedIndex + y
     if self.inventory.selectedIndex < 1 then
-        self.inventory.selectedIndex = 6
-    elseif self.inventory.selectedIndex > 6 then
+        self.inventory.selectedIndex = 8
+    elseif self.inventory.selectedIndex > 8 then
         self.inventory.selectedIndex = 1
     end
     self.inventory.highlightedItem = self.inventory.inventoryOrder[self.inventory.selectedIndex]
