@@ -109,6 +109,10 @@ function entity:onInteract(entity)
     if self.tileData.interactable then
         if entity.type == 4 then
             print("plant")
+            local pMagic = _PLAYER.magicCap
+            if pMagic < 20 then
+                _PLAYER.magicCap = _PLAYER.magicCap + 2
+            end
         end
     end
 end

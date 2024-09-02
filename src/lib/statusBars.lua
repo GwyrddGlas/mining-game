@@ -11,7 +11,7 @@ local barConfigs = {
     magic = {
         backgroundColour = {0.1, 0.05, 0.2, 0.8},
         fillColour = {0.1, 0.3, 0.6, 1},
-        label = "Magic"
+        label = "Conjuration"
     },
     stamina = {
         backgroundColour = {0.2, 0.2, 0.2, 0.8},
@@ -70,7 +70,7 @@ end
 function statusBars.drawAllBars(player, x, y, width, spacing)
     local barHeight = 20
     statusBars.drawBar(x, y, width, barHeight, player.health, 10, "health")
-    statusBars.drawBar(x, y + barHeight + spacing, width, barHeight, player.magic, 10, "magic")
+    statusBars.drawBar(x, y + barHeight + spacing, width, barHeight, player.magic, player.magicCap, "magic")
     statusBars.drawBar(x, y + (barHeight + spacing) * 2, width, barHeight, player.stamina, 10, "stamina")
 end
 
