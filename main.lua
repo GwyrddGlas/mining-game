@@ -128,8 +128,6 @@ function love.load()
     replacementColor = config.skinColour.colour
     replacementColor2 = config.skinColour.colour2
     
-    print("replacementColor: "..replacementColor[1].." "..replacementColor[2].." "..replacementColor[3])
-
     local tolerance = 0.1
 
     replaceShader:send("targetColor", targetColor)

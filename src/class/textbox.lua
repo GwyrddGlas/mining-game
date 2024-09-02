@@ -1,5 +1,16 @@
 local textbox = {}
 local textbox_meta = {__index = textbox}
+local lg = love.graphics
+local fs = love.filesystem
+local kb = love.keyboard
+local lm = love.mouse
+local lt = love.thread
+local random = math.random
+local noise = love.math.noise
+local sin = math.sin
+local cos = math.cos
+local f = string.format
+local floor = math.floor
 
 local defaultInputFilter = function() return true end
 

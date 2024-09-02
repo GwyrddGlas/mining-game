@@ -338,6 +338,7 @@ function game:mousepressed(x, y, button)
     if button == 2 and self.hoverEntity and not self.inventory.inventoryOpen then
         local itemId = self.icon[self.inventory.highlightedItem]
         self.player:place(self.hoverEntity, itemId)
+        self.player:interact(self.hoverEntity)
     end
 end
 

@@ -55,9 +55,10 @@ tileData[#tileData+1] = {
     maxHP = 10,
     drop = {1, 1},
     solid = false,
-    destructible = true,
+    destructible = false,
+    interactable = true,
     placeable = true,
-    item = false,
+    item = "MagicPlant",
     itemTextureID = 49,
 }
 
@@ -150,7 +151,7 @@ tileData[#tileData+1] = {
     textureID = 18, 
     maxHP = 15,
     drop = {1, 1}, 
-    destructible = true, 
+destructible = true, 
     solid = false,
     item = "Copper",
     placeable = false,
@@ -165,6 +166,7 @@ tileData[#tileData+1] = {
     destructible = true, 
     solid = true,
     item = false,
+    interactable = true,
     placeable = true,
     itemTextureID = 0,
 }
@@ -177,6 +179,7 @@ tileData[#tileData+1] = {
     destructible = true, 
     solid = true,
     item = false,
+    interactable = true,
     placeable = true,
     itemTextureID = 0,
 }

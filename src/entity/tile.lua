@@ -105,25 +105,39 @@ function entity:mine()
     end    
 end
 
+function entity:onInteract(entity)
+    if self.tileData.interactable then
+        if entity.type == 4 then
+            print("plant")
+        end
+    end
+end
+
 local function convertIconToDefinition(iconValue)
     local iconDefinitions = {
+        [1] = 5,    -- Coal
+        [2] = 6,    -- Iron
+        [3] = 7,    -- Gold
+        [4] = 8,    -- Uranium
+        [5] = 9,    -- Diamond
+        [6] = 10,   -- Ruby
+        [7] = 11,   -- Tanzenite
+        [8] = 12,   -- Copper
+        [9] = 3,    -- Shrub (stick)
         [18] = 1,   -- Wall
-        [1] = 2,    -- Coal
-        [9] = 4,   -- Shrub
-        [7] = 5,   -- Tanzenite
-        [3] = 6,    -- Gold
-        [4] = 7,    -- Uranium
-        [5] = 8,    -- Diamond
-        [6] = 9,    -- Ruby
-        [10] = 10,    -- idk
-        [2] = 4,    -- Iron
-        [8] = 11,   -- Copper
-        [28] = 13,  -- Crafting
-        [29] = 14,  -- Furnace
-        [44] = 15,  -- StoneBrick
-        [45] = 16,   -- Grass
-        [46] = 17,   -- Mushroom
-        [33] = 15,  -- Torch
+        [28] = 14,  -- Crafting
+        [29] = 13,  -- Furnace
+        [30] = 15,  -- StoneBrick
+        [31] = 17,  -- Grass
+        [32] = 12,  -- Dirt 
+        [33] = 16,  -- Torch
+        [34] = 12,  -- Chest 
+        [35] = 12,  -- Water 
+        [36] = 12,  -- Teleporter 
+        [41] = 12,  -- Health 
+        [42] = 12,  -- HalfHeart 
+        [49] = 4,   -- MagicPlant
+        [51] = 18,  -- Mushroom
     }
     
     return iconDefinitions[iconValue] or 12
@@ -131,7 +145,8 @@ end
 
 function entity:place(id)
     local newTileType = convertIconToDefinition(id)
-    if tileData[newTileType] and tileData[newTileType].placeable then
+    --tprint(tileData)
+    if tileData[newTileType].placeable and not self.tileData.interactable then
         self:setType(newTileType)
         self.chunk.modified = true
     end

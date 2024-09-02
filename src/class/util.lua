@@ -24,6 +24,21 @@ function wRand(weights)
     end
 end
 
+function tprint(tbl, indent) --https://gist.github.com/ripter/4270799
+    if not indent then indent = 0 end
+    for k, v in pairs(tbl) do
+      formatting = string.rep("  ", indent) .. k .. ": "
+      if type(v) == "table" then
+        print(formatting)
+        tprint(v, indent+1)
+      elseif type(v) == 'boolean' then
+        print(formatting .. tostring(v))      
+      else
+        print(formatting .. tostring(v))
+      end
+    end
+end
+
 function require_folder(folder)
     local fs = love.filesystem
     local folderPath = folder:gsub("%.", "/")

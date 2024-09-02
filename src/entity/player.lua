@@ -122,8 +122,8 @@ function entity:mine(tile)
 end
 
 function entity:interact(tile)
-    if tile.entityType == "tile" and tile.interactable then
-        tile:onInteract(self)
+    if tile.entityType == "tile" then
+        tile:onInteract(tile)
     end
 end
 
