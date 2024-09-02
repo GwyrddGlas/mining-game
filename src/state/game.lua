@@ -2,6 +2,7 @@ local inventory = require("src/class/inventory")
 local crafting = require("src/class/crafting")
 local minimap = require("src/lib/minimap")
 local statusBars = require("src/lib/statusBars")
+UI = require("src/lib/UIHandler")
 
 local lg = love.graphics
 local fs = love.filesystem
@@ -152,6 +153,8 @@ function game:load(data)
 
     playBackgroundMusic()
     gameAudio.menu[1]:stop()
+
+    UI:register("arcane", require("src.lib.ui.arcane"))
 end
 
 function game:unload()
@@ -240,11 +243,13 @@ end
 function game:draw()
     self.canvas:set()
     lg.clear()
+
     camera:push()
     self.world:update(self.visibleEntities)
     self.player:draw()
     floatText:draw()
     camera:pop()
+
     self.canvas:unset()
 
     lg.setColor(1, 1, 1, 1)
@@ -286,6 +291,8 @@ function game:draw()
         end
         camera:pop()
     end
+
+    UI:draw()
 
     minimap:draw(self.player, all, camera, "right")
    

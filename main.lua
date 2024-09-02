@@ -215,6 +215,16 @@ function love.keypressed(key)
     keybind:trigger("keypressed", key)
     state:keypressed(key)
     console:keypressed(key)
+    
+    if key == "escape" then
+        if UI.active then
+            UI:close()
+            return  -- Prevent further processing of the escape key
+        elseif _INVENTORY and _INVENTORY.inventoryOpen then
+            _INVENTORY:toggleInventory()
+            return
+        end
+    end
 
     if key == gameControls.pause then
         if console.isOpen then
@@ -224,9 +234,11 @@ function love.keypressed(key)
                 _INVENTORY:toggleInventory()
             end
             
-            if state.loadedStateName == "game" then
+            if state.loadedStateName == "game" and not UI.active then
                 state:load("paused")
                 gamePaused = true
+            elseif state.loadedStateName == "game" and UI.active then
+                UI.close()
             elseif state.loadedStateName == "paused" then
                 state:resume_previous_state()
                 gamePaused = false

@@ -107,12 +107,14 @@ end
 
 function entity:onInteract(entity)
     if self.tileData.interactable then
-        if entity.type == 4 then
+        if entity.type == 4 then --magic plant see convertIconToDefinition
             print("plant")
             local pMagic = _PLAYER.magicCap
             if pMagic < 20 then
                 _PLAYER.magicCap = _PLAYER.magicCap + 2
             end
+
+            UI:open("arcane", {plant = self, player = _PLAYER})
         end
     end
 end
