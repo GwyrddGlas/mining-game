@@ -183,8 +183,7 @@ function game:update(dt)
     -- Updating world
     worldGen:update(dt)
 
-    -- Updating crafting grid
-    crafting:update()
+    UI:update(dt)
 
     -- Internal timer used for shaders
     self.time = self.time + dt
@@ -311,9 +310,6 @@ function game:keypressed(key)
     -- Inventory
     self.inventory:keypressed(key)
 
-    --Crafting
-    self.crafting:keypressed(key)
-
     -- Hotbar selection
     if tonumber(key) and tonumber(key) >= 1 and tonumber(key) <= 8 then
         self.inventory.selectedIndex = tonumber(key)
@@ -341,12 +337,18 @@ function game:mousepressed(x, y, button)
         self.crafting:mousepressed(x, y, button)
     end
 
+    UI:mousepressed(x, y, button)
+
     --Placing/Interacting
     if button == 2 and self.hoverEntity and not self.inventory.inventoryOpen then
         local itemId = self.icon[self.inventory.highlightedItem]
         self.player:place(self.hoverEntity, itemId)
         self.player:interact(self.hoverEntity)
     end
+end
+
+function game:mousereleased(x, y, button)
+    UI:mousereleased(x, y, button)
 end
 
 return game

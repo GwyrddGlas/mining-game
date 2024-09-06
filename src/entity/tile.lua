@@ -23,8 +23,8 @@ function entity:load(data, ecs)
     self.height = worldGen.tileSize
     self.x = data.x--floor(data.x / self.width) * self.width
     self.y = data.y--floor(data.y / self.height) * self.height
-    self.gridX = math.floor(self.x / floor(config.graphics.tileSize * scale_x))
-    self.gridY = math.floor(self.y / floor(config.graphics.tileSize * scale_x))
+    self.gridX = floor(self.x / floor(config.graphics.tileSize * scale_x))
+    self.gridY = floor(self.y / floor(config.graphics.tileSize * scale_x))
     self.hover = false
 
     self:setType(data.type)
@@ -108,13 +108,17 @@ end
 function entity:onInteract(entity)
     if self.tileData.interactable then
         if entity.type == 4 then --magic plant see convertIconToDefinition
-            print("plant")
             local pMagic = _PLAYER.magicCap
             if pMagic < 20 then
                 _PLAYER.magicCap = _PLAYER.magicCap + 2
             end
+            
+            UI:open("arcane", {})
+            --self:setType(2) --floor
+        end
 
-            UI:open("arcane", {plant = self, player = _PLAYER})
+        if entity.type == 14 then --crafting/arcane see convertIconToDefinition
+            UI:open("arcane", {})
         end
     end
 end

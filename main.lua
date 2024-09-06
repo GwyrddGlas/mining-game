@@ -16,6 +16,8 @@ local f = string.format
 local floor = math.floor
 
 function love.load()
+    love.setDeprecationOutput(false) --Remove when updating to love 12
+
     -- Loaidng classes
     require("src.class.util")
     require_folder("src.class")

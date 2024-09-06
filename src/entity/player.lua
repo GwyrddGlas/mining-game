@@ -129,7 +129,7 @@ function entity:interact(tile)
 end
 
 function entity:place(tile, id)
-    if type(tile) ~= "table" then
+    if tile.entityType ~= "tile" then
         return
     end
 

@@ -74,6 +74,7 @@ function button:draw()
     lg.translate(-centerX, -centerY)
 
     lg.setColor(self.color)
+    
     -- Left
     lg.draw(tileAtlas, self.buttonLeft, self.x, self.y, 0, self.height / config.graphics.assetSize, self.height / config.graphics.assetSize)
 

@@ -254,9 +254,8 @@ function menu:load()
             label.new("dsc.gg/miners-odyssey", self.color.fg, font.regular, 10, self.height - 55, "left"),
             button.new("Singleplayer", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.09, changeScreen("singleplayer")),
             button.new("Multiplayer", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.09, changeScreen("multiplayer")),
-            button.new("Credits", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, changeScreen("skins")),
-            button.new("Settings", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.7, self.width * 0.4, self.height * 0.09, changeScreen("options")),
-            button.new("Quit Game", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, exitButton),
+            button.new("Settings", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, changeScreen("options")),
+            button.new("Quit Game", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.7, self.width * 0.4, self.height * 0.09, exitButton),
             button.new("Change", self.color.fg, self.color.bg, self.width * 0.7, self.height * 0.8, self.width * 0.2, self.height * 0.09, changeScreen("skins")),        
         },
         singleplayer = {
@@ -428,6 +427,7 @@ function menu:load()
 
             button.new("Back", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, changeScreen("options")),
         },
+        credits = {}
     }
 
     local y = 0.4
@@ -480,8 +480,8 @@ end
 
 function updateSkinColours(colour1, colour2)
     colour2 = colour2 or colour1
-   config.skinColour.colour = colour1
-   config.skinColour.colour2 = colour2
+    config.skinColour.colour = colour1
+    config.skinColour.colour2 = colour2
     replaceShader:send("replacementColor", colour1)
     --replaceShader:send("replacementcolour2", colour2)
 end
@@ -561,7 +561,6 @@ function menu:draw()
         end
         v:draw()
     end
-
 end
 
 function menu:textinput(t)

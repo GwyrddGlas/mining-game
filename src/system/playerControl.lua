@@ -23,16 +23,17 @@ return {
         local up = kb.isDown(gameControls.up)
         local space = kb.isDown(gameControls.sprint)
         local speed = e.speed
-        local stamina = _PLAYER.stamina
+
         if space then 
             if _PLAYER.stamina > 0 then
                 speed = e.speed * 1.4 
                 _PLAYER.stamina = _PLAYER.stamina - dt
             end
         else
-            -- Regenerate stamina when not sprinting
             _PLAYER.stamina = math.min(_PLAYER.stamina + dt * 0.5, 10)
         end
+
+        _PLAYER.magic = math.min(_PLAYER.magic + dt * 0.1, _PLAYER.magicCap)
 
         e.moving = false
         local xOffset = (e.collisonBoxWidth / 2)

@@ -3,6 +3,12 @@ local UIHandler = {
     types = {}
 }
 
+function UIHandler:init()
+    if self.active then
+        self.active:init()
+    end
+end
+
 function UIHandler:register(name, uiModule)
     self.types[name] = uiModule
 end
@@ -11,6 +17,7 @@ function UIHandler:open(ftype, data)
     if self.types[ftype] then
         self:close()
         self.active = self.types[ftype]
+        self.active:init()
         self.active:open(data)
     else
         print("Warning: Attempted to open unknown UIHandler type: " .. ftype)
@@ -33,6 +40,18 @@ end
 function UIHandler:draw()
     if self.active then
         self.active:draw()
+    end
+end
+
+function UIHandler:mousereleased(x, y, button)
+    if self.active then
+        self.active:mousereleased(x, y, button)
+    end
+end
+    
+function UIHandler:mousepressed(x, y, button)
+    if self.active then
+        self.active:mousepressed(x, y, button)
     end
 end
 
