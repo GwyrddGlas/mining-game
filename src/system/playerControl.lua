@@ -24,6 +24,10 @@ return {
         local space = kb.isDown(gameControls.sprint)
         local speed = e.speed
 
+        if UI.active then
+            return
+        end
+
         if space then 
             if _PLAYER.stamina > 0 then
                 speed = e.speed * 1.4 

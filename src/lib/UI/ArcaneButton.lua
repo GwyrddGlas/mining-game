@@ -57,6 +57,7 @@ function ArcaneButton:update(dt)
     self.scale = self.scale + (self.targetScale - self.scale) * 10 * dt
 end
 
+
 function ArcaneButton:draw()
     local centerX, centerY = self.x + self.width/2, self.y + self.height/2
     local scaledWidth, scaledHeight = self.width * self.scale, self.height * self.scale
@@ -70,34 +71,43 @@ function ArcaneButton:draw()
 
     lg.setColor(self.color)
 
-    -- Left
+    -- Draw button background
     lg.draw(tileAtlas, self.buttonLeft, self.x, self.y, 0, self.height / config.graphics.assetSize, self.height / config.graphics.assetSize)
-
-    -- Center
     lg.draw(tileAtlas, self.buttonCenter, self.x + self.height, self.y, 0, (self.width - (self.height * 2)) / config.graphics.assetSize, self.height / config.graphics.assetSize)
-
-    -- Right
     lg.draw(tileAtlas, self.buttonRight, self.x + self.width - self.height, self.y, 0, self.height / config.graphics.assetSize, self.height / config.graphics.assetSize)
 
-    -- Left Sprite
-    local leftSpriteX = self.x + self.height * 0.2  -- Adjust spacing here
-    lg.draw(tileAtlas, self.leftSprite, leftSpriteX, self.y + self.height * 0.25, 0, spriteScale, spriteScale)
-
-    -- Right Sprite
-    local rightSpriteX = self.x + self.width - self.height * 1.2  -- Adjust spacing here
-    lg.draw(tileAtlas, self.rightSprite, rightSpriteX, self.y + self.height * 0.25, 0, spriteScale, spriteScale)
-
+    local leftSpriteX = self.x + self.height * 0.2
+    local rightSpriteX = self.x + self.width - self.height * 1.2
+    
+    -- Draw sprites if they exist
+    if self.leftSprite then
+        lg.draw(tileAtlas, self.leftSprite, leftSpriteX, self.y + self.height * 0.25, 0, spriteScale, spriteScale)
+    end
+    if self.rightSprite then
+        lg.draw(tileAtlas, self.rightSprite, rightSpriteX, self.y + self.height * 0.25, 0, spriteScale, spriteScale)
+    end
+        
     -- Text
     lg.setColor(self.textColor)
     local font = lg.getFont()
-    local textX = leftSpriteX + self.height * 1.2  -- Place text after left sprite
-    local textWidth = rightSpriteX - textX  -- Text width is between the sprites
+    local textX, textWidth
+    
+    if self.leftSprite and self.rightSprite then
+        textX = leftSpriteX + self.height * 1.2
+        textWidth = rightSpriteX - textX
+    else
+        textX = self.x + self.height * 0.5
+        textWidth = self.width - self.height
+    end
+    
     local y = self.y + (self.height / 2) - ((font:getAscent() - font:getDescent()) / 2)
     lg.printf(self.text, textX, y, textWidth, "center")
 
-    -- Draw the number to the left of the left sprite
-    local numberX = self.x + self.width * 0.5 - self.height  -- Adjust position to the left of the left sprite
-    lg.print(self.number, numberX, self.y + (self.height / 2) - ((font:getAscent() - font:getDescent()) / 2))
+    -- Draw the number
+    if self.number then
+        local numberX = self.x + self.width * 0.25
+        lg.print(self.number, numberX, self.y + (self.height / 2) - ((font:getAscent() - font:getDescent()) / 2))
+    end
 
     lg.pop()
 end
