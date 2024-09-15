@@ -315,7 +315,6 @@ function menu:load()
             --label.new("Colour", self.color.bg, font.tiny, self.width * 0.38, self.height * 0.52, "left"),
             button.new("Colour Picker", self.color.fg, self.color.bg, self.width * 0.38, self.height * 0.51, self.width * 0.15, self.height * 0.05, function(f)
                 skinColourToggle = not skinColourToggle
-                print(tostring(f))
             end),
             
             button.new("Save", self.color.fg, self.color.bg, self.width * 0.38, self.height * 0.65, self.width * 0.15, self.height * 0.05, function()

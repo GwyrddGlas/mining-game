@@ -11,6 +11,7 @@ local sin = math.sin
 local cos = math.cos
 local f = string.format
 local floor = math.floor
+local joy = love.joystick
 
 function entity:load(data, ecs)
     self.bumpWorld = ecs.bumpWorld
@@ -159,12 +160,41 @@ function entity:place(tile, id)
     end
 end
 
+local function isJoystickButtonDown(button)
+    local joysticks = joy.getJoysticks()
+    for _, joystick in ipairs(joysticks) do
+        if joystick:isDown(button) then
+            return true
+        end
+    end
+    return false
+end
+
+local function getJoystickAxis(axis)
+    local joysticks = joy.getJoysticks()
+    for _, joystick in ipairs(joysticks) do
+        local value = joystick:getAxis(axis)
+        if math.abs(value) > 0.2 then  -- Dead zone
+            return value
+        end
+    end
+    return 0
+end
+
 function entity:draw()
     if self.control then
         -- Facing the player
-        -- I'm sure theres a better way to do this but fuck it
         local mx, my = camera:getMouse()
-        local angle = math.deg(fmath.angle(self.x, self.y, mx, my))
+        local rightStickX = getJoystickAxis(3)
+        local rightStickY = getJoystickAxis(4)
+    
+        local angle
+    
+        if math.abs(rightStickX) > 0.2 or math.abs(rightStickY) > 0.2 then
+            angle = math.deg(math.atan2(-rightStickY, rightStickX))
+        else
+            angle = math.deg(fmath.angle(self.x, self.y, mx, my))
+        end
 
         if angle > -45 and angle < 45 then
             self.direction = "right"

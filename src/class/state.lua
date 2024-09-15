@@ -113,6 +113,12 @@ function state:wheelmoved(x, y)
     end
 end
 
+function state:gamepadpressed(joystick, button)
+    if type(self.currentState.gamepadpressed) == "function" then
+        self.currentState:gamepadpressed(joystick, button)
+    end
+end
+
 function state:quit()
     if type(self.currentState.quit) == "function" then
         self.currentState:quit()

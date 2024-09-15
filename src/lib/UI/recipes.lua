@@ -39,19 +39,14 @@ local recipes = {
         {name = "Tazenite", input = icon.Tanzenite, output = icon.tanzeniteIngot, cost = 6, description = "Smelt Tanzenite Ore into Tanzenite Ingot" },
         {name = "Copper", input = icon.Copper, output = icon.copperIngot, cost = 3, description = "Smelt Copper Ore into Copper Ingot" },
         {name = "Ruby", input = icon.Ruby, output = icon.rubyIngot, cost = 6, description = "Smelt Ruby Ore into Ruby Ingot" },
+        {name = "StoneBrick", input = icon.Wall, output = icon.StoneBrick, cost = 3, description = ""},
+        {name = "Grass", input = icon.Dirt, output = icon.Grass, cost = 3, description = ""},
+        {name = "Dirt", input = icon.Grass, output = icon.Dirt, cost = 3, description = ""},
     },
-    Tools = {
-        {name = "TEMP", input = icon.Ruby, output = icon.rubyIngot, cost = 6, description = "Smelt Ruby Ore into Ruby Ingot" },
-        {name = "TEMP", input = icon.Ruby, output = icon.rubyIngot, cost = 6, description = "Smelt Ruby Ore into Ruby Ingot" },
-        {name = "TEMP", input = icon.Ruby, output = icon.rubyIngot, cost = 6, description = "Smelt Ruby Ore into Ruby Ingot" },
-
-    },
+    Tools = {},
     Misc = {
-        {name = "Tazenite", input = icon.Tanzenite, output = icon.tanzeniteIngot, cost = 6, description = "Smelt Tanzenite Ore into Tanzenite Ingot" },
-        {name = "Tazenite", input = icon.Tanzenite, output = icon.tanzeniteIngot, cost = 6, description = "Smelt Tanzenite Ore into Tanzenite Ingot" },
-        {name = "Tazenite", input = icon.Tanzenite, output = icon.tanzeniteIngot, cost = 6, description = "Smelt Tanzenite Ore into Tanzenite Ingot" },
-        {name = "Tazenite", input = icon.Tanzenite, output = icon.tanzeniteIngot, cost = 6, description = "Smelt Tanzenite Ore into Tanzenite Ingot" },
-
+        {name = "Chest", input = icon.Shrub, output = icon.Chest, cost = 5, description = "Smelt Tanzenite Ore into Tanzenite Ingot" },
+        {name = "Torch", input = icon.Coal, output = icon.Torch, cost = 3, description = "Smelt Tanzenite Ore into Tanzenite Ingot" },
     }
 }
 

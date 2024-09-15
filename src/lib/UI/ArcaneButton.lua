@@ -57,7 +57,6 @@ function ArcaneButton:update(dt)
     self.scale = self.scale + (self.targetScale - self.scale) * 10 * dt
 end
 
-
 function ArcaneButton:draw()
     local centerX, centerY = self.x + self.width/2, self.y + self.height/2
     local scaledWidth, scaledHeight = self.width * self.scale, self.height * self.scale

@@ -1,11 +1,12 @@
 local console = {}
+local lg = love.graphics
 
 local function setColor(r, g, b, a)
     if type(r) == "table" then
         r, g, b, a = r[1], r[2], r[3], r[4]
     end
     a = a or 255
-    love.graphics.setColor(r/255, g/255, b/255, a/255)
+    lg.setColor(r/255, g/255, b/255, a/255)
 end
 
 local function truncateMessage(message, maxLength)
@@ -43,6 +44,12 @@ local commands = {
     ["/w"] = function(self, target, message)
         self:addMessage(message, "whisper", target)
     end,
+    ["/conjure"] = function(self, quantity)
+        if tonumber(quantity) < _PLAYER.magicCap then
+            _PLAYER.magic = _PLAYER.magic + quantity
+            self:addMessage(truncateMessage("Gave " .. tostring(quantity) .. " conjuration", maxMessageLength), "system")
+        end
+    end,
     ["/give"] = function(self, ...)
         local args = {...}
         if #args < 2 then
@@ -78,7 +85,7 @@ function console:init(width, height, font)
 
     -- Position the console at the bottom-left corner of the screen
     self.x = 0
-    self.y = love.graphics.getHeight() - self.height
+    self.y = lg.getHeight() - self.height
 
     self.messages = {}
     self.input = ""
@@ -147,8 +154,8 @@ function console:clearHistory()
 end
 
 function console:draw()
-    local screenWidth = love.graphics.getWidth()
-    local screenHeight = love.graphics.getHeight()
+    local screenWidth = lg.getWidth()
+    local screenHeight = lg.getHeight()
 
     local rectWidth = 500
     local rectHeight = 250
@@ -156,17 +163,17 @@ function console:draw()
     local rectX = 20
     local rectY = screenHeight - rectHeight - 20
     
-    love.graphics.setLineWidth(5)
+    lg.setLineWidth(5)
     
     -- Draw the outline
-    love.graphics.setColor(45/255, 54/255, 72/255) 
-    love.graphics.rectangle("line", rectX, rectY, rectWidth, rectHeight, 5, 5)
+    lg.setColor(45/255, 54/255, 72/255) 
+    lg.rectangle("line", rectX, rectY, rectWidth, rectHeight, 5, 5)
 
     -- Draw the filled rectangle
-    love.graphics.setColor(21/255, 29/255, 40/255, 0.6) 
-    love.graphics.rectangle("fill", rectX, rectY, rectWidth, rectHeight, 5, 5)
+    lg.setColor(21/255, 29/255, 40/255, 0.6) 
+    lg.rectangle("fill", rectX, rectY, rectWidth, rectHeight, 5, 5)
 
-    love.graphics.setFont(self.font)
+    lg.setFont(self.font)
 
     local messageY = rectY + rectHeight - self.font:getHeight() - 10 
     local maxMessageWidth = rectWidth - 20
@@ -178,26 +185,26 @@ function console:draw()
        local message = self.messages[i]
        
        setColor(message.color)
-       love.graphics.printf(message.prefix, rectX + 10, messageY, maxMessageWidth)
+       lg.printf(message.prefix, rectX + 10, messageY, maxMessageWidth)
        
        if message.playerName then
-           love.graphics.setColor(playerNameColor[1]/255, playerNameColor[2]/255, playerNameColor[3]/255)
+           lg.setColor(playerNameColor[1]/255, playerNameColor[2]/255, playerNameColor[3]/255)
            local nameWidth = self.font:getWidth(message.playerName .. " ")
-           love.graphics.print(message.playerName .. " ", rectX + 10 + love.graphics.getFont():getWidth(message.prefix .. " "), messageY)
+           lg.print(message.playerName .. " ", rectX + 10 + lg.getFont():getWidth(message.prefix .. " "), messageY)
            
-           love.graphics.setColor(message.color[1]/255, message.color[2]/255, message.color[3]/255)
-           love.graphics.print(message.text, rectX + 10 + nameWidth + love.graphics.getFont():getWidth(message.prefix .. " "), messageY)
+           lg.setColor(message.color[1]/255, message.color[2]/255, message.color[3]/255)
+           lg.print(message.text, rectX + 10 + nameWidth + lg.getFont():getWidth(message.prefix .. " "), messageY)
        else
-           love.graphics.setColor(message.color[1]/255, message.color[2]/255, message.color[3]/255)
-           love.graphics.print(message.text, rectX + 10 + love.graphics.getFont():getWidth(message.prefix), messageY)
+           lg.setColor(message.color[1]/255, message.color[2]/255, message.color[3]/255)
+           lg.print(message.text, rectX + 10 + lg.getFont():getWidth(message.prefix), messageY)
        end
        
        messageY = messageY - (self.font:getHeight() + chatBubblePadding)
     end
  
     -- Draw the input text
-    love.graphics.setColor(255, 255, 255)
-    love.graphics.print(self.input, rectX + 5, rectY + rectHeight - self.font:getHeight() - 10  + 5)
+    lg.setColor(255, 255, 255)
+    lg.print(self.input, rectX + 5, rectY + rectHeight - self.font:getHeight() - 10  + 5)
 end
 
 function console:keypressed(key)
@@ -257,7 +264,7 @@ function console:getVisible()
 end
 
 function console:setFont(fontSize)
-    self.font = fontSize and font[fontSize] or love.graphics.newFont(14)
+    self.font = fontSize and font[fontSize] or lg.newFont(14)
     self.inputHeight = self.font:getHeight() + 10
     self.chatHeight = self.height - self.inputHeight
     self.inputBox.y = self.y + self.chatHeight

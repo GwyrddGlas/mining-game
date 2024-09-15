@@ -1,5 +1,4 @@
 local inventory = require("src/class/inventory")
-local crafting = require("src/class/crafting")
 local minimap = require("src/lib/minimap")
 local statusBars = require("src/lib/statusBars")
 UI = require("src/lib/UIHandler")
@@ -8,6 +7,7 @@ local lg = love.graphics
 local fs = love.filesystem
 local kb = love.keyboard
 local lm = love.mouse
+local joy = love.joystick
 local lt = love.thread
 
 local game = {}
@@ -88,7 +88,7 @@ function game:load(data)
 
     -- Icon tile id's
     self.icon = {
-        Coal = 1,
+        Coal = 1, --1 - 8 are ores
         Iron = 2,
         Gold = 3,
         Uranium = 4,
@@ -97,6 +97,13 @@ function game:load(data)
         Tanzenite = 7,
         Copper = 8,
         Shrub = 9, --stick
+        IronIngot = 10, 
+        GoldIngot = 11, 
+        EmeraldIngot = 12, 
+        DiamondIngot = 13, 
+        RubyIngot = 14,
+        TanzeniteIngot = 15, 
+        CopperIngot = 16, 
         Wall = 18,
         Crafting = 28,
         Furnace = 29,
@@ -162,15 +169,35 @@ function game:unload()
     self.world = nil
 end
 
+local function getJoystickAxis(axis)
+    local joysticks = joy.getJoysticks()
+    for _, joystick in ipairs(joysticks) do
+        local value = joystick:getAxis(axis)
+        if math.abs(value) > 0.2 then  -- Dead zone
+            return value
+        end
+    end
+    return 0
+end
+
+local function isJoystickButtonDown(button)
+    local joysticks = joy.getJoysticks()
+    for _, joystick in ipairs(joysticks) do
+        if joystick:isDown(button) then
+            return true
+        end
+    end
+    return false
+end
+
 function game:update(dt)
-    -- Querying for visible entities
     self.visibleEntities = self.world:queryRect(camera.x - self.renderBuffer, camera.y - self.renderBuffer, lg.getWidth() + self.renderBuffer * 2, lg.getHeight() + self.renderBuffer * 2)
 
-    -- Storing the entity the mouse is hovering over
     local mx, my = camera:getMouse()
+    
     for i,v in ipairs(self.visibleEntities) do
         v.hover = false
-        if fmath.pointInRect(mx, my, v.x, v.y, v.width, v.height) and fmath.distance(v.gridX, v.gridY, self.player.gridX, self.player.gridY) < self.player.reach and not self.inventory.inventoryOpen then
+        if fmath.pointInRect(mx, my, v.x, v.y, v.width, v.height) and fmath.distance(v.gridX, v.gridY, self.player.gridX, self.player.gridY) < self.player.reach and not self.inventory.inventoryOpen and not UI.active then
             v.hover = true
             self.hoverEntity = v
         end
@@ -182,7 +209,6 @@ function game:update(dt)
     
     -- Updating world
     worldGen:update(dt)
-
     UI:update(dt)
 
     -- Internal timer used for shaders
@@ -237,6 +263,10 @@ function game:drawHud()
     self.inventory:draw(self.icon, itemSize, self.crafting:getCraftingItemSpacing(), cornerRadius, maxHotbarItems)
 
     self.inventory:drawHotbar(self.icon)
+end
+
+function game:gamepadpressed(joystick, button)
+    self.inventory:gamepadpressed(joystick, button)
 end
 
 function game:draw()

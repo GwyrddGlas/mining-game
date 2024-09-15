@@ -12,6 +12,17 @@ local sin = math.sin
 local cos = math.cos
 local f = string.format
 local floor = math.floor
+local joy = love.joystick
+
+local function isJoystickButtonDown(button)
+    local joysticks = love.joystick.getJoysticks()
+    for _, joystick in ipairs(joysticks) do
+        if joystick:isDown(button) then
+            return true
+        end
+    end
+    return false
+end
 
 function inventory:new(player)
     local inv = setmetatable({}, {__index = inventory})
@@ -87,11 +98,19 @@ function inventory:swapInventoryItems(item1, item2)
 end
 
 function inventory:removeItemFromInventory(item)
-    self.player.inventory[item] = nil
-    for i, inventoryItem in ipairs(self.player.inventoryOrder) do
-        if inventoryItem == item then
-            table.remove(self.player.inventoryOrder, i)
-            break
+    local itemName = type(item) == "number" and convertIconToName(item) or item
+    
+    if self.player.inventory[itemName] then
+        self.player.inventory[itemName] = self.player.inventory[itemName] - 1
+        
+        if self.player.inventory[itemName] <= 0 then
+            self.player.inventory[itemName] = nil
+            for i, inventoryItem in ipairs(self.player.inventoryOrder) do
+                if inventoryItem == itemName then
+                    table.remove(self.player.inventoryOrder, i)
+                    break
+                end
+            end
         end
     end
 end
@@ -128,6 +147,12 @@ function inventory:moveInventoryItemToIndex(item, newIndex)
     if oldIndex and oldIndex ~= newIndex then
         table.remove(inventoryOrder, oldIndex)
         table.insert(inventoryOrder, newIndex, item)
+    end
+end
+
+function inventory:gamepadpressed(joystick, button)
+    if button == "y" and not console.isOpen and not UI.active then
+        self:toggleInventory()
     end
 end
 
@@ -181,7 +206,7 @@ end
 function inventory:keypressed(key)
     local gameControls = config.settings.gameControls
 
-    if key == gameControls.inventory and not console.isOpen then
+    if key == gameControls.inventory and not console.isOpen and not UI.active then
         self:toggleInventory()
     end
 end

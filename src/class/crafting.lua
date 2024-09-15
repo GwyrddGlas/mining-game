@@ -1,8 +1,7 @@
-local json = require("src.lib.dkjson")
 local crafting = {}
 
 local recipesFile = love.filesystem.read("src/assets/recipes/recipes.json")
-local recipes = json.decode(recipesFile)
+--local recipes = json.decode(recipesFile)
 
 function crafting:new(player)
     local craft = setmetatable({}, {__index = crafting})

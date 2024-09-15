@@ -113,8 +113,7 @@ function entity:onInteract(entity)
                 _PLAYER.magicCap = _PLAYER.magicCap + 2
             end
             
-            UI:open("arcane", {})
-            --self:setType(2) --floor
+            self:setType(2) --floor
         end
 
         if entity.type == 14 then --crafting/arcane see convertIconToDefinition

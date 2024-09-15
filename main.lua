@@ -249,7 +249,7 @@ function love.keypressed(key)
                 gamePaused = false
             end
         end
-    elseif key == gameControls.chat then
+    elseif key == gameControls.chat and not UI.active then
         if _INVENTORY and _INVENTORY.inventoryOpen then
             _INVENTORY:toggleInventory()
         end
@@ -284,6 +284,10 @@ end
 
 function love.mousereleased(x, y, button, istouch, presses)
     state:mousereleased(x, y, button, istouch, presses)
+end
+
+function love.gamepadpressed(joystick, button)
+    state:gamepadpressed(joystick, button)
 end
 
 function love.mousemoved(x, y, dx, dy, touched)

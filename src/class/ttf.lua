@@ -44,9 +44,6 @@ end
 function ttf.save(table, file_name)
     file_name = file_name or false
     local output = table_to_string(table)
-
-    --print(output)
-
     fs.write(file_name, output)
 end
 
