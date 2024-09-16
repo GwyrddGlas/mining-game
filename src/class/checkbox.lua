@@ -1,6 +1,12 @@
 local checkbox = {}
 local checkbox_meta = {__index = checkbox}
 
+local lg = love.graphics
+local fs = love.filesystem
+local kb = love.keyboard
+local lm = love.mouse
+local lt = love.thread
+
 local checkSound = love.audio.newSource("src/assets/audio/button-hover.wav", "static")
 
 function checkbox.new(text, color, textColor, x, y, width, height, initialState, func)

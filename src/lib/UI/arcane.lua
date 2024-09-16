@@ -7,7 +7,7 @@ local spacing = 10
 local iconToName = {}
 
 local ArcaneButton = require("src/lib/UI/ArcaneButton")
-local recipes = require("src/lib/ui/recipes")
+local recipes = require("src/lib/UI/recipes")
 
 local icon = {
     Coal = 1, --1 - 8 are ores

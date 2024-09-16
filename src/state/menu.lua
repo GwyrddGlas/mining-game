@@ -423,6 +423,12 @@ function menu:load()
             keybox.new("Pause", self.color.fg, self.color.fg, self.width * 0.5, self.height * 0.6, 120, self.height * 0.09, gameControls.pause, function(key)
                 setNewKey("pause", key)
             end),
+            keybox.new("Conjure", self.color.fg, self.color.fg, self.width * 0.7, self.height * 0.3, 120, self.height * 0.09, gameControls.conjure, function(key)
+                setNewKey("conjure", key)
+            end),
+            keybox.new("Save", self.color.fg, self.color.fg, self.width * 0.7, self.height * 0.4, 120, self.height * 0.09, gameControls.save, function(key)
+                setNewKey("save", key)
+            end),
 
             button.new("Back", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, changeScreen("options")),
         },

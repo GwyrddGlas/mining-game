@@ -161,7 +161,7 @@ function game:load(data)
     playBackgroundMusic()
     gameAudio.menu[1]:stop()
 
-    UI:register("arcane", require("src.lib.ui.arcane"))
+    UI:register("arcane", require("src/lib/UI/arcane"))
 end
 
 function game:unload()
@@ -333,8 +333,16 @@ function game:draw()
 end
 
 function game:keypressed(key)
-    if key == "f5" then
+    local gameControls = config.settings.gameControls
+
+    if key == gameControls.save then
         worldGen:saveWorld()
+    end
+
+    if key == gameControls.conjure then
+        if self.player.magic >= 5 then
+            _INVENTORY:giveItem("crafting")
+        end
     end
 
     -- Inventory

@@ -58,9 +58,11 @@ function love.load()
                 left = "a",
                 down = "s",
                 up = "w",
+                save = "f5",
                 sprint = "lshift",
                 inventory = "i",
                 chat = "t",
+                conjure = "g",
                 pause = "escape"
             }
         },
@@ -219,15 +221,17 @@ function love.keypressed(key)
     console:keypressed(key)
     
     if key == "escape" then
-        if UI.active then
-            UI:close()
-            return  -- Prevent further processing of the escape key
-        elseif _INVENTORY and _INVENTORY.inventoryOpen then
-            _INVENTORY:toggleInventory()
-            return
+        if UI then
+            if UI.active then
+                UI:close()
+                return  -- Prevent further processing of the escape key
+            elseif _INVENTORY and _INVENTORY.inventoryOpen then
+                _INVENTORY:toggleInventory()
+                return
+            end
         end
     end
-
+        
     if key == gameControls.pause then
         if console.isOpen then
             console.isOpen = false

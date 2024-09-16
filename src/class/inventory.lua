@@ -116,6 +116,11 @@ function inventory:removeItemFromInventory(item)
 end
 
 function inventory:giveItem(item, quantity)
+    if not type(item) == "string" then
+        return
+    end
+
+    quantity = quantity or 1
     item = item:gsub("^%l", string.upper)
 
     if not self.player.inventory[item] then
