@@ -45,10 +45,9 @@ local commands = {
         self:addMessage(message, "whisper", target)
     end,
     ["/conjure"] = function(self, quantity)
-        if tonumber(quantity) < _PLAYER.magicCap then
-            _PLAYER.magic = _PLAYER.magic + quantity
-            self:addMessage(truncateMessage("Gave " .. tostring(quantity) .. " conjuration", maxMessageLength), "system")
-        end
+        local amount = math.min(tonumber(quantity), _PLAYER.magicCap)
+        _PLAYER.magic = math.min(_PLAYER.magic + amount, _PLAYER.magicCap)
+        self:addMessage(truncateMessage("Gave " .. tostring(amount) .. " conjuration", maxMessageLength), "system")
     end,
     ["/give"] = function(self, ...)
         local args = {...}

@@ -342,6 +342,7 @@ function game:keypressed(key)
     if key == gameControls.conjure then
         if self.player.magic >= 5 then
             _INVENTORY:giveItem("crafting")
+            _PLAYER.magic = _PLAYER.magic - 5
         end
     end
 
