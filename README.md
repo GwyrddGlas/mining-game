@@ -1,4 +1,4 @@
-# Miner's Odyssey
+# Subterra
 
 ## About the Game
 
@@ -6,7 +6,7 @@ Embark on an exciting adventure in a vast 2D world, where you can mine resources
 
 ## Features
 
-- Immersive 2D world with various biomes to explore
+- Immersive 2D world with various biomes and dimensions to explore
 - Mining system to gather resources such as coal, iron, gold, and more
 - Crafting system to create tools, weapons, and other useful items
 - Inventory management to organize and store your collected resources
@@ -26,7 +26,7 @@ Embark on an exciting adventure in a vast 2D world, where you can mine resources
 
 ### In Inventory
 - Left-click to highlight and move items
-- Right-click to move items to crafting grid
+- Right-click to place and interact with blocks
 
 ## Credits
 

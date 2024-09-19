@@ -1,6 +1,29 @@
 local inventory = {}
 local crafting = require("src/class/crafting")
 
+local lg = love.graphics
+local fs = love.filesystem
+local kb = love.keyboard
+local lm = love.mouse
+local lt = love.thread
+local random = math.random
+local noise = love.math.noise
+local sin = math.sin
+local cos = math.cos
+local f = string.format
+local floor = math.floor
+local joy = love.joystick
+
+local function isJoystickButtonDown(button)
+    local joysticks = love.joystick.getJoysticks()
+    for _, joystick in ipairs(joysticks) do
+        if joystick:isDown(button) then
+            return true
+        end
+    end
+    return false
+end
+
 function inventory:new(player)
     local inv = setmetatable({}, {__index = inventory})
     self.player = player -- Assign player to self.player
@@ -23,7 +46,7 @@ end
 
 function inventory:getInventoryBounds()
     local width, height = lg.getWidth(), lg.getHeight()
-    local inventoryRows, inventoryColumns = 3, 6
+    local inventoryRows, inventoryColumns = 4, 8
     local itemSize = self:getInventoryItemSize()
     local itemSpacing = self:getInventoryItemSpacing()
     local inventoryWidth = inventoryColumns * (itemSize + itemSpacing) - itemSpacing
@@ -42,7 +65,7 @@ function inventory:getInventoryItemSpacing()
 end
 
 function inventory:getInventoryColumns()
-    return 6
+    return 8
 end
 
 function inventory:getInventoryItemAtIndex(index)
@@ -50,11 +73,10 @@ function inventory:getInventoryItemAtIndex(index)
 end
 
 function inventory:swapInventoryItems(item1, item2)
-    if not item1 or not item2 then
+    if not item1 or not item2 or item1 == item2 then
         return
     end
 
-    local inventory = self.player.inventory
     local inventoryOrder = self.player.inventoryOrder
     local index1, index2
     
@@ -70,34 +92,43 @@ function inventory:swapInventoryItems(item1, item2)
         end
     end
     
-    if not index1 or not index2 then
-        return
+    if index1 and index2 then
+        inventoryOrder[index1], inventoryOrder[index2] = inventoryOrder[index2], inventoryOrder[index1]
     end
-    
-    inventoryOrder[index1], inventoryOrder[index2] = inventoryOrder[index2], inventoryOrder[index1]
-    
-    -- Ensure quantities are not negative
-    inventory[item1] = math.max(0, inventory[item1] or 0)
 end
 
 function inventory:removeItemFromInventory(item)
-    self.player.inventory[item] = nil
-    for i, inventoryItem in ipairs(self.player.inventoryOrder) do
-        if inventoryItem == item then
-            table.remove(self.player.inventoryOrder, i)
-            break
+    local itemName = type(item) == "number" and convertIconToName(item) or item
+    
+    if self.player.inventory[itemName] then
+        self.player.inventory[itemName] = self.player.inventory[itemName] - 1
+        
+        if self.player.inventory[itemName] <= 0 then
+            self.player.inventory[itemName] = nil
+            for i, inventoryItem in ipairs(self.player.inventoryOrder) do
+                if inventoryItem == itemName then
+                    table.remove(self.player.inventoryOrder, i)
+                    break
+                end
+            end
         end
     end
 end
 
 function inventory:giveItem(item, quantity)
+    if not type(item) == "string" then
+        return
+    end
+
+    quantity = quantity or 1
+    item = item:gsub("^%l", string.upper)
+
     if not self.player.inventory[item] then
         self.player.inventory[item] = 0
         table.insert(self.player.inventoryOrder, item)
     end
     self.player.inventory[item] = math.max(0, (self.player.inventory[item] or 0) + quantity)
     
-    -- Remove item from inventory if quantity becomes 0
     if self.player.inventory[item] == 0 then
         self:removeItemFromInventory(item)
     end
@@ -107,29 +138,26 @@ function inventory:toggleInventory()
     self.inventoryOpen = not self.inventoryOpen
 end 
 
-function inventory:moveInventoryItemToIndex(item, index)
-    local inventory = self.player.inventory
+function inventory:moveInventoryItemToIndex(item, newIndex)
     local inventoryOrder = self.player.inventoryOrder
-    local quantity = inventory[item]
+    local oldIndex
     
-    if not quantity or quantity <= 0 then
-        self:removeItemFromInventory(item)
-        return
-    end
-    
-    -- Find the current index of the item
-    local currentIndex
     for i, existingItem in ipairs(inventoryOrder) do
         if existingItem == item then
-            currentIndex = i
+            oldIndex = i
             break
         end
     end
     
-    if currentIndex then
-        table.remove(inventoryOrder, currentIndex)
-        table.insert(inventoryOrder, index, item)
-        inventory[item] = quantity
+    if oldIndex and oldIndex ~= newIndex then
+        table.remove(inventoryOrder, oldIndex)
+        table.insert(inventoryOrder, newIndex, item)
+    end
+end
+
+function inventory:gamepadpressed(joystick, button)
+    if button == "y" and not console.isOpen and not UI.active then
+        self:toggleInventory()
     end
 end
 
@@ -142,59 +170,48 @@ function inventory:mousepressed(x, y, button)
     local itemSize = self:getInventoryItemSize()
     local itemSpacing = self:getInventoryItemSpacing()
     local inventoryColumns = self:getInventoryColumns()
-    local inventoryRows = 3
+    local inventoryRows = 4
     local inventoryPadding = itemSize * 0.2
-    local clickedItem = nil
+    local clickedIndex = nil
     
     if x >= inventoryX and x <= inventoryX + inventoryWidth and y >= inventoryY and y <= inventoryY + inventoryHeight then
         for row = 1, inventoryRows do
             for col = 1, inventoryColumns do
                 local slotX = inventoryX + inventoryPadding + (col - 1) * (itemSize + itemSpacing)
                 local slotY = inventoryY + inventoryPadding + (row - 1) * (itemSize + itemSpacing)
-                -- Check if the mouse is anywhere within the slot
                 if x >= slotX and x < slotX + itemSize + itemSpacing and 
                    y >= slotY and y < slotY + itemSize + itemSpacing then
-                    local index = (row - 1) * inventoryColumns + col
-                    clickedItem = self:getInventoryItemAtIndex(index)
-                    if button == 1 and self.selectedItem then
-                        if clickedItem then
-                            self:swapInventoryItems(self.selectedItem, clickedItem)
-                        else
-                            self:moveInventoryItemToIndex(self.selectedItem, index)
-                        end
-                        self.selectedItem = nil
-                    else
-                        self.selectedItem = clickedItem
-                    end
+                    clickedIndex = (row - 1) * inventoryColumns + col
                     break
                 end
             end
-            if clickedItem then break end
+            if clickedIndex then break end
+        end
+    end
+
+    if clickedIndex then
+        local clickedItem = self:getInventoryItemAtIndex(clickedIndex)
+        if button == 1 then
+            if self.selectedItem then
+                if clickedItem then
+                    self:swapInventoryItems(self.selectedItem, clickedItem)
+                else
+                    self:moveInventoryItemToIndex(self.selectedItem, clickedIndex)
+                end
+                self.selectedItem = nil
+            else
+                self.selectedItem = clickedItem
+            end
         end
     else
         self.selectedItem = nil
     end
-
-    --if button == 2 and clickedItem then
-    --    -- Find the first available slot in the crafting grid
-    --    local craftingGrid = self.player.craftingGrid
-    --    local craftingGridOrder = self.player.craftingGridOrder
-    --    local index = 1
-    --    while craftingGrid[index] do
-    --        index = index + 1
-    --        if index > 9 then
-    --            break
-    --        end
-    --    end
-    --    if index <= 9 then
-    --        -- Move the item to the next available slot in the crafting grid
-    --        self.player.crafting:moveInventoryItemToCraftingGrid(clickedItem, index)
-    --    end
-    --end
 end
 
 function inventory:keypressed(key)
-    if key == gameControls.inventory and not console.isOpen then
+    local gameControls = config.settings.gameControls
+
+    if key == gameControls.inventory and not console.isOpen and not UI.active then
         self:toggleInventory()
     end
 end
@@ -220,9 +237,9 @@ function inventory:drawHotbar(icon)
     local hotbarWidth = width * 0.28 
     local hotbarHeight = height * 0.07
     local itemSize = hotbarHeight * 0.8
-    local maxHotbarItems = 6
-    local itemSpacing = (hotbarWidth - itemSize * maxHotbarItems) / (maxHotbarItems - 1)
-    local cornerRadius = itemSize * 0.2
+    local maxHotbarItems = 8
+    local itemSpacing = itemSize *0.2
+    local cornerRadius = 2
 
     local hotbarPadding = itemSize * 0.08 
     local adjustedHotbarWidth = hotbarWidth + hotbarPadding * 2
@@ -233,8 +250,8 @@ function inventory:drawHotbar(icon)
     local selectedIndex = self.selectedIndex
 
     -- Draw hotbar background
-    lg.setColor(83/255, 83/255, 83/255, 0.9)  -- Dark gray background from inventory
-    lg.rectangle("fill", hotbarX - adjustedHotbarWidth * 0.5, hotbarY, adjustedHotbarWidth, hotbarHeight, cornerRadius, cornerRadius)
+    --lg.setColor(83/255, 83/255, 83/255, 0.9)  -- Dark gray background from inventory
+    --lg.rectangle("fill", hotbarX - adjustedHotbarWidth * 0.5, hotbarY, adjustedHotbarWidth, hotbarHeight, cornerRadius, cornerRadius)
 
     for i = 1, maxHotbarItems do
         local x = itemX + (i - 1) * (itemSize + itemSpacing)
@@ -288,7 +305,7 @@ function inventory:draw(icon, itemSize, itemSpacing, cornerRadius, maxHotbarItem
         return 
     end
 
-    local inventoryRows = 3
+    local inventoryRows = 4
     local inventoryColumns = maxHotbarItems
     local inventoryPadding = itemSize * 0.2
     local width, height = lg.getWidth(), lg.getHeight()

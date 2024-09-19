@@ -1,8 +1,7 @@
-local json = require("src.lib.dkjson")
 local crafting = {}
 
 local recipesFile = love.filesystem.read("src/assets/recipes/recipes.json")
-local recipes = json.decode(recipesFile)
+--local recipes = json.decode(recipesFile)
 
 function crafting:new(player)
     local craft = setmetatable({}, {__index = crafting})
@@ -85,7 +84,6 @@ function crafting:moveInventoryItemToCraftingGrid(item, index)
         -- Remove one item from the inventory
         inventory[item] = inventory[item] - 1
         
-        -- If the quantity becomes zero, remove the item from the inventory order
         if inventory[item] <= 0 then
             inventory[item] = nil
             for i, existingItem in ipairs(self.player.inventoryOrder) do
@@ -96,7 +94,6 @@ function crafting:moveInventoryItemToCraftingGrid(item, index)
             end
         end
         
-        -- Check if there's already a stack of this item in the crafting grid
         local existingStack = nil
         for i, gridItem in pairs(craftingGrid) do
             if gridItem.item == item then
@@ -106,10 +103,8 @@ function crafting:moveInventoryItemToCraftingGrid(item, index)
         end
         
         if existingStack then
-            -- If a stack exists, add to it
             existingStack.quantity = existingStack.quantity + 1
         else
-            -- If no stack exists, create a new one
             local newItem = {
                 id = self.nextItemId,
                 item = item,
@@ -377,7 +372,7 @@ function crafting:draw(icon)
     local craftingY = height * 0.5 - craftingHeight * 0.5
         
     -- Draw crafting UI background
-    lg.setColor(83/255, 83/255, 83/255, 0.9)  -- Dark gray background from inventory
+    lg.setColor(83/255, 83/255, 83/255, 0.9) 
     lg.rectangle("fill", craftingX, craftingY, inventoryWidth, inventoryHeight, cornerRadius, cornerRadius)
 
     -- Draw crafting grid slots
@@ -386,18 +381,18 @@ function crafting:draw(icon)
             local slotX = craftingX + craftingPadding + (col - 1) * (itemSize + itemSpacing)
             local slotY = craftingY + craftingPadding + (row - 1) * (itemSize + itemSpacing)
             
-            local index = (row - 1) * craftingColumns + col -- Calculate the index here
+            local index = (row - 1) * craftingColumns + col
             
-            lg.setColor(51/255, 51/255, 51/255)  -- Darker gray for slots from inventory
+            lg.setColor(51/255, 51/255, 51/255) 
             lg.rectangle("fill", slotX, slotY, itemSize, itemSize, cornerRadius, cornerRadius)
-            lg.setColor(99/255, 99/255, 99/255, 0.9)  -- Light gray border from inventory
+            lg.setColor(99/255, 99/255, 99/255, 0.9)
             lg.setLineWidth(2)
             lg.rectangle("line", slotX, slotY, itemSize, itemSize, cornerRadius, cornerRadius)
             lg.setLineWidth(1)
             
             --selected
             if self.selectedItem and index == self.selectedItem.index then
-                lg.setColor(0.2, 0.6, 0.8, 0.8)  -- Keep this color as it matches the inventory
+                lg.setColor(0.2, 0.6, 0.8, 0.8) 
                 lg.setLineWidth(3)
                 lg.rectangle("line", slotX, slotY, itemSize, itemSize, cornerRadius, cornerRadius)
                 lg.setLineWidth(1)
@@ -406,14 +401,14 @@ function crafting:draw(icon)
             --hover
             local mouseX, mouseY = love.mouse.getPosition()
             if mouseX >= slotX and mouseX <= slotX + itemSize and mouseY >= slotY and mouseY <= slotY + itemSize then
-                lg.setColor(0.2, 0.6, 0.8, 0.8)  -- Bright blue for selected item                lg.setLineWidth(3)
+                lg.setColor(0.2, 0.6, 0.8, 0.8)
                 lg.setLineWidth(3)
                 lg.rectangle("line", slotX, slotY, itemSize, itemSize, cornerRadius, cornerRadius)
                 lg.setLineWidth(1)
             end
             
             -- Draw items in the crafting grid slots
-            local itemData = self.player.craftingGrid[index] -- Retrieve the item directly from craftingGrid using the index
+            local itemData = self.player.craftingGrid[index]
            
             if itemData then
                 local item = itemData.item

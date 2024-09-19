@@ -1,5 +1,16 @@
 local textbox = {}
 local textbox_meta = {__index = textbox}
+local lg = love.graphics
+local fs = love.filesystem
+local kb = love.keyboard
+local lm = love.mouse
+local lt = love.thread
+local random = math.random
+local noise = love.math.noise
+local sin = math.sin
+local cos = math.cos
+local f = string.format
+local floor = math.floor
 
 local defaultInputFilter = function() return true end
 
@@ -18,9 +29,9 @@ function textbox.new(text, placeholder, color, textColor, textColorSelected, x, 
         inputFilter = inputFilter or defaultInputFilter,
         maxLength = maxLength or 100,
         selected = false,
-        buttonLeft = tiles[60],
-        buttonCenter = tiles[61],
-        buttonRight = tiles[62]
+        buttonLeft = tiles[57],
+        buttonCenter = tiles[58],
+        buttonRight = tiles[59],
     }, textbox_meta)
 end
 

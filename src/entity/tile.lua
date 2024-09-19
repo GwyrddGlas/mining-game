@@ -3,6 +3,17 @@ local tileData = require("src.class.tileData")
 --local worldGen = require("src.class.worldGen")
 
 local entity = {}
+local lg = love.graphics
+local fs = love.filesystem
+local kb = love.keyboard
+local lm = love.mouse
+local lt = love.thread
+local random = math.random
+local noise = love.math.noise
+local sin = math.sin
+local cos = math.cos
+local f = string.format
+local floor = math.floor
 
 function entity:load(data, ecs)
     self.bumpWorld = ecs.bumpWorld
@@ -12,8 +23,8 @@ function entity:load(data, ecs)
     self.height = worldGen.tileSize
     self.x = data.x--floor(data.x / self.width) * self.width
     self.y = data.y--floor(data.y / self.height) * self.height
-    self.gridX = math.floor(self.x / floor(config.graphics.tileSize * scale_x))
-    self.gridY = math.floor(self.y / floor(config.graphics.tileSize * scale_x))
+    self.gridX = floor(self.x / floor(config.graphics.tileSize * scale_x))
+    self.gridY = floor(self.y / floor(config.graphics.tileSize * scale_x))
     self.hover = false
 
     self:setType(data.type)
@@ -94,25 +105,48 @@ function entity:mine()
     end    
 end
 
+function entity:onInteract(entity)
+    if self.tileData.interactable then
+        if entity.type == 4 then --magic plant see convertIconToDefinition
+            local pMagic = _PLAYER.magicCap
+            if pMagic < 20 then
+                _PLAYER.magicCap = _PLAYER.magicCap + 2
+            end
+            
+            self:setType(2) --floor
+        end
+
+        if entity.type == 14 then --crafting/arcane see convertIconToDefinition
+            UI:open("arcane", {})
+        end
+    end
+end
+
 local function convertIconToDefinition(iconValue)
     local iconDefinitions = {
+        [1] = 5,    -- Coal
+        [2] = 6,    -- Iron
+        [3] = 7,    -- Gold
+        [4] = 8,    -- Uranium
+        [5] = 9,    -- Diamond
+        [6] = 10,   -- Ruby
+        [7] = 11,   -- Tanzenite
+        [8] = 12,   -- Copper
+        [9] = 3,    -- Shrub (stick)
         [18] = 1,   -- Wall
-        [1] = 2,    -- Coal
-        [9] = 4,   -- Shrub
-        [7] = 5,   -- Tanzenite
-        [3] = 6,    -- Gold
-        [4] = 7,    -- Uranium
-        [5] = 8,    -- Diamond
-        [6] = 9,    -- Ruby
-        [10] = 10,    -- idk
-        [2] = 4,    -- Iron
-        [8] = 11,   -- Copper
-        [28] = 13,  -- Crafting
-        [29] = 14,  -- Furnace
-        [44] = 15,  -- StoneBrick
-        [45] = 16,   -- Grass
-        [46] = 17,   -- Mushroom
-        [33] = 15,  -- Torch
+        [28] = 14,  -- Crafting
+        [29] = 13,  -- Furnace
+        [30] = 15,  -- StoneBrick
+        [31] = 17,  -- Grass
+        [32] = 12,  -- Dirt 
+        [33] = 16,  -- Torch
+        [34] = 12,  -- Chest 
+        [35] = 12,  -- Water 
+        [36] = 12,  -- Teleporter 
+        [41] = 12,  -- Health 
+        [42] = 12,  -- HalfHeart 
+        [49] = 4,   -- MagicPlant
+        [51] = 18,  -- Mushroom
     }
     
     return iconDefinitions[iconValue] or 12
@@ -120,11 +154,15 @@ end
 
 function entity:place(id)
     local newTileType = convertIconToDefinition(id)
-    if self.tileData.placeable and tileData[newTileType] and tileData[newTileType].placeable then
+    --tprint(tileData)
+    if tileData[newTileType].placeable and not self.tileData.interactable then
         self:setType(newTileType)
         self.chunk.modified = true
     end
 end
+
+local minSolidVisible = 0.3
+local torchID = "Torch"
 
 function entity:draw()
     if _PLAYER and _PLAYER.control then
@@ -142,11 +180,15 @@ function entity:draw()
             end
         end)
 
-        -- Calculating lighting
-        local shade = 0
+        -- Check if the torch is selected
+        local isTorchSelected = _INVENTORY.highlightedItem == torchID
+        
+        -- Calculating base lighting (shadows and ambient light)
+        local shade = config.graphics.ambientLight
+        local maxDistance = config.graphics.lightDistance * scale_x
+        local distanceFromPlayer = fmath.distance(self.x, self.y, _PLAYER.x, _PLAYER.y)
+
         if config.graphics.useLight then
-            local distanceFromPlayer = fmath.distance(self.x, self.y, _PLAYER.x, _PLAYER.y)
-            local maxDistance = config.graphics.lightDistance * scale_x
 
             shade = 1 - (3 / maxDistance) * distanceFromPlayer
             if shade < config.graphics.ambientLight then
@@ -155,16 +197,42 @@ function entity:draw()
             if not los then
                 shade = config.graphics.ambientLight * 0.2
             end
+
+            -- Ensure solid blocks are always somewhat visible
+            if self.tileData.solid then
+                shade = math.max(shade, minSolidVisible)
+            end
         end
 
+        -- Add torch light if torch is selected
+        if isTorchSelected then
+            local torchLightRadius = maxDistance
+            local torchShade = 1 - (2 / torchLightRadius) * distanceFromPlayer
+            shade = math.max(shade, torchShade)
+        end
+  
         -- Drawing tile
         lg.setColor(self.color)
-        
+
         if self.tileData then
             if self.tileData.textureID then
                 lg.draw(tileAtlas, tiles[self.tileData.textureID], self.x, self.y, 0, self.width / config.graphics.assetSize, self.height / config.graphics.assetSize)
             end
-        
+
+            -- Drawing tile item
+            if self.tileData.item then
+                lg.draw(tileAtlas, tiles[self.tileData.itemTextureID], self.x, self.y, 0, self.width / config.graphics.assetSize, self.height / config.graphics.assetSize)
+            end
+        end
+  
+        -- Drawing tile
+        lg.setColor(self.color)
+
+        if self.tileData then
+            if self.tileData.textureID then
+                lg.draw(tileAtlas, tiles[self.tileData.textureID], self.x, self.y, 0, self.width / config.graphics.assetSize, self.height / config.graphics.assetSize)
+            end
+
             -- Drawing tile item
             if self.tileData.item then
                 lg.draw(tileAtlas, tiles[self.tileData.itemTextureID], self.x, self.y, 0, self.width / config.graphics.assetSize, self.height / config.graphics.assetSize)
@@ -173,7 +241,8 @@ function entity:draw()
 
         -- Drawing light
         lg.setBlendMode("multiply", "premultiplied")
-        lg.setColor(config.graphics.lightColor[1], config.graphics.lightColor[2], config.graphics.lightColor[3], shade)
+        local r, g, b = config.graphics.lightColor[1], config.graphics.lightColor[2], config.graphics.lightColor[3]
+        lg.setColor(r * shade, g * shade, b * shade, 1)
         lg.rectangle("fill", self.x, self.y, self.width, self.height)
         lg.setBlendMode("alpha")
 

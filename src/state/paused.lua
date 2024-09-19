@@ -12,18 +12,23 @@ gamePaused = false
 
 function pauseScreen:load()
     self.width, self.height = love.graphics.getDimensions()
+
+    local buttonData = {
+        {text = "Resume", action = function() self:resume() end},
+        {text = "Main Menu", action = function() self:returnToMainMenu() end},
+        {text = "Quit Game", action = function() love.event.quit() end},
+    }
     
     self.elements = {
-        label.new("Paused", self.color.success, font.title, 0, self.height * 0.2, "center"),
-        --button.new("Resume", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.09, function() self:resume() end),
-        --button.new("Settings", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.09, function() self:openSettings() end),
-        --button.new("Main Menu", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, function() self:returnToMainMenu() end),
-        --button.new("Quit Game", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.7, self.width * 0.4, self.height * 0.09, function() love.event.quit() end),
-        button.new("Resume", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.09, function() self:resume() end),
-        button.new("Main Menu", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.09, function() self:returnToMainMenu() end),
-        button.new("Quit Game", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, function() love.event.quit() end),
+        label.new("Paused", self.color.fg, font.title, 0, self.height * 0.2, "center")
     }
+
+    for i, data in ipairs(buttonData) do
+        table.insert(self.elements, button.new(data.text, self.color.fg, self.color.bg,
+            self.width * 0.3, self.height * (0.3 + i * 0.1), self.width * 0.4, self.height * 0.09, data.action))
+    end
 end
+
 
 function pauseScreen:update(dt)
     for _, element in ipairs(self.elements) do
@@ -87,12 +92,7 @@ function pauseScreen:resize(w, h)
 end
 
 function pauseScreen:resume()
-    state:load("menu", {worldName = gameName})
-end
-
-function pauseScreen:openSettings()
-    -- Implement your settings screen logic here
-    print("Opening settings")
+    state:resume_previous_state()
 end
 
 function pauseScreen:returnToMainMenu()

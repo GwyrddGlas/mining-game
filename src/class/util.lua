@@ -1,4 +1,16 @@
 -- Various utility functions
+local lg = love.graphics
+local fs = love.filesystem
+local kb = love.keyboard
+local lm = love.mouse
+local lt = love.thread
+local random = math.random
+local noise = love.math.noise
+local sin = math.sin
+local cos = math.cos
+local f = string.format
+local floor = math.floor
+
 function wRand(weights)
     local weightSum = 0
     for i,v in ipairs(weights) do weightSum = weightSum + v end
@@ -9,6 +21,21 @@ function wRand(weights)
         if rSum > target then
             return i
         end
+    end
+end
+
+function tprint(tbl, indent) --https://gist.github.com/ripter/4270799
+    if not indent then indent = 0 end
+    for k, v in pairs(tbl) do
+      formatting = string.rep("  ", indent) .. k .. ": "
+      if type(v) == "table" then
+        print(formatting)
+        tprint(v, indent+1)
+      elseif type(v) == 'boolean' then
+        print(formatting .. tostring(v))      
+      else
+        print(formatting .. tostring(v))
+      end
     end
 end
 

@@ -3,6 +3,18 @@
 
 local ttf = {}
 
+local lg = love.graphics
+local fs = love.filesystem
+local kb = love.keyboard
+local lm = love.mouse
+local lt = love.thread
+local random = math.random
+local noise = love.math.noise
+local sin = math.sin
+local cos = math.cos
+local f = string.format
+local floor = math.floor
+
 local function table_length(tab)
     local count = 0
     for k,v in pairs(tab) do
@@ -32,9 +44,6 @@ end
 function ttf.save(table, file_name)
     file_name = file_name or false
     local output = table_to_string(table)
-
-    --print(output)
-
     fs.write(file_name, output)
 end
 

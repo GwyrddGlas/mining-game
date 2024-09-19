@@ -1,21 +1,23 @@
-NAME = "Miners Odyssey"
-VERSION = "v0.010 (Pre Alpha 1c)"
+NAME = "Subterra"
+VERSION = "v0.02"
 config = {}
 
 -- GLOBALS
-lg = love.graphics
-fs = love.filesystem
-kb = love.keyboard
-lm = love.mouse
-lt = love.thread
-random = math.random
-noise = love.math.noise
-sin = math.sin
-cos = math.cos
-f = string.format
-floor = math.floor
+local lg = love.graphics
+local fs = love.filesystem
+local kb = love.keyboard
+local lm = love.mouse
+local lt = love.thread
+local random = math.random
+local noise = love.math.noise
+local sin = math.sin
+local cos = math.cos
+local f = string.format
+local floor = math.floor
 
 function love.load()
+    love.setDeprecationOutput(false) --Remove when updating to love 12
+
     -- Loaidng classes
     require("src.class.util")
     require_folder("src.class")
@@ -34,10 +36,10 @@ function love.load()
         graphics = {
             useLight = true,
             useShaders = true,
-            bloom = 0.4,
+            bloom = 0.5,
             brightness = 0.19,
             lightDistance = 500,
-            ambientLight = 0.3,
+            ambientLight = 0.4,
             lightColor = {1, 0.9, 0.8},
             tileSize = 40,
             assetSize = 16
@@ -49,9 +51,20 @@ function love.load()
         },
         settings = {
             chunkSaveInterval = 10,
-        chunkSize = 6,
+            chunkSize = 6,
             playerName = "Pickle",
-       
+            gameControls = {
+                right = "d",
+                left = "a",
+                down = "s",
+                up = "w",
+                save = "f5",
+                sprint = "lshift",
+                inventory = "i",
+                chat = "t",
+                conjure = "g",
+                pause = "escape"
+            }
         },
         skinColour = {
             colour = {0.149, 0.361, 0.259, 1.0},
@@ -67,26 +80,11 @@ function love.load()
         }
     }
 
-    gameControls = {
-        right = "d",
-        left = "a",
-        down = "s",
-        up = "w",
-        sprint = "lshift",
-        inventory = "i",
-        chat = "t",
-        pause = "escape"
-    }
-
     if fs.getInfo("config.lua") then
         config = ttf.load("config.lua")
     else
         config = default_config
         save_config()
-    end
-
-    if not config.skinColour.colour then --temp
-        clear_config()
     end
 
     -- Creating folders
@@ -134,8 +132,6 @@ function love.load()
     replacementColor = config.skinColour.colour
     replacementColor2 = config.skinColour.colour2
     
-    print("replacementColor: "..replacementColor[1].." "..replacementColor[2].." "..replacementColor[3])
-
     local tolerance = 0.1
 
     replaceShader:send("targetColor", targetColor)
@@ -217,33 +213,47 @@ function love.draw()
 end
 
 function love.keypressed(key)
+    local gameControls = config.settings.gameControls
+
     keybind:keypressed(key)
     keybind:trigger("keypressed", key)
     state:keypressed(key)
     console:keypressed(key)
-
+    
+    if key == "escape" then
+        if UI then
+            if UI.active then
+                UI:close()
+                return  -- Prevent further processing of the escape key
+            elseif _INVENTORY and _INVENTORY.inventoryOpen then
+                _INVENTORY:toggleInventory()
+                return
+            end
+        end
+    end
+        
     if key == gameControls.pause then
         if console.isOpen then
-            -- If the chat is open, close it without pausing the game
             console.isOpen = false
         else
-            -- If the chat is not open, handle the pause functionality
             if _INVENTORY and _INVENTORY.inventoryOpen then
                 _INVENTORY:toggleInventory()
             end
             
-            if state.loadedStateName == "game" then
+            if state.loadedStateName == "game" and not UI.active then
                 state:load("paused")
                 gamePaused = true
+            elseif state.loadedStateName == "game" and UI.active then
+                UI.close()
             elseif state.loadedStateName == "paused" then
-                state:load("game")
+                state:resume_previous_state()
                 gamePaused = false
             else
                 state:load("menu")
                 gamePaused = false
             end
         end
-    elseif key == gameControls.chat then
+    elseif key == gameControls.chat and not UI.active then
         if _INVENTORY and _INVENTORY.inventoryOpen then
             _INVENTORY:toggleInventory()
         end
@@ -278,6 +288,10 @@ end
 
 function love.mousereleased(x, y, button, istouch, presses)
     state:mousereleased(x, y, button, istouch, presses)
+end
+
+function love.gamepadpressed(joystick, button)
+    state:gamepadpressed(joystick, button)
 end
 
 function love.mousemoved(x, y, dx, dy, touched)

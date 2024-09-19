@@ -1,6 +1,18 @@
 local button = {}
 local button_meta = {__index = button}
 
+local lg = love.graphics
+local fs = love.filesystem
+local kb = love.keyboard
+local lm = love.mouse
+local lt = love.thread
+local random = math.random
+local noise = love.math.noise
+local sin = math.sin
+local cos = math.cos
+local f = string.format
+local floor = math.floor
+
 local hoverSound = love.audio.newSource("src/assets/audio/button-hover.wav", "static")
 
 function button.new(text, color, textColor, x, y, width, height, func)
@@ -62,6 +74,7 @@ function button:draw()
     lg.translate(-centerX, -centerY)
 
     lg.setColor(self.color)
+    
     -- Left
     lg.draw(tileAtlas, self.buttonLeft, self.x, self.y, 0, self.height / config.graphics.assetSize, self.height / config.graphics.assetSize)
 
