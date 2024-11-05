@@ -14,6 +14,7 @@ local f = string.format
 local floor = math.floor
 
 local gameControls = config.settings.gameControls
+local stamina = config.player.stamina
 
 local function isJoystickButtonDown(button)
     local joysticks = joy.getJoysticks()
@@ -46,20 +47,18 @@ return {
         local left = kb.isDown(gameControls.left) or getJoystickAxis(1) < 0
         local down = kb.isDown(gameControls.down) or getJoystickAxis(2) > 0
         local up = kb.isDown(gameControls.up) or getJoystickAxis(2) < 0
-        local space = kb.isDown(gameControls.sprint) or isJoystickButtonDown(1)
+        local sprint = kb.isDown(gameControls.sprint) or isJoystickButtonDown(1)
         local speed = e.speed
 
         if UI.active then
             return
         end
 
-        if space then 
-            if _PLAYER.stamina > 0 then
-                speed = e.speed * 1.4 
-                _PLAYER.stamina = _PLAYER.stamina - dt
+        if sprint then 
+            if stamina > 0 then
+                speed = e.speed * 1.4
+                stamina = stamina - dt
             end
-        else
-            _PLAYER.stamina = min(_PLAYER.stamina + dt * 0.5, 10)
         end
 
         _PLAYER.magic = min(_PLAYER.magic + dt * 0.1, _PLAYER.magicCap)

@@ -46,7 +46,7 @@ end
 
 function inventory:getInventoryBounds()
     local width, height = lg.getWidth(), lg.getHeight()
-    local inventoryRows, inventoryColumns = 4, 8
+    local inventoryRows, inventoryColumns = 4, 4
     local itemSize = self:getInventoryItemSize()
     local itemSpacing = self:getInventoryItemSpacing()
     local inventoryWidth = inventoryColumns * (itemSize + itemSpacing) - itemSpacing
@@ -65,7 +65,7 @@ function inventory:getInventoryItemSpacing()
 end
 
 function inventory:getInventoryColumns()
-    return 8
+    return 4
 end
 
 function inventory:getInventoryItemAtIndex(index)
@@ -315,7 +315,7 @@ function inventory:draw(icon, itemSize, itemSpacing, cornerRadius, maxHotbarItem
     local inventoryY = height * 0.5 - inventoryHeight * 0.5
     
     -- Inventory background
-    lg.setColor(83/255, 83/255, 83/255)
+    lg.setColor(104/255,104/255,104/255)  
     lg.rectangle("fill", inventoryX, inventoryY, inventoryWidth, inventoryHeight, cornerRadius, cornerRadius)
 
     local mouseX, mouseY = love.mouse.getPosition()
@@ -332,7 +332,7 @@ function inventory:draw(icon, itemSize, itemSpacing, cornerRadius, maxHotbarItem
             -- Inventory slots
             lg.setColor(51/255,51/255,51/255) 
             lg.rectangle("fill", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
-            lg.setColor(99/255,99/255,99/255)  -- Light gray border
+            lg.setColor(139/255,139/255,139/255)  -- Light grey border
             lg.setLineWidth(2)
             lg.rectangle("line", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
             lg.setLineWidth(1)

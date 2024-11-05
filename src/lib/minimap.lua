@@ -68,10 +68,10 @@ function minimap:draw(player, all, camera, position)
     local compassColor = {1,1,1}
     local compassOffset = minimapRadius + 20
     lg.setColor(compassColor)
-    lg.setFont(font.regular)
+    lg.setFont(font.tiny)
     lg.print("N", minimapX - 5, minimapY - compassOffset - 15)
     lg.print("S", minimapX - 5, minimapY + compassOffset - 15)
-    lg.print("W", minimapX - compassOffset - 7, minimapY - 7)
+    lg.print("W", minimapX - compassOffset - 12, minimapY - 7)
     lg.print("E", minimapX + compassOffset - 7, minimapY - 7)
     
     -- Draw minimap coordinates

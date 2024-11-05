@@ -9,6 +9,8 @@ local gameControls = config.settings.gameControls
 
 local menu = {
     selectedWorld = nil,
+    currentScreen = nil,
+    previousScreen = nil,
     titleOffset = 0,
     titleSpeed = 20,  
     titleAmplitude = 10,
@@ -24,7 +26,16 @@ local skinColourToggle = false
 -- Button functions
 local function changeScreen(screen)
     return function()
+        menu.previousScreen = menu.currentScreen
         menu.currentScreen = screen
+    end
+end
+
+local function revertScreen()
+    return function()
+        if menu.previousScreen then
+            menu.currentScreen = menu.previousScreen
+        end
     end
 end
 
@@ -77,7 +88,7 @@ local function loadSkins()
         {name = "skin1", path = skinAnimations.skin1.skin, id = nil}
     }
 
-    nightSkyImage = love.graphics.newImage("src/assets/night_sky_with_moon_and_stars.png")
+    nightSkyImage = love.graphics.newImage("src/assets/background.png")
     nightSkyImageScaleX = love.graphics.getWidth() / nightSkyImage:getWidth()
     nightSkyImageScaleY = love.graphics.getHeight() / nightSkyImage:getHeight()
     
@@ -88,17 +99,7 @@ local function loadSkins()
     characterSprite = love.graphics.newImage("src/assets/player/skin.png")
 end
 
-local function selectSkin(skinName)
-    selectedSkin = skinName
-end
-
 local function load()
-    if currentTrack then
-        currentTrack:stop()
-        gameAudio.menu[1]:setVolume(config.audio.master * config.audio.music)
-        gameAudio.menu[1]:play()
-    end
-
     if menu.selectedWorld then
         state:load("game", {type = "load", worldName = menu.selectedWorld})
     end
@@ -175,63 +176,6 @@ function menu:getSelectedTextbox(screen)
     return nil
 end
 
-local function drawSkins()
-    local screenWidth = love.graphics.getWidth()
-    local screenHeight = love.graphics.getHeight()
-    local rectX = 200
-    local rectWidth = screenWidth - 400
-    local rectHeight = 400
-    local startY = (screenHeight - rectHeight) / 2
-
-    local skinWidth = 300
-    local skinHeight = 300
-    local skinSpacing = 50
-    local visibleSkins = 3
-    local totalSkinWidth = visibleSkins * skinWidth + (visibleSkins - 1) * skinSpacing
-    local startX = rectX + (rectWidth - totalSkinWidth) / 2
-
-    -- Draw fancy background
-    love.graphics.setColor(0.2, 0.2, 0.2, 0.8)
-    love.graphics.rectangle("fill", rectX, startY, rectWidth, rectHeight, 20, 20)
-
-    -- Draw border
-    love.graphics.setColor(0.8, 0.8, 0.8)
-    love.graphics.setLineWidth(5)
-    love.graphics.rectangle("line", rectX, startY, rectWidth, rectHeight, 20, 20)
-
-    -- Draw skins
-    for i = 1, visibleSkins do
-        local index = (menu.skinOffset or 0) + i
-        local skin = skins[index]
-        if skin then
-            local x = startX + (i - 1) * (skinWidth + skinSpacing)
-            local y = startY + 50
-
-            -- Draw skin background
-            love.graphics.setColor(0.3, 0.3, 0.3, 0.8)
-            love.graphics.rectangle("fill", x, y, skinWidth, skinHeight, 10, 10)
-
-            -- Draw skin image
-            love.graphics.setColor(1, 1, 1)
-            local scale = math.min(skinWidth / skin.id:getWidth(), skinHeight / skin.id:getHeight()) * 0.8
-            local spriteX = x + skinWidth / 2
-            local spriteY = y + skinHeight / 2
-            love.graphics.draw(skin.id, spriteX, spriteY, 0, scale, scale, skin.id:getWidth() / 2, skin.id:getHeight() / 2)
-
-            -- Draw skin name
-            love.graphics.setFont(font.regular)
-            local skinNameWidth = font.regular:getWidth(skin.name)
-            love.graphics.print(skin.name, x + (skinWidth - skinNameWidth) / 2, y + skinHeight + 10)
-
-            -- Highlight selected skin
-            if skin.name == selectedSkin then
-                lg.setColor(221/255, 195/255, 105/255, 1)
-                love.graphics.rectangle("line", x, y, skinWidth, skinHeight, 10, 10)
-            end
-        end
-    end
-end
-
 function menu:load()
     lg.setBackgroundColor(0.1, 0.1, 0.1)
     self.width, self.height = lg.getWidth(), lg.getHeight()
@@ -252,76 +196,47 @@ function menu:load()
             label.new(NAME, self.color.fg, font.title, 0, lg.getHeight() * 0.2, "center"),
             label.new(VERSION, self.color.fg, font.regular, self.width*0.47 - font.regular:getWidth(VERSION)*0.4, self.height - 55, "center"),
             label.new("dsc.gg/miners-odyssey", self.color.fg, font.regular, 10, self.height - 55, "left"),
-            button.new("Singleplayer", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.09, changeScreen("singleplayer")),
-            button.new("Multiplayer", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.09, changeScreen("multiplayer")),
-            button.new("Settings", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, changeScreen("options")),
-            button.new("Quit Game", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.7, self.width * 0.4, self.height * 0.09, exitButton),
-            button.new("Change", self.color.fg, self.color.bg, self.width * 0.7, self.height * 0.8, self.width * 0.2, self.height * 0.09, changeScreen("skins")),        
+            button.new("Singleplayer", self.color.fg, self.color.fg, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.09, changeScreen("singleplayer")),
+            button.new("Multiplayer", self.color.fg, self.color.fg, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.09, changeScreen("multiplayer")),
+            button.new("Settings", self.color.fg, self.color.fg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, changeScreen("options")),
+            button.new("Quit Game", self.color.fg, self.color.fg, self.width * 0.3, self.height * 0.7, self.width * 0.4, self.height * 0.09, exitButton),
+         --   button.new("Change", self.color.fg, self.color.fg, self.width * 0.7, self.height * 0.7, self.width * 0.2, self.height * 0.09, changeScreen("skins")),        
         },
         singleplayer = {
             label.new("Singleplayer", self.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
-            button.new("New world", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.09, changeScreen("new")),
-            button.new("Load world", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.09, changeScreen("load")),
-            button.new("Back", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, changeScreen("main")),
+            button.new("New world", self.color.fg, self.color.fg, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.09, changeScreen("new")),
+            button.new("Load world", self.color.fg, self.color.fg, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.09, changeScreen("load")),
+            button.new("Back", self.color.fg, self.color.fg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, revertScreen()),
         },
         multiplayer = {
-            label.new("Multiplayer", self.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
-            ipAddress = textbox.new("", "IP Address", self.color.fg, self.color.idle, self.color.bg, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.09),
-            port = textbox.new("", "Port", self.color.fg, self.color.idle, self.color.bg, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.09),
-            button.new("Create Server", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, function()
-                --local ip = menu.screen.multiplayer.ipAddress.text
-                --local port = tonumber(menu.screen.multiplayer.port.text)
-                --if ip ~= "" and port then
-                --    network:init(ip, port)
-                --    network:createServer()
-                --    note:new("Server created at " .. ip .. ":" .. port, "success")
-                --else
-                --    note:new("Please enter a valid IP and Port", "danger")
-                --end
-                
-                note:new("Multiplayer is not yet functional.", "important")
-            end),
-            button.new("Connect", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.7, self.width * 0.4, self.height * 0.09, function() 
-                --local ip = menu.screen.multiplayer.ipAddress.text
-                --local port = tonumber(menu.screen.multiplayer.port.text)
-                --if ip ~= "" and port then
-                --    network:init(ip, port)
-                --    if network:connect() then
-                --        note:new("Connected to server", "success")
-                --    end
-                --else
-                --    note:new("Please enter a valid IP and Port", "danger")
-                --end
-                
-                note:new("Multiplayer is not yet functional.", "important")
-            end),
-            button.new("Back", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, changeScreen("main")),
+            
+            button.new("Back", self.color.fg, self.color.fg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, revertScreen()),
         },
         options = {
             label.new("Settings", self.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
-            button.new("Graphics", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.3, self.width * 0.4, self.height * 0.09, changeScreen("graphics")),
-            button.new("Sounds", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.09, changeScreen("sounds")),
-            button.new("Controls", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.09, changeScreen("controls")),
-            button.new("Save", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, function()
+            button.new("Graphics", self.color.fg, self.color.fg, self.width * 0.3, self.height * 0.3, self.width * 0.4, self.height * 0.09, changeScreen("graphics")),
+            button.new("Sounds", self.color.fg, self.color.fg, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.09, changeScreen("sounds")),
+            button.new("Controls", self.color.fg, self.color.fg, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.09, changeScreen("controls")),
+            button.new("Save", self.color.fg, self.color.fg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, function()
                 clear_config()
                 save_config()
                 note:new("Settings saved!", "success")
             end),
-            button.new("Back", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.7, self.width * 0.4, self.height * 0.09, changeScreen("main") ),
+            button.new("Back", self.color.fg, self.color.fg, self.width * 0.3, self.height * 0.7, self.width * 0.4, self.height * 0.09, revertScreen()),
         },
         skins = {       
             label.new("Name", self.color.bg, font.tiny, self.width * 0.38, self.height * 0.42, "left"),
-            characterName = textbox.new("", "Pickle", self.color.fg, self.color.idle, self.color.bg, self.width * 0.38, self.height * 0.45, self.width * 0.15, self.height * 0.05),
+            characterName = textbox.new("", "Pickle", self.color.fg, self.color.idle, self.color.fg, self.width * 0.38, self.height * 0.45, self.width * 0.15, self.height * 0.05),
             --label.new("Colour", self.color.bg, font.tiny, self.width * 0.38, self.height * 0.52, "left"),
-            button.new("Colour Picker", self.color.fg, self.color.bg, self.width * 0.38, self.height * 0.51, self.width * 0.15, self.height * 0.05, function(f)
+            button.new("Colour Picker", self.color.fg, self.color.fg, self.width * 0.38, self.height * 0.51, self.width * 0.15, self.height * 0.05, function(f)
                 skinColourToggle = not skinColourToggle
             end),
             
-            button.new("Save", self.color.fg, self.color.bg, self.width * 0.38, self.height * 0.65, self.width * 0.15, self.height * 0.05, function()
+            button.new("Save", self.color.fg, self.color.fg, self.width * 0.38, self.height * 0.65, self.width * 0.15, self.height * 0.05, function()
                 save_config()
                 note:new("Settings saved!", "success")
             end),
-            button.new("Back", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.9, self.width * 0.4, self.height * 0.09, changeScreen("main")),
+            button.new("Back", self.color.fg, self.color.fg, self.width * 0.3, self.height * 0.9, self.width * 0.4, self.height * 0.09, revertScreen()),
         },
         sounds = {
             label.new("Sound Settings", self.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
@@ -339,7 +254,7 @@ function menu:load()
                 end
             end),
             slider.new("SFX Volume", 0, 1, config.audio.sfx, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(value) config.audio.sfx = value end),
-            button.new("Back", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, changeScreen("options"))
+            button.new("Back", self.color.fg, self.color.fg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, revertScreen())
         },
         graphics = {
             label.new("Graphics Settings", self.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
@@ -362,7 +277,7 @@ function menu:load()
             slider.new("Brightness", 0, 0.4, config.graphics.brightness, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(value) config.graphics.brightness = value end),
             slider.new("Ambient Light", 0, 1, config.graphics.ambientLight, self.width * 0.3, self.height * 0.7, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(value) config.graphics.ambientLight = value end),
             --colourPicker.new("Light Color", config.graphics.lightColor, self.width * 0.3, self.height * 0.55, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(r, g, b) config.graphics.lightColor = {r, g, b} end),
-            button.new("Reset Graphics Settings", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, function()
+            button.new("Reset Graphics Settings", self.color.fg, self.color.fg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, function()
                 local defaultGraphics = {
                     useLight = true,
                     useShaders = true,
@@ -382,20 +297,20 @@ function menu:load()
                 save_config()
                 note:new("Graphics settings have been reset to default.", "success")
             end),
-            button.new("Back", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.9, self.width * 0.4, self.height * 0.09, changeScreen("options"))
+            button.new("Back", self.color.fg, self.color.fg, self.width * 0.3, self.height * 0.9, self.width * 0.4, self.height * 0.09, revertScreen())
         },
         new = {
             label.new("New world", self.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
-            worldName = textbox.new("", "World name", self.color.fg, self.color.idle, self.color.bg, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.09),
-            seed = textbox.new("", "Seed", self.color.fg, self.color.idle, self.color.bg, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.09, false, 10),
-            button.new("Create world", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, createButton),
-            button.new("Back", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.7, self.width * 0.4, self.height * 0.09, changeScreen("main")),
+            worldName = textbox.new("", "World name", self.color.fg, self.color.idle, self.color.fg, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.09),
+            seed = textbox.new("", "Seed", self.color.fg, self.color.idle, self.color.fg, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.09, false, 10),
+            button.new("Create world", self.color.fg, self.color.fg, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.09, createButton),
+            button.new("Back", self.color.fg, self.color.fg, self.width * 0.3, self.height * 0.7, self.width * 0.4, self.height * 0.09, revertScreen()),
         },
         load = {
             label.new("Select World", self.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
-            --button.new("Load world", self.color.success, self.color.bg, self.width * 0.05, self.height * 0.6, self.width * 0.25, self.height * 0.09, load),
-            --button.new("Delete world", self.color.danger, self.color.bg, self.width * 0.05, self.height * 0.7, self.width * 0.25, self.height * 0.09, delete),
-            --button.new("Back", self.color.fg, self.color.bg, self.width * 0.05, self.height * 0.8, self.width * 0.25, self.height * 0.09, changeScreen("main")),
+            --button.new("Load world", self.color.success, self.color.fg, self.width * 0.05, self.height * 0.6, self.width * 0.25, self.height * 0.09, load),
+            --button.new("Delete world", self.color.danger, self.color.fg, self.width * 0.05, self.height * 0.7, self.width * 0.25, self.height * 0.09, delete),
+            --button.new("Back", self.color.fg, self.color.fg, self.width * 0.05, self.height * 0.8, self.width * 0.25, self.height * 0.09, revertScreen()),
         },
         controls = {
             label.new("Controls", self.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
@@ -430,7 +345,7 @@ function menu:load()
                 setNewKey("save", key)
             end),
 
-            button.new("Back", self.color.fg, self.color.bg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, changeScreen("options")),
+            button.new("Back", self.color.fg, self.color.fg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, revertScreen())
         },
         credits = {}
     }
@@ -442,7 +357,7 @@ function menu:load()
             self.screen.load[#self.screen.load+1] = button.new(
                 world, 
                 self.color.fg, 
-                self.color.bg, 
+                self.color.fg, 
                 self.width * 0.35, 
                 self.height * y, 
                 self.width * 0.3, 
@@ -555,15 +470,12 @@ function menu:draw()
     love.graphics.draw(nightSkyImage, 0, 0, 0, nightSkyImageScaleX, nightSkyImageScaleY)
 
     if self.currentScreen == "main" then
-        self:drawCharacterPreview()
+        --self:drawCharacterPreview()
     elseif self.currentScreen == "skins" then
         self:drawCharacterEditor()
     end
 
     for i, v in pairs(self.screen[self.currentScreen]) do
-        if i == 1 and self.currentScreen == "main" then
-            v.y = lg.getHeight() * 0.2 + self.titleOffset
-        end
         v:draw()
     end
 end

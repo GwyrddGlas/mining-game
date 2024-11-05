@@ -9,10 +9,17 @@ local pauseScreen = {
 }
 
 gamePaused = false
+local nightSkyImage
+local nightSkyImageScaleX
+local nightSkyImageScaleY
 
 function pauseScreen:load()
     self.width, self.height = love.graphics.getDimensions()
 
+    nightSkyImage = love.graphics.newImage("src/assets/background.png")
+    nightSkyImageScaleX = love.graphics.getWidth() / nightSkyImage:getWidth()
+    nightSkyImageScaleY = love.graphics.getHeight() / nightSkyImage:getHeight()
+    
     local buttonData = {
         {text = "Resume", action = function() self:resume() end},
         {text = "Main Menu", action = function() self:returnToMainMenu() end},
@@ -24,11 +31,10 @@ function pauseScreen:load()
     }
 
     for i, data in ipairs(buttonData) do
-        table.insert(self.elements, button.new(data.text, self.color.fg, self.color.bg,
+        table.insert(self.elements, button.new(data.text, self.color.fg, self.color.fg,
             self.width * 0.3, self.height * (0.3 + i * 0.1), self.width * 0.4, self.height * 0.09, data.action))
     end
 end
-
 
 function pauseScreen:update(dt)
     for _, element in ipairs(self.elements) do
@@ -40,8 +46,7 @@ end
 
 function pauseScreen:draw()
     -- Draw a semi-transparent background
-    love.graphics.setColor(0, 0, 0, 0.7)
-    love.graphics.rectangle("fill", 0, 0, self.width, self.height)
+    love.graphics.draw(nightSkyImage, 0, 0, 0, nightSkyImageScaleX, nightSkyImageScaleY)
 
     -- Draw all elements
     for _, element in ipairs(self.elements) do
@@ -88,6 +93,11 @@ function pauseScreen:resize(w, h)
         element.y = h * (0.3 + (i-1) * 0.1)
         element.width = w * 0.4
         element.height = h * 0.09
+    end
+
+    if nightSkyImage then
+        nightSkyImageScaleX = w / nightSkyImage:getWidth()
+        nightSkyImageScaleY = h / nightSkyImage:getHeight()
     end
 end
 

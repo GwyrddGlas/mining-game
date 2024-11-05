@@ -185,6 +185,19 @@ tileData[#tileData+1] = {
 }
 
 tileData[#tileData+1] = {
+    type = "Teleporter",
+    textureID = 36, 
+    maxHP = 8,
+    drop = {1, 1}, 
+    destructible = true, 
+    solid = true,
+    item = false,
+    interactable = true,
+    placeable = true,
+    itemTextureID = 0,
+}
+
+tileData[#tileData+1] = {
     type = "StoneBrick",
     textureID = 30, 
     maxHP = 8,
@@ -227,9 +240,9 @@ tileData[#tileData+1] = {
     drop = {1, 1}, 
     destructible = true, 
     solid = false,
-    item = false,
+    item = "Mushroom",
     placeable = true,
-    itemTextureID = 0,
+    itemTextureID = 51,
 }
 
 return tileData

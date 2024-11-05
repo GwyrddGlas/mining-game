@@ -1,6 +1,7 @@
 NAME = "Subterra"
-VERSION = "v0.02"
+VERSION = "v0.012"
 config = {}
+local ttf = require("src.class.ttf")
 
 -- GLOBALS
 local lg = love.graphics
@@ -17,12 +18,6 @@ local floor = math.floor
 
 function love.load()
     love.setDeprecationOutput(false) --Remove when updating to love 12
-
-    -- Loaidng classes
-    require("src.class.util")
-    require_folder("src.class")
-
-    exString.import()   
 
     --Config
     local default_config = {
@@ -66,6 +61,12 @@ function love.load()
                 pause = "escape"
             }
         },
+        player = {
+            health = 10,
+            stamina = 10,
+            magic = 2,
+            magicCap = 10,
+        },
         skinColour = {
             colour = {0.149, 0.361, 0.259, 1.0},
             colour2 = {25/255, 60/255, 62/255, 1.0} 
@@ -92,6 +93,12 @@ function love.load()
         fs.createDirectory("worlds")
     end
     
+    -- Loading classes
+    require("src.class.util")
+    require_folder("src.class")
+
+    exString.import()   
+
     -- Creating window
     love.window.setMode(config.window.width, config.window.height, {fullscreen=config.window.fullscreen, resizable=config.window.resizable })
     love.window.setTitle(NAME.." ["..VERSION.."]")
@@ -114,9 +121,9 @@ function love.load()
 
     --Loading fonts
     font = {
-        regular = lg.newFont("src/font/monogram.ttf", 24 * scale_x),
-        large = lg.newFont("src/font/monogram.ttf", 64 * scale_x),
-        tiny = lg.newFont("src/font/monogram.ttf", 16 * scale_x),
+        regular = lg.newFont("src/font/inter.ttf", 15 * scale_x),
+        large = lg.newFont("src/font/inter.ttf", 6 * scale_x),
+        tiny = lg.newFont("src/font/inter.ttf", 10 * scale_x),
         title = lg.newFont("src/font/PressStart2P-Regular.ttf", 40 * scale_x),
     }
 
@@ -139,32 +146,46 @@ function love.load()
     replaceShader:send("tolerance", tolerance)
     
     -- loading audio
-    gameAudio = {background = {}, menu = {}}
-
-    local backgroundMusic = {
-        "Dreamers",
-        "Whisper of the Wind"
+    gameAudio = {
+        background = 0
     }
 
-    local path = "src/assets/audio/"
-    for _, v in ipairs(backgroundMusic) do
-        if love.filesystem.exists(path..v..".mp3") then
-            gameAudio.background[#gameAudio.background+1] = love.audio.newSource(path..tostring(v)..".mp3", "stream")
-        else 
-            print(v.." not found at path "..path)
+    local function loadAudio(trackList, path)
+        local audioSources = {}
+        for _, trackName in ipairs(trackList) do
+            local trackPath = path .. trackName .. ".mp3"
+            if love.filesystem.exists(trackPath) then
+                table.insert(audioSources, love.audio.newSource(trackPath, "stream"))
+            else
+                print("Track " .. trackName .. " not found at path: " .. path)
+            end
+        end
+        return audioSources
+    end
+    
+    local audioPath = "src/assets/audio/"
+    local backgroundTracks = {"1"}
+    gameAudio.background = loadAudio(backgroundTracks, audioPath)
+
+    local function playBackgroundMusic()
+        if #gameAudio.background > 0 then
+            local music = gameAudio.background[1]
+            if not music:isPlaying() then
+                music:setLooping(true)
+                music:play()
+            end
+        else
+            print("No background music available to play.")
         end
     end
-
-    gameAudio.menu[#gameAudio.menu+1] = love.audio.newSource(path.."Dreamers.mp3", "stream")
-    gameAudio.menu[1]:play()
-
+    
+    playBackgroundMusic()
     applyMasterVolume()
 
     state:load("menu", {worldName = "test"})
     --state:load("game", {type = "load", worldName = "test"})
 
     console:init(500, 200, font.tiny)
-    console:setVisible(false)
 
     config.debug.enabled = false
 end
@@ -180,9 +201,6 @@ end
 function applyMasterVolume()
     for _, source in pairs(gameAudio.background) do
         source:setVolume(config.audio.master * config.audio.music)
-    end
-    if gameAudio.menu[1] then
-        gameAudio.menu[1]:setVolume(config.audio.master * config.audio.music)
     end
 end
 
@@ -253,7 +271,7 @@ function love.keypressed(key)
                 gamePaused = false
             end
         end
-    elseif key == gameControls.chat and not UI.active then
+    elseif key == gameControls.chat then
         if _INVENTORY and _INVENTORY.inventoryOpen then
             _INVENTORY:toggleInventory()
         end
@@ -262,7 +280,7 @@ function love.keypressed(key)
         end
     elseif key == "f2" then
         config.debug.enabled = not config.debug.enabled
-    end
+    end 
 end
 
 function love.textinput(t)

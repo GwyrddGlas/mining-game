@@ -53,19 +53,15 @@ function entity:setType(type)
     self.placed = false
     
     -- Creating bump item if solid
-    if self.tileData.solid and not  self.bumpWorld:hasItem(self) then
+    if self.tileData.solid and not self.bumpWorld:hasItem(self) then
         self.bumpWorld:add(self, self.x, self.y, self.width, self.height) 
     end
 end
 
 function entity:mine()
-    if self.tileData.destructible then
+    if self.tileData.destructible and not UI.active then
         self.hp = self.hp - 1
         if self.hp < 0 then
-            if _PLAYER.stamina > 0 then
-                _PLAYER.stamina = _PLAYER.stamina - 1
-            end
-
             local nextType = 2
             -- Drops
             local dropCount = random(self.tileData.drop[1], self.tileData.drop[2])
@@ -189,13 +185,12 @@ function entity:draw()
         local distanceFromPlayer = fmath.distance(self.x, self.y, _PLAYER.x, _PLAYER.y)
 
         if config.graphics.useLight then
-
             shade = 1 - (3 / maxDistance) * distanceFromPlayer
             if shade < config.graphics.ambientLight then
                 shade = config.graphics.ambientLight
             end
             if not los then
-                shade = config.graphics.ambientLight * 0.2
+                shade = config.graphics.ambientLight * 0.4
             end
 
             -- Ensure solid blocks are always somewhat visible

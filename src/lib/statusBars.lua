@@ -35,7 +35,7 @@ function statusBars.drawBar(x, y, width, height, value, maxValue, barType)
         error("Invalid bar type: " .. tostring(barType))
     end
 
-    local cornerRadius = height * 0.2
+    local cornerRadius = 2
     local percentage = value / maxValue
     local fillWidth = width * percentage
 

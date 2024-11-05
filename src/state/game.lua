@@ -159,7 +159,6 @@ function game:load(data)
     self.inventory.inventoryOpen = false
 
     playBackgroundMusic()
-    gameAudio.menu[1]:stop()
 
     UI:register("arcane", require("src/lib/UI/arcane"))
 end
@@ -192,6 +191,7 @@ end
 
 function game:update(dt)
     self.visibleEntities = self.world:queryRect(camera.x - self.renderBuffer, camera.y - self.renderBuffer, lg.getWidth() + self.renderBuffer * 2, lg.getHeight() + self.renderBuffer * 2)
+    local health = config.player.health
 
     local mx, my = camera:getMouse()
     
@@ -216,12 +216,12 @@ function game:update(dt)
     if self.time > math.pi * 2 then self.time = 0 end
 
     -- Handle dying
-    if self.player.health <= 0 then
+    if health <= 0 then
         if self.player.spawnX and self.player.spawnY then
             self.player:teleport(self.player.spawnX, self.player.spawnY)
         end
         
-        self.player.health = 10
+        health = 10
         
         for item, _ in pairs(self.player.inventory) do
             self.player.inventory[item] = nil
@@ -250,9 +250,9 @@ function game:drawHud()
     local hotbarWidth = width * 0.28 
     local hotbarHeight = height * 0.07
     local itemSize = hotbarHeight * 0.8
-    local maxHotbarItems = 8
+    local maxHotbarItems = 4
     local itemSpacing = (hotbarWidth - itemSize * maxHotbarItems) / (maxHotbarItems - 1)
-    local cornerRadius = itemSize * 0.2
+    local cornerRadius = 2
 
     local hotbarPadding = itemSize * 0.08 
     local adjustedHotbarWidth = hotbarWidth + hotbarPadding * 2
