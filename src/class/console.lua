@@ -16,24 +16,23 @@ local function truncateMessage(message, maxLength)
     return message
 end
 
--- Colors
-local playerNameColor = {255, 223, 186}  -- Soft Gold
-local outlineColor = {70, 70, 90, 255}  -- Dark gray-blue for outline
-local chatBubbleColor = {0, 0, 0, 200}  
-local inputBoxColor = {30, 30, 40, 200}  -- Darker for the input box
-
 local chatBubblePadding = 5
 local fixedInputHeight = 30
 local maxMessageLength = 25
 
+-- Colors
+local playerNameColor = {255, 200, 100}  
+local outlineColor = {100, 150, 255, 255}
+local chatBubbleColor = {30, 30, 40, 225}
+local inputBoxColor = {40, 40, 50, 220}  
+
 -- Channel colors
 local channels = {
-    ["all"] = {color = {220, 220, 220}, prefix = "[All]"},  -- Light gray for general chat
-    ["local"] = {color = {180, 180, 180}, prefix = "[Local]"},  -- Gray for local messages
-    ["whisper"] = {color = {180, 120, 220}, prefix = "[Whisper]"},  -- Soft purple for whispers
-    ["system"] = {color = {255, 255, 100}, prefix = "[System]"},  -- Yellow for system messages
+    ["all"] = {color = {150, 200, 255}, prefix = "[All]"},  
+    ["local"] = {color = {120, 220, 150}, prefix = "[Local]"},  
+    ["whisper"] = {color = {200, 150, 255}, prefix = "[Whisper]"},
+    ["system"] = {color = {255, 220, 100}, prefix = "[System]"},  
 }
-
 local magic = config.player.magic
 local magicCap = config.player.magicCap
 
@@ -134,6 +133,16 @@ function console:addMessage(message, channel, from)
     end
 end
 
+local function drawRoundedRectangle(mode, x, y, width, height, radius, color)
+    setColor(color)
+    lg.rectangle(mode, x, y, width, height, radius, radius)
+end
+
+local function drawDropShadow(x, y, width, height, radius, shadowColor, offset)
+    setColor(shadowColor)
+    lg.rectangle("fill", x + offset, y + offset, width, height, radius, radius)
+end
+
 function console:draw()
     local screenWidth = lg.getWidth()
     local screenHeight = lg.getHeight()
@@ -144,15 +153,28 @@ function console:draw()
     local rectX = 20
     local rectY = screenHeight - rectHeight - 20
 
-    lg.setLineWidth(5)
-
     setColor(outlineColor)  -- Outline color
     lg.rectangle("line", rectX, rectY, rectWidth, rectHeight, 5, 5)
+    drawDropShadow(rectX, rectY, rectWidth, rectHeight, 5, {0, 0, 0, 100}, 2)
 
-    setColor(chatBubbleColor)  -- Chat bubble background color
-    lg.rectangle("fill", rectX, rectY, rectWidth, rectHeight, 5, 5)
+    -- Chat bubble
+    drawRoundedRectangle("fill", rectX, rectY, rectWidth, rectHeight, 5, chatBubbleColor)
+    drawRoundedRectangle("line", rectX, rectY, rectWidth, rectHeight, 5, outlineColor)
 
-    lg.setFont(self.font)
+    -- Input box
+    drawRoundedRectangle("fill", rectX, rectY + rectHeight - self.inputHeight, rectWidth, self.inputHeight, 5, inputBoxColor)
+    drawRoundedRectangle("line", rectX, rectY + rectHeight - self.inputHeight, rectWidth, self.inputHeight, 5, outlineColor)
+
+    setColor({255, 255, 255})
+    lg.setFont(font.tiny)
+
+    if #self.input == 0 then
+        setColor({150, 150, 150}) 
+        lg.print("Type a message...", rectX + 5, rectY + rectHeight - self.font:getHeight() - 5)
+    else
+        setColor({255, 255, 255}) 
+        lg.print(self.input, rectX + 5, rectY + rectHeight - self.font:getHeight() - 10 + 5)
+    end
 
     local messageY = rectY + rectHeight - self.font:getHeight() - 40
     local maxMessageWidth = rectWidth - 20
@@ -180,10 +202,6 @@ function console:draw()
 
        messageY = messageY - (self.font:getHeight() + chatBubblePadding)
     end
-
-    -- Draw the input text box
-    setColor(inputBoxColor)  -- Darker box for input
-    lg.rectangle("fill", rectX, rectY + rectHeight - self.inputHeight, rectWidth, self.inputHeight)
 
     setColor({255, 255, 255})  -- White text for the input
     lg.print(self.input, rectX + 5, rectY + rectHeight - self.font:getHeight() - 10 + 5)

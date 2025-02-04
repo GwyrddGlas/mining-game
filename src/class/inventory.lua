@@ -14,6 +14,27 @@ local f = string.format
 local floor = math.floor
 local joy = love.joystick
 
+local colors = {
+    inventoryBackground = {30, 30, 40, 220},
+    hotbarBackground = {40, 40, 50, 220},
+    defaultSlot = {60, 60, 70, 200},
+    hoveredSlot = {100, 150, 255, 200},
+    selectedSlot = {255, 200, 100, 200},
+    itemNameText = {255, 255, 255},
+    itemNameBackground = {0, 0, 0, 150},
+    quantityText = {255, 255, 255},
+    defaultBorder = {80, 80, 90, 200},
+    highlightedBorder = {255, 100, 150, 200},
+}
+
+local function setColor(r, g, b, a)
+    if type(r) == "table" then
+        r, g, b, a = r[1], r[2], r[3], r[4]
+    end
+    a = a or 255
+    lg.setColor(r/255, g/255, b/255, a/255)
+end
+
 local function isJoystickButtonDown(button)
     local joysticks = love.joystick.getJoysticks()
     for _, joystick in ipairs(joysticks) do
@@ -174,6 +195,7 @@ function inventory:mousepressed(x, y, button)
     local inventoryPadding = itemSize * 0.2
     local clickedIndex = nil
     
+    -- Check if the click is within the inventory bounds
     if x >= inventoryX and x <= inventoryX + inventoryWidth and y >= inventoryY and y <= inventoryY + inventoryHeight then
         for row = 1, inventoryRows do
             for col = 1, inventoryColumns do
@@ -189,6 +211,7 @@ function inventory:mousepressed(x, y, button)
         end
     end
 
+    -- Handle the click
     if clickedIndex then
         local clickedItem = self:getInventoryItemAtIndex(clickedIndex)
         if button == 1 then
@@ -238,7 +261,7 @@ function inventory:drawHotbar(icon)
     local hotbarHeight = height * 0.07
     local itemSize = hotbarHeight * 0.8
     local maxHotbarItems = 8
-    local itemSpacing = itemSize *0.2
+    local itemSpacing = itemSize * 0.2
     local cornerRadius = 2
 
     local hotbarPadding = itemSize * 0.08 
@@ -250,8 +273,8 @@ function inventory:drawHotbar(icon)
     local selectedIndex = self.selectedIndex
 
     -- Draw hotbar background
-    --lg.setColor(83/255, 83/255, 83/255, 0.9)  -- Dark gray background from inventory
-    --lg.rectangle("fill", hotbarX - adjustedHotbarWidth * 0.5, hotbarY, adjustedHotbarWidth, hotbarHeight, cornerRadius, cornerRadius)
+    setColor(colors.hotbarBackground)
+    lg.rectangle("fill", hotbarX - adjustedHotbarWidth * 0.5, hotbarY, adjustedHotbarWidth, hotbarHeight, cornerRadius, cornerRadius)
 
     for i = 1, maxHotbarItems do
         local x = itemX + (i - 1) * (itemSize + itemSpacing)
@@ -259,18 +282,18 @@ function inventory:drawHotbar(icon)
     
         -- Draw item slot
         if i == selectedIndex then
-            lg.setColor(0.2, 0.6, 0.8, 0.8)  -- Bright blue for selected slot
+            setColor(colors.selectedSlot)
         else
-            lg.setColor(51/255, 51/255, 51/255, 0.7)  -- Darker gray for slots from inventory
+            setColor(colors.defaultSlot)
         end
         lg.rectangle("fill", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
     
         -- Draw item slot border
         if i == selectedIndex then
-            lg.setColor(0.3, 0.8, 1)  -- Brighter blue border for selected slot
+            setColor(colors.highlightedBorder)
             lg.setLineWidth(3)
         else
-            lg.setColor(99/255, 99/255, 99/255, 0.9)  -- Light gray border from inventory
+            setColor(colors.defaultBorder)
             lg.setLineWidth(2)
         end
         lg.rectangle("line", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
@@ -282,7 +305,7 @@ function inventory:drawHotbar(icon)
             local quantity = self.player.inventory[item]
             if self.icon[item] then
                 if tileAtlas and tiles[self.icon[item]] then
-                    lg.setColor(1, 1, 1)
+                    setColor(1, 1, 1)
                     lg.draw(tileAtlas, tiles[self.icon[item]], x + itemSize * 0.1, y + itemSize * 0.1, 0, itemSize * 0.8 / config.graphics.assetSize, itemSize * 0.8 / config.graphics.assetSize)
                     
                     lg.setFont(font.regular)
@@ -292,7 +315,7 @@ function inventory:drawHotbar(icon)
                     local textX = x + itemSize - textWidth - itemSize * 0.1
                     local textY = y + itemSize - textHeight - itemSize * 0.1
     
-                    lg.setColor(1, 1, 1)
+                    setColor(colors.quantityText)
                     lg.print(quantityText, textX, textY)
                 end
             end
@@ -315,12 +338,17 @@ function inventory:draw(icon, itemSize, itemSpacing, cornerRadius, maxHotbarItem
     local inventoryY = height * 0.5 - inventoryHeight * 0.5
     
     -- Inventory background
-    lg.setColor(104/255,104/255,104/255)  
+    setColor(colors.inventoryBackground)
     lg.rectangle("fill", inventoryX, inventoryY, inventoryWidth, inventoryHeight, cornerRadius, cornerRadius)
 
     local mouseX, mouseY = love.mouse.getPosition()
     local hoveredItem = nil
     local hoveredX, hoveredY = 0, 0
+
+    print("Current Inventory Order:")
+    for i, item in ipairs(self.player.inventoryOrder) do
+        print(i, item)
+    end
 
     for row = 1, inventoryRows do
         for col = 1, inventoryColumns do
@@ -329,28 +357,24 @@ function inventory:draw(icon, itemSize, itemSpacing, cornerRadius, maxHotbarItem
             local y = inventoryY + inventoryPadding + (row - 1) * (itemSize + itemSpacing)
             local item = self.player.inventoryOrder[index]
 
-            -- Inventory slots
-            lg.setColor(51/255,51/255,51/255) 
+            -- Default slot color
+            setColor(colors.defaultSlot)
             lg.rectangle("fill", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
-            lg.setColor(139/255,139/255,139/255)  -- Light grey border
-            lg.setLineWidth(2)
-            lg.rectangle("line", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
-            lg.setLineWidth(1)
+
+            -- Highlight selected item
+            if item == self.selectedItem then
+                setColor(colors.selectedSlot)
+                lg.setLineWidth(3)
+                lg.rectangle("line", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
+                lg.setLineWidth(1)
+            end
 
             if item then
                 local quantity = self.player.inventory[item]
                 
-                -- Selected item
-                if self.selectedItem == item then
-                    lg.setColor(0.2, 0.6, 0.8, 0.8) 
-                    lg.setLineWidth(3)
-                    lg.rectangle("line", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
-                    lg.setLineWidth(1)
-                end
-                
                 if icon[item] then
-                    lg.setColor(1, 1, 1)
                     if tileAtlas and tiles[icon[item]] then
+                        lg.setColor(1, 1, 1)  -- White for icons
                         lg.draw(tileAtlas, tiles[icon[item]], x + itemSize * 0.1, y + itemSize * 0.1, 0, itemSize * 0.8 / config.graphics.assetSize, itemSize * 0.8 / config.graphics.assetSize)
 
                         lg.setFont(font.regular)
@@ -360,7 +384,7 @@ function inventory:draw(icon, itemSize, itemSpacing, cornerRadius, maxHotbarItem
                         local textX = x + itemSize - textWidth - itemSize * 0.1
                         local textY = y + itemSize - textHeight - itemSize * 0.1
 
-                        lg.setColor(1, 1, 1)
+                        setColor(colors.quantityText)
                         lg.print(quantityText, textX, textY)
                     end
                 else
@@ -375,7 +399,7 @@ function inventory:draw(icon, itemSize, itemSpacing, cornerRadius, maxHotbarItem
                     hoveredX, hoveredY = x, y
                 end
 
-                lg.setColor(0.3, 0.8, 1)
+                setColor(colors.hoveredSlot)
                 lg.setLineWidth(3)
                 lg.rectangle("line", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
                 lg.setLineWidth(1)

@@ -260,15 +260,12 @@ function love.keypressed(key)
             
             if state.loadedStateName == "game" and not UI.active then
                 state:load("paused")
-                gamePaused = true
             elseif state.loadedStateName == "game" and UI.active then
                 UI.close()
             elseif state.loadedStateName == "paused" then
                 state:resume_previous_state()
-                gamePaused = false
             else
                 state:load("menu")
-                gamePaused = false
             end
         end
     elseif key == gameControls.chat then

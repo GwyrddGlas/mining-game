@@ -8,7 +8,6 @@ local pauseScreen = {
     },
 }
 
-gamePaused = false
 local nightSkyImage
 local nightSkyImageScaleX
 local nightSkyImageScaleY
@@ -23,6 +22,7 @@ function pauseScreen:load()
     local buttonData = {
         {text = "Resume", action = function() self:resume() end},
         {text = "Main Menu", action = function() self:returnToMainMenu() end},
+        {text = "Settings", action = function() self:returnToSettingsMenu() end},
         {text = "Quit Game", action = function() love.event.quit() end},
     }
     
@@ -45,7 +45,6 @@ function pauseScreen:update(dt)
 end
 
 function pauseScreen:draw()
-    -- Draw a semi-transparent background
     love.graphics.draw(nightSkyImage, 0, 0, 0, nightSkyImageScaleX, nightSkyImageScaleY)
 
     -- Draw all elements
@@ -107,6 +106,11 @@ end
 
 function pauseScreen:returnToMainMenu()
     state:load("menu")
+end
+
+function pauseScreen:returnToSettingsMenu()
+    state:load("menu")
+    changeScreen("options")
 end
 
 return pauseScreen
