@@ -85,12 +85,10 @@ local characterSprite
 
 local function loadSkins()
     -- Release existing resources
-    if logo then logo:release() end
     if nightSkyImage then nightSkyImage:release() end
     if characterSprite then characterSprite:release() end
 
     -- Load new resources
-    logo = love.graphics.newImage("src/assets/SUBTERRA.png")
     nightSkyImage = love.graphics.newImage("src/assets/background.png")
     nightSkyImageScaleX = love.graphics.getWidth() / nightSkyImage:getWidth()
     nightSkyImageScaleY = love.graphics.getHeight() / nightSkyImage:getHeight()
@@ -209,7 +207,7 @@ function menu:load(args)
     lg.setBackgroundColor(0.1, 0.1, 0.1)
     self.width, self.height = lg.getWidth(), lg.getHeight()
     self.color = {
-        fg = {1, 0.94, 0.8},
+        fg = {1.000, 0.722, 0.0},
         white = {1, 1, 1},
         bg = {0, 0, 0},
         idle = {0.4, 0.4, 0.4},
@@ -223,6 +221,7 @@ function menu:load(args)
         main = {
             label.new(VERSION, self.color.white, font.regular, self.width * 0.47 - font.regular:getWidth(VERSION) * 0.4, self.height - 55, "center"),
             label.new("dsc.gg/miners-odyssey", self.color.white, font.regular, 10, self.height - 55, "left"),
+            label.new(""..NAME, self.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
             createButton("Singleplayer", 30, 40, 40, 9, changeScreen("singleplayer")),
             createButton("Settings", 30, 50, 40, 9, changeScreen("options")),
             createButton("Quit Game", 30, 60, 40, 9, exitButton),
@@ -260,6 +259,51 @@ function menu:load(args)
             end),
             createButton("Back", 30, 90, 40, 9, revertScreen()),
         },
+        graphics = {
+            label.new("Graphics Settings", self.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"), 
+            checkbox.new("Shaders", self.color.white, self.color.white, self.width * 0.3, self.height * 0.3, self.width * 0.4, self.height * 0.05, config.graphics.useShaders, 
+                function(isChecked) 
+                    config.graphics.useShaders = isChecked 
+                end),              
+
+            checkbox.new("Vsync", self.color.white, self.color.white, self.width * 0.4, self.height * 0.3, self.width * 0.4, self.height * 0.05, config.window.vsync, 
+                function(isChecked) 
+                    love.window.setVSync(isChecked)
+                    config.graphics.vsync = isChecked
+                end),    
+            
+            checkbox.new("Fog", self.color.white, self.color.white, self.width * 0.5, self.height * 0.3, self.width * 0.4, self.height * 0.05, config.graphics.useLight, 
+                function(isChecked) 
+                    config.graphics.useLight = isChecked 
+                end),       
+            
+            slider.new("Bloom", 0, 1, config.graphics.bloom, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(value) config.graphics.bloom = value end),
+            slider.new("Light Distance", 0, 600, config.graphics.lightDistance, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(value) config.graphics.ambientLight = value end),
+            slider.new("Brightness", 0, 0.4, config.graphics.brightness, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(value) config.graphics.brightness = value end),
+            slider.new("Ambient Light", 0, 1, config.graphics.ambientLight, self.width * 0.3, self.height * 0.7, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(value) config.graphics.ambientLight = value end),
+            --colourPicker.new("Light Color", config.graphics.lightColor, self.width * 0.3, self.height * 0.55, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(r, g, b) config.graphics.lightColor = {r, g, b} end),
+            button.new("Reset Graphics Settings", self.color.white, self.color.white, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, function()
+                local defaultGraphics = {
+                    useLight = true,
+                    useShaders = true,
+                    bloom = 0.4,
+                    brightness = 0.19,
+                    lightDistance = 500,
+                    ambientLight = 0.3,
+                    lightColor = {1, 0.9, 0.8},
+                    tileSize = 40,
+                    assetSize = 16
+                }
+            
+                for key, value in pairs(defaultGraphics) do
+                    config.graphics[key] = value
+                end
+                    
+                save_config()
+                note:new("Graphics settings have been reset to default.", "success")
+            end),
+            createButton("Back", 30, 90, 40, 9, revertScreen()),
+        },
         new = {
             label.new("New world", self.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
             textbox.new("", "World name", self.color.white, self.color.idle, self.color.fg, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.09),
@@ -268,7 +312,7 @@ function menu:load(args)
             createButton("Back", 30, 70, 40, 9, revertScreen()),
         },
         load = {
-            label.new("Select World", self.color.white, font.title, 0, lg.getHeight() * 0.15, "center"),
+            label.new("Select World", self.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
         },
         sounds = {
             label.new("Sound Settings", self.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
@@ -286,7 +330,7 @@ function menu:load(args)
                 end
             end),
             slider.new("SFX Volume", 0, 1, config.audio.sfx, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(value) config.audio.sfx = value end),
-            button.new("Back", self.color.fg, self.color.fg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, revertScreen())
+            button.new("Back", self.color.white, self.color.white, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, revertScreen())
         },
         controls = {
             label.new("Controls", self.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
@@ -444,10 +488,7 @@ end
 function menu:draw()
     love.graphics.draw(nightSkyImage, 0, 0, 0, nightSkyImageScaleX, nightSkyImageScaleY)  
     
-    if self.currentScreen == "main" then
-        --self:drawCharacterPreview()
-        love.graphics.draw(logo, lg.getWidth() * 0.22, lg.getHeight() * 0.1)
-    elseif self.currentScreen == "skins" then
+    if self.currentScreen == "skins" then
         self:drawCharacterEditor()
     end
 

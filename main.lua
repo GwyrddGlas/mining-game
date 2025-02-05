@@ -1,7 +1,5 @@
-NAME = "Subterra"
+NAME = "PICKLE"
 VERSION = "v0.012"
-config = {}
-local ttf = require("src.class.ttf")
 
 -- GLOBALS
 local lg = love.graphics
@@ -16,92 +14,32 @@ local cos = math.cos
 local f = string.format
 local floor = math.floor
 
+-- Load configuration module
+local Config = require("src.config")
+
 function love.load()
-    love.setDeprecationOutput(false) --Remove when updating to love 12
+    love.setDeprecationOutput(false) -- Remove when updating to Love 12
 
-    --Config
-    local default_config = {
-        window = {
-            width = 1280,
-            height = 720,
-            fullscreen = true,
-            resizable = true,
-            vsync = true
-        },
-        graphics = {
-            useLight = true,
-            useShaders = true,
-            bloom = 0.5,
-            brightness = 0.19,
-            lightDistance = 500,
-            ambientLight = 0.4,
-            lightColor = {1, 0.9, 0.8},
-            tileSize = 40,
-            assetSize = 16
-        },
-        audio = {
-            master = 1,
-            music = 0.2,
-            sfx = 1
-        },
-        settings = {
-            chunkSaveInterval = 10,
-            chunkSize = 6,
-            playerName = "Pickle",
-            gameControls = {
-                right = "d",
-                left = "a",
-                down = "s",
-                up = "w",
-                save = "f5",
-                sprint = "lshift",
-                inventory = "i",
-                chat = "t",
-                conjure = "g",
-                pause = "escape"
-            }
-        },
-        player = {
-            health = 10,
-            stamina = 10,
-            magic = 2,
-            magicCap = 10,
-        },
-        skinColour = {
-            colour = {0.149, 0.361, 0.259, 1.0},
-            colour2 = {25/255, 60/255, 62/255, 1.0} 
-        },
-        debug = {
-            enabled = true,
-            text_color = {255, 255, 255},
-            showChunkBorders = false,
-            showCollision = false,
-            saveChunks = true,
-            playerCollision = true
-        }
-    }
-
-    if fs.getInfo("config.lua") then
-        config = ttf.load("config.lua")
-    else
-        config = default_config
-        save_config()
-    end
+    -- Load configuration
+    config = Config.load()
 
     -- Creating folders
     if not fs.getInfo("worlds") then
         fs.createDirectory("worlds")
     end
-    
+
     -- Loading classes
     require("src.class.util")
     require_folder("src.class")
 
-    exString.import()   
+    exString.import()
 
     -- Creating window
-    love.window.setMode(config.window.width, config.window.height, {fullscreen=config.window.fullscreen, resizable=config.window.resizable })
-    love.window.setTitle(NAME.." ["..VERSION.."]")
+    love.window.setMode(config.window.width, config.window.height, {
+        fullscreen = config.window.fullscreen,
+        resizable = config.window.resizable
+    })
+    love.window.setTitle(NAME .. " [" .. VERSION .. "]")
 
     -- Defining states
     state:define_state("src/state/game.lua", "game")
@@ -115,11 +53,11 @@ function love.load()
     lg.setLineStyle("rough")
     lm.setVisible(false)
 
-    --Scaling
+    -- Scaling
     scale_x = lg.getWidth() * 0.001
     scale_y = lg.getHeight() * 0.001
 
-    --Loading fonts
+    -- Loading fonts
     font = {
         regular = lg.newFont("src/font/inter.ttf", 15 * scale_x),
         large = lg.newFont("src/font/inter.ttf", 6 * scale_x),
@@ -133,19 +71,19 @@ function love.load()
     tileAtlas, tiles = loadAtlas("src/assets/tileset.png", 16, 16, 0)
     tileBreakImg, tileBreak = loadAtlas("src/assets/tileBreak.png", 16, 16, 0)
 
-    -- loading shader
+    -- Loading shader
     replaceShader = love.graphics.newShader("src/lib/poster/shaders/replacement.frag")
     local targetColor = {0.149, 0.361, 0.259, 1.0}
     replacementColor = config.skinColour.colour
     replacementColor2 = config.skinColour.colour2
-    
+
     local tolerance = 0.1
 
     replaceShader:send("targetColor", targetColor)
     replaceShader:send("replacementColor", replacementColor)
     replaceShader:send("tolerance", tolerance)
-    
-    -- loading audio
+
+    -- Loading audio
     gameAudio = {
         background = 0
     }
@@ -162,7 +100,7 @@ function love.load()
         end
         return audioSources
     end
-    
+
     local audioPath = "src/assets/audio/"
     local backgroundTracks = {"1"}
     gameAudio.background = loadAudio(backgroundTracks, audioPath)
@@ -178,12 +116,11 @@ function love.load()
             print("No background music available to play.")
         end
     end
-    
+
     playBackgroundMusic()
     applyMasterVolume()
 
     state:load("menu", {worldName = "test"})
-    --state:load("game", {type = "load", worldName = "test"})
 
     console:init(500, 200, font.tiny)
 
@@ -191,11 +128,11 @@ function love.load()
 end
 
 function save_config()
-    ttf.save(config, "config.lua")
+    Config.save(config)
 end
 
 function clear_config()
-    fs.remove("config.lua")
+    Config.clear()
 end
 
 function applyMasterVolume()
@@ -204,20 +141,16 @@ function applyMasterVolume()
     end
 end
 
---The following are callback functions
 function love.update(dt)
     keybind:trigger("keydown")
     state:update(dt)
     note:update(dt)
---    console:update(dt)
     smoof:update(dt)
     floatText:update(dt)
 end
 
 function love.draw()
-    lg.setColor(1, 1, 1, 1)
     state:draw()
-
     note:draw()
 
     if state.loadedStateName == "game" then
