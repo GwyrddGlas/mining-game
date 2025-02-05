@@ -2,6 +2,7 @@ local pauseScreen = {
     width = 0,
     height = 0,
     color = {
+        title = {1.000, 0.722, 0.0},
         fg = {1, 1, 1},
         bg = {0, 0, 0},
         success = {223/255, 147/255, 95/255},
@@ -27,7 +28,7 @@ function pauseScreen:load()
     }
     
     self.elements = {
-        label.new("Paused", self.color.fg, font.title, 0, self.height * 0.2, "center")
+        label.new("Paused", self.color.title, font.title, 0, self.height * 0.2, "center")
     }
 
     for i, data in ipairs(buttonData) do
