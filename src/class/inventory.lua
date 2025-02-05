@@ -296,6 +296,7 @@ function inventory:drawHotbar(icon)
             setColor(colors.defaultBorder)
             lg.setLineWidth(2)
         end
+        
         lg.rectangle("line", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
         lg.setLineWidth(1)
 
@@ -344,11 +345,6 @@ function inventory:draw(icon, itemSize, itemSpacing, cornerRadius, maxHotbarItem
     local mouseX, mouseY = love.mouse.getPosition()
     local hoveredItem = nil
     local hoveredX, hoveredY = 0, 0
-
-    print("Current Inventory Order:")
-    for i, item in ipairs(self.player.inventoryOrder) do
-        print(i, item)
-    end
 
     for row = 1, inventoryRows do
         for col = 1, inventoryColumns do
