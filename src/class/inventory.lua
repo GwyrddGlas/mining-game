@@ -15,16 +15,16 @@ local floor = math.floor
 local joy = love.joystick
 
 local colors = {
-    inventoryBackground = {30, 30, 40, 220},
-    hotbarBackground = {40, 40, 50, 220},
-    defaultSlot = {60, 60, 70, 200},
-    hoveredSlot = {100, 150, 255, 200},
-    selectedSlot = {255, 200, 100, 200},
-    itemNameText = {255, 255, 255},
-    itemNameBackground = {0, 0, 0, 150},
-    quantityText = {255, 255, 255},
-    defaultBorder = {80, 80, 90, 200},
-    highlightedBorder = {255, 100, 150, 200},
+    inventoryBackground = {30, 30, 40, 220},      -- Dark gray with slight transparency
+    hotbarBackground = {40, 40, 50, 220},         -- Slightly lighter dark gray
+    defaultSlot = {60, 60, 70, 200},              -- Default slot color
+    hoveredSlot = {100, 150, 255, 200},           -- Light blue for hovered slots
+    selectedSlot = {255, 200, 100, 200},          -- Gold for selected slots
+    itemNameText = {255, 255, 255},               -- White text for item names
+    itemNameBackground = {0, 0, 0, 150},          -- Semi-transparent black for item name backgrounds
+    quantityText = {255, 255, 255},               -- White text for quantities
+    defaultBorder = {80, 80, 90, 200},            -- Default border color
+    highlightedBorder = {255, 100, 150, 200},     -- Pink for highlighted borders
 }
 
 local function setColor(r, g, b, a)
@@ -33,6 +33,12 @@ local function setColor(r, g, b, a)
     end
     a = a or 255
     lg.setColor(r/255, g/255, b/255, a/255)
+end
+
+-- Draw a drop shadow for depth
+local function drawDropShadow(x, y, width, height, radius, shadowColor, offset)
+    lg.setColor(shadowColor)
+    lg.rectangle("fill", x + offset, y + offset, width, height, radius, radius)
 end
 
 local function isJoystickButtonDown(button)
@@ -262,19 +268,25 @@ function inventory:drawHotbar(icon)
     local itemSize = hotbarHeight * 0.8
     local maxHotbarItems = 8
     local itemSpacing = itemSize * 0.2
-    local cornerRadius = 2
+    local cornerRadius = 5 
 
     local hotbarPadding = itemSize * 0.08 
-    local adjustedHotbarWidth = hotbarWidth + hotbarPadding * 2
+    local totalHotbarWidth = (itemSize + itemSpacing) * maxHotbarItems - itemSpacing + hotbarPadding * 2
 
-    local itemX = hotbarX - (adjustedHotbarWidth * 0.5) + hotbarPadding
-    local itemY = hotbarY + (hotbarHeight - itemSize) * 0.5
-
-    local selectedIndex = self.selectedIndex
+    -- Center the hotbar horizontally
+    local hotbarBackgroundX = hotbarX - totalHotbarWidth * 0.5
+    local hotbarBackgroundY = hotbarY
 
     -- Draw hotbar background
+    drawDropShadow(hotbarBackgroundX, hotbarBackgroundY, totalHotbarWidth, hotbarHeight, cornerRadius, {0, 0, 0, 0.5}, 2)
     setColor(colors.hotbarBackground)
-    lg.rectangle("fill", hotbarX - adjustedHotbarWidth * 0.5, hotbarY, adjustedHotbarWidth, hotbarHeight, cornerRadius, cornerRadius)
+    lg.rectangle("fill", hotbarBackgroundX, hotbarBackgroundY, totalHotbarWidth, hotbarHeight, cornerRadius, cornerRadius)
+
+    -- Calculate the starting position for the items
+    local itemX = hotbarBackgroundX + hotbarPadding
+    local itemY = hotbarBackgroundY + (hotbarHeight - itemSize) * 0.5
+
+    local selectedIndex = self.selectedIndex
 
     for i = 1, maxHotbarItems do
         local x = itemX + (i - 1) * (itemSize + itemSpacing)
@@ -286,8 +298,7 @@ function inventory:drawHotbar(icon)
         else
             setColor(colors.defaultSlot)
         end
-        lg.rectangle("fill", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
-    
+
         -- Draw item slot border
         if i == selectedIndex then
             setColor(colors.highlightedBorder)
@@ -296,7 +307,6 @@ function inventory:drawHotbar(icon)
             setColor(colors.defaultBorder)
             lg.setLineWidth(2)
         end
-
         lg.rectangle("line", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
         lg.setLineWidth(1)
 
@@ -396,7 +406,7 @@ function inventory:draw(icon, itemSize, itemSpacing, cornerRadius, maxHotbarItem
                     hoveredX, hoveredY = x, y
                 end
 
-                setColor(colors.hoveredSlot)
+                setColor(colors.highlightedBorder)
                 lg.setLineWidth(3)
                 lg.rectangle("line", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
                 lg.setLineWidth(1)

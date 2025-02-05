@@ -325,9 +325,6 @@ function menu:load(args)
                 if currentTrack then
                     currentTrack:setVolume(value * config.audio.master)
                 end
-                if gameAudio.menu[1] then
-                    gameAudio.menu[1]:setVolume(value * config.audio.master)
-                end
             end),
             slider.new("SFX Volume", 0, 1, config.audio.sfx, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(value) config.audio.sfx = value end),
             button.new("Back", self.color.white, self.color.white, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, revertScreen())
