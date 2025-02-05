@@ -124,7 +124,7 @@ function love.load()
         regular = lg.newFont("src/font/inter.ttf", 15 * scale_x),
         large = lg.newFont("src/font/inter.ttf", 6 * scale_x),
         tiny = lg.newFont("src/font/inter.ttf", 10 * scale_x),
-        title = lg.newFont("src/font/PressStart2P-Regular.ttf", 40 * scale_x),
+        title = lg.newFont("src/font/MinecraftEvenings.ttf", 70 * scale_x),
     }
 
     lg.setFont(font.regular)

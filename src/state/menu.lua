@@ -24,9 +24,13 @@ local cloudSpeed = 11
 local cloudOffset = 0
 local skinColourToggle = false
 
--- Button functions
 function changeScreen(screen)
     return function()
+        if not menu.screen[screen] then
+            note:new("Error: Screen '" .. tostring(screen) .. "' does not exist!")
+            return
+        end
+
         menu.previousScreen = menu.currentScreen
         menu.currentScreen = screen
     end
@@ -111,8 +115,8 @@ end
 local function createButton(text, xPercent, yPercent, widthPercent, heightPercent, action)
     return button.new(
         text, 
-        menu.color.fg, 
-        menu.color.fg, 
+        menu.color.white, 
+        menu.color.white, 
         menu.width * (xPercent / 100), 
         menu.height * (yPercent / 100), 
         menu.width * (widthPercent / 100), 
@@ -198,11 +202,15 @@ function menu:getSelectedTextbox(screen)
     return nil
 end
 
-function menu:load()
+function menu:load(args)
+    args = args or {} 
+    self.currentScreen = args.initialScreen or "main"
+
     lg.setBackgroundColor(0.1, 0.1, 0.1)
     self.width, self.height = lg.getWidth(), lg.getHeight()
     self.color = {
-        fg = {1, 1, 1},
+        fg = {1, 0.94, 0.8},
+        white = {1, 1, 1},
         bg = {0, 0, 0},
         idle = {0.4, 0.4, 0.4},
         danger = {0.8, 0.2, 0.2},
@@ -211,19 +219,16 @@ function menu:load()
         darker2 = {180/255, 119/255, 76.5/255} 
     }
 
-    self.currentScreen = "main"
-
     self.screen = {
         main = {
-            label.new(VERSION, menu.color.fg, font.regular, menu.width * 0.47 - font.regular:getWidth(VERSION) * 0.4, menu.height - 55, "center"),
-            label.new("dsc.gg/miners-odyssey", menu.color.fg, font.regular, 10, menu.height - 55, "left"),
+            label.new(VERSION, self.color.white, font.regular, self.width * 0.47 - font.regular:getWidth(VERSION) * 0.4, self.height - 55, "center"),
+            label.new("dsc.gg/miners-odyssey", self.color.white, font.regular, 10, self.height - 55, "left"),
             createButton("Singleplayer", 30, 40, 40, 9, changeScreen("singleplayer")),
-            createButton("Multiplayer", 30, 50, 40, 9, changeScreen("multiplayer")),
-            createButton("Settings", 30, 60, 40, 9, changeScreen("options")),
-            createButton("Quit Game", 30, 70, 40, 9, exitButton),
+            createButton("Settings", 30, 50, 40, 9, changeScreen("options")),
+            createButton("Quit Game", 30, 60, 40, 9, exitButton),
         },
         singleplayer = {
-            label.new("Singleplayer", menu.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
+            label.new("Singleplayer", self.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
             createButton("New world", 30, 40, 40, 9, changeScreen("new")),
             createButton("Load world", 30, 50, 40, 9, changeScreen("load")),
             createButton("Back", 30, 60, 40, 9, revertScreen()),
@@ -232,7 +237,7 @@ function menu:load()
             createButton("Back", 30, 80, 40, 9, changeScreen("main")),
         },
         options = {
-            label.new("Settings", menu.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
+            label.new("Settings", self.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
             createButton("Graphics", 30, 30, 40, 9, changeScreen("graphics")),
             createButton("Sounds", 30, 40, 40, 9, changeScreen("sounds")),
             createButton("Controls", 30, 50, 40, 9, changeScreen("controls")),
@@ -244,8 +249,8 @@ function menu:load()
             createButton("Back", 30, 70, 40, 9, changeScreen("main")),
         },
         skins = {
-            label.new("Name", menu.color.bg, font.tiny, menu.width * 0.38, menu.height * 0.42, "left"),
-            characterName = textbox.new("", "Pickle", menu.color.fg, menu.color.idle, menu.color.fg, menu.width * 0.38, menu.height * 0.45, menu.width * 0.15, menu.height * 0.05),
+            label.new("Name", self.color.bg, font.tiny, self.width * 0.38, self.height * 0.42, "left"),
+            characterName = textbox.new("", "Pickle", self.color.fg, self.color.idle, self.color.fg, self.width * 0.38, self.height * 0.45, self.width * 0.15, self.height * 0.05),
             createButton("Colour Picker", 38, 51, 15, 5, function()
                 skinColourToggle = not skinColourToggle
             end),
@@ -256,46 +261,63 @@ function menu:load()
             createButton("Back", 30, 90, 40, 9, revertScreen()),
         },
         new = {
-            label.new("New world", menu.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
-            textbox.new("", "World name", menu.color.fg, menu.color.idle, menu.color.fg, menu.width * 0.3, menu.height * 0.4, menu.width * 0.4, menu.height * 0.09),
-            textbox.new("", "Seed", menu.color.fg, menu.color.idle, menu.color.fg, menu.width * 0.3, menu.height * 0.5, menu.width * 0.4, menu.height * 0.09, false, 10),
+            label.new("New world", self.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
+            textbox.new("", "World name", self.color.white, self.color.idle, self.color.fg, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.09),
+            textbox.new("", "Seed", self.color.white, self.color.idle, self.color.fg, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.09, false, 10),
             createButton("Create world", 30, 60, 40, 9, createButton),
             createButton("Back", 30, 70, 40, 9, revertScreen()),
         },
         load = {
-            label.new("Select World", menu.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
-            -- World buttons and delete buttons are added dynamically
+            label.new("Select World", self.color.white, font.title, 0, lg.getHeight() * 0.15, "center"),
+        },
+        sounds = {
+            label.new("Sound Settings", self.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
+            slider.new("Master Volume", 0, 1, config.audio.master, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(value) 
+                config.audio.master = value
+                applyMasterVolume()
+              end),
+              slider.new("Music Volume", 0, 1, config.audio.music, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(value) 
+                config.audio.music = value
+                if currentTrack then
+                    currentTrack:setVolume(value * config.audio.master)
+                end
+                if gameAudio.menu[1] then
+                    gameAudio.menu[1]:setVolume(value * config.audio.master)
+                end
+            end),
+            slider.new("SFX Volume", 0, 1, config.audio.sfx, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(value) config.audio.sfx = value end),
+            button.new("Back", self.color.fg, self.color.fg, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, revertScreen())
         },
         controls = {
-            label.new("Controls", menu.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
-            keybox.new("Forward", menu.color.fg, menu.color.fg, menu.width * 0.3, menu.height * 0.3, 120, menu.height * 0.09, gameControls.up, function(key)
+            label.new("Controls", self.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
+            keybox.new("Forward", self.color.white, self.color.white, self.width * 0.3, self.height * 0.3, 120, self.height * 0.09, gameControls.up, function(key)
                 setNewKey("up", key)
             end),
-            keybox.new("Backward", menu.color.fg, menu.color.fg, menu.width * 0.3, menu.height * 0.4, 120, menu.height * 0.09, gameControls.down, function(key)
+            keybox.new("Backward", self.color.white, self.color.white, self.width * 0.3, self.height * 0.4, 120, self.height * 0.09, gameControls.down, function(key)
                 setNewKey("down", key)
             end),
-            keybox.new("Left", menu.color.fg, menu.color.fg, menu.width * 0.3, menu.height * 0.5, 120, menu.height * 0.09, gameControls.left, function(key)
+            keybox.new("Left", self.color.white, self.color.white, self.width * 0.3, self.height * 0.5, 120, self.height * 0.09, gameControls.left, function(key)
                 setNewKey("left", key)
             end),
-            keybox.new("Right", menu.color.fg, menu.color.fg, menu.width * 0.3, menu.height * 0.6, 120, menu.height * 0.09, gameControls.right, function(key)
+            keybox.new("Right", self.color.white, self.color.white, self.width * 0.3, self.height * 0.6, 120, self.height * 0.09, gameControls.right, function(key)
                 setNewKey("right", key)
             end),
-            keybox.new("Sprint", menu.color.fg, menu.color.fg, menu.width * 0.5, menu.height * 0.3, 120, menu.height * 0.09, gameControls.sprint, function(key)
+            keybox.new("Sprint", self.color.white, self.color.white, self.width * 0.5, self.height * 0.3, 120, self.height * 0.09, gameControls.sprint, function(key)
                 setNewKey("sprint", key)
             end),
-            keybox.new("Inventory", menu.color.fg, menu.color.fg, menu.width * 0.5, menu.height * 0.4, 120, menu.height * 0.09, gameControls.inventory, function(key)
+            keybox.new("Inventory", self.color.white, self.color.white, self.width * 0.5, self.height * 0.4, 120, self.height * 0.09, gameControls.inventory, function(key)
                 setNewKey("inventory", key)
             end),
-            keybox.new("Chat", menu.color.fg, menu.color.fg, menu.width * 0.5, menu.height * 0.5, 120, menu.height * 0.09, gameControls.chat, function(key)
+            keybox.new("Chat", self.color.white, self.color.white, self.width * 0.5, self.height * 0.5, 120, self.height * 0.09, gameControls.chat, function(key)
                 setNewKey("chat", key)
             end),
-            keybox.new("Pause", menu.color.fg, menu.color.fg, menu.width * 0.5, menu.height * 0.6, 120, menu.height * 0.09, gameControls.pause, function(key)
+            keybox.new("Pause", self.color.white, self.color.white, self.width * 0.5, self.height * 0.6, 120, self.height * 0.09, gameControls.pause, function(key)
                 setNewKey("pause", key)
             end),
-            keybox.new("Conjure", menu.color.fg, menu.color.fg, menu.width * 0.7, menu.height * 0.3, 120, menu.height * 0.09, gameControls.conjure, function(key)
+            keybox.new("Conjure", self.color.white, self.color.white, self.width * 0.7, self.height * 0.3, 120, self.height * 0.09, gameControls.conjure, function(key)
                 setNewKey("conjure", key)
             end),
-            keybox.new("Save", menu.color.fg, menu.color.fg, menu.width * 0.7, menu.height * 0.4, 120, menu.height * 0.09, gameControls.save, function(key)
+            keybox.new("Save", self.color.white, self.color.white, self.width * 0.7, self.height * 0.4, 120, self.height * 0.09, gameControls.save, function(key)
                 setNewKey("save", key)
             end),
             createButton("Back", 30, 80, 40, 9, revertScreen()),
@@ -309,8 +331,8 @@ function menu:load()
             -- World button
             self.screen.load[#self.screen.load+1] = button.new(
                 world, 
-                self.color.fg, 
-                self.color.fg, 
+                self.color.white, 
+                self.color.white, 
                 self.width * 0.35, 
                 self.height * y, 
                 self.width * 0.3, 
@@ -493,7 +515,6 @@ function menu:resize(w, h)
 end
 
 function menu:mousepressed(x, y, button)
-    -- Existing mousepressed logic
     for _, v in pairs(self.screen[self.currentScreen]) do
         if type(v.mousepressed) == "function" then
             v:mousepressed(x, y, button)

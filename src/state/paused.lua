@@ -109,8 +109,7 @@ function pauseScreen:returnToMainMenu()
 end
 
 function pauseScreen:returnToSettingsMenu()
-    state:load("menu")
-    changeScreen("options")
+    state:load("menu", {initialScreen = "options"})
 end
 
 return pauseScreen

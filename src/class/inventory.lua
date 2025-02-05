@@ -296,7 +296,7 @@ function inventory:drawHotbar(icon)
             setColor(colors.defaultBorder)
             lg.setLineWidth(2)
         end
-        
+
         lg.rectangle("line", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
         lg.setLineWidth(1)
 
@@ -306,7 +306,7 @@ function inventory:drawHotbar(icon)
             local quantity = self.player.inventory[item]
             if self.icon[item] then
                 if tileAtlas and tiles[self.icon[item]] then
-                    setColor(1, 1, 1)
+                    lg.setColor(1, 1, 1, 1)
                     lg.draw(tileAtlas, tiles[self.icon[item]], x + itemSize * 0.1, y + itemSize * 0.1, 0, itemSize * 0.8 / config.graphics.assetSize, itemSize * 0.8 / config.graphics.assetSize)
                     
                     lg.setFont(font.regular)
@@ -322,6 +322,7 @@ function inventory:drawHotbar(icon)
             end
         end
     end
+    lg.setColor(1, 1, 1, 1)
 end
 
 function inventory:draw(icon, itemSize, itemSpacing, cornerRadius, maxHotbarItems)
@@ -370,7 +371,7 @@ function inventory:draw(icon, itemSize, itemSpacing, cornerRadius, maxHotbarItem
                 
                 if icon[item] then
                     if tileAtlas and tiles[icon[item]] then
-                        lg.setColor(1, 1, 1)  -- White for icons
+                        lg.setColor(1, 1, 1, 1) 
                         lg.draw(tileAtlas, tiles[icon[item]], x + itemSize * 0.1, y + itemSize * 0.1, 0, itemSize * 0.8 / config.graphics.assetSize, itemSize * 0.8 / config.graphics.assetSize)
 
                         lg.setFont(font.regular)
