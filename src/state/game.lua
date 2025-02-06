@@ -1,6 +1,7 @@
 local inventory = require("src/class/inventory")
 local minimap = require("src/lib/minimap")
 local statusBars = require("src/lib/statusBars")
+
 UI = require("src/lib/UIHandler")
 
 local lg = love.graphics
@@ -161,6 +162,7 @@ function game:load(data)
     playBackgroundMusic()
 
     UI:register("arcane", require("src/lib/UI/arcane"))
+    UI:register("teleporter", require("src/lib/UI/teleporter"))
 end
 
 function game:unload()
@@ -345,8 +347,12 @@ function game:keypressed(key)
     end
 
     if key == gameControls.conjure and not console.isOpen then
-        UI:open("arcane", {})
+        UI:open("teleporter", {}) --tmp while testing teleporter ui
     end
+
+   --if entity.type == 36 then
+   --    UI:open("teleporter", {})
+   --end
 
     -- Inventory
     self.inventory:keypressed(key)

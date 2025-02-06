@@ -133,7 +133,7 @@ function love.load()
     playNextTrack()
     applyMasterVolume()
 
-    state:load("menu", {worldName = "test"})
+    state:load("menu", {})
 
     console:init(500, 200, font.tiny)
 

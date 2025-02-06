@@ -48,14 +48,14 @@ local function exitButton()
     love.event.push("quit")
 end
 
-local function createButton()
+local function createNewWorld()
     -- Limiting the max seed to the highest 32-bit integer minus 1000 because the world generation offsets the seed by up to 1000.
     -- Negative seeds are not allowed. At least for now.
     local maxSeed = 2147483647 - 1000
-    local worldName = menu.screen.new.worldName.text
+    local wrldName = menu.screen.new.worldName.text
 
-    if #worldName < 1 then
-        worldName = "Untitled Game"
+    if #wrldName < 1 then
+        wrldName = "Untitled Game"
     end
 
     local seed = menu.screen.new.seed.text
@@ -75,7 +75,7 @@ local function createButton()
         seed = maxSeed
     end
 
-    state:load("game", {type = "new", worldName = worldName, seed = tonumber(seed)})
+    state:load("game", {type = "new", worldName = wrldName, seed = tonumber(seed)})
 end
 
 local skins = {}
@@ -307,9 +307,9 @@ function menu:load(args)
         },
         new = {
             label.new("New world", self.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
-            textbox.new("", "World name", self.color.white, self.color.idle, self.color.fg, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.09),
-            textbox.new("", "Seed", self.color.white, self.color.idle, self.color.fg, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.09, false, 10),
-            createButton("Create world", 30, 60, 40, 9, createButton),
+            worldName = textbox.new("", "World name", self.color.white, self.color.idle, self.color.fg, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.09),
+            seed = textbox.new("", "Seed", self.color.white, self.color.idle, self.color.fg, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.09, false, 10),
+            createButton("Create world", 30, 60, 40, 9, createNewWorld),
             createButton("Back", 30, 70, 40, 9, revertScreen()),
         },
         load = {
