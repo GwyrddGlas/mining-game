@@ -111,10 +111,6 @@ function entity:onInteract(entity)
             
             self:setType(2) --floor
         end
-
-        if entity.type == 14 then --crafting/arcane see convertIconToDefinition
-            UI:open("arcane", {})
-        end
     end
 end
 
@@ -149,7 +145,6 @@ local function convertIconToDefinition(iconValue)
 end
 
 function entity:place(id)
-    -- Ensure the id is valid
     if not id then
         print("Error: No item ID provided for placement.")
         return
@@ -175,7 +170,6 @@ local torchID = "Torch"
 
 function entity:draw()
     if _PLAYER and _PLAYER.control then
-        -- Checking if tile is visible to player 
         local los =  bresenham.los(self.gridX, self.gridY, _PLAYER.gridX, _PLAYER.gridY, function(x, y)
             if worldGen.tiles[y] then
                 if worldGen.tiles[y][x] then

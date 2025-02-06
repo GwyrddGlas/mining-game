@@ -32,6 +32,7 @@ local channels = {
     ["local"] = {color = {120, 220, 150}, prefix = "[Local]"},  
     ["whisper"] = {color = {200, 150, 255}, prefix = "[Whisper]"},
     ["system"] = {color = {255, 220, 100}, prefix = "[System]"},  
+    [""] = {color = {255, 220, 100}, prefix = ""},  
 }
 
 local magic = config.player.magic

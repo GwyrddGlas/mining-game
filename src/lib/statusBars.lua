@@ -12,7 +12,7 @@ local barConfigs = {
     magic = {
         backgroundColour = {0.1, 0.05, 0.2, 0.8}, -- Dark purple
         fillColour = {0.1, 0.5, 0.8, 1},         -- Bright blue
-        label = "Conjuration",
+        label = "Magic",
         icon = nil 
     },
     stamina = {

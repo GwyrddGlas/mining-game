@@ -124,9 +124,9 @@ function ArcaneUI:updateListButtons()
                             _PLAYER.magic = _PLAYER.magic - recipe.cost
                             _INVENTORY:removeItemFromInventory(convertIconToName(recipe.input))
                             _INVENTORY:giveItem(convertIconToName(recipe.output), 1)
-                            console:addMessage("Conjured " .. recipe.name, "system")
+                            console:addMessage("Conjured " .. recipe.name, "")
                         else
-                            console:addMessage("Not enough conjuration", "system")
+                            console:addMessage("Not enough conjuration", "")
                         end
                     end
                 ) 

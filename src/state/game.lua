@@ -339,11 +339,8 @@ function game:keypressed(key)
         worldGen:saveWorld()
     end
 
-    if key == gameControls.conjure then
-        if self.player.magic >= 5 then
-            _INVENTORY:giveItem("crafting")
-            _PLAYER.magic = _PLAYER.magic - 5
-        end
+    if key == gameControls.conjure and not console.isOpen then
+        UI:open("arcane", {})
     end
 
     -- Inventory
