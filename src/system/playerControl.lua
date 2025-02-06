@@ -14,7 +14,6 @@ local f = string.format
 local floor = math.floor
 
 local gameControls = config.settings.gameControls
-local stamina = config.player.stamina
 
 local function isJoystickButtonDown(button)
     local joysticks = joy.getJoysticks()
@@ -55,9 +54,9 @@ return {
         end
 
         if sprint then 
-            if stamina > 0 then
+            if _PLAYER.stamina > 0 then
                 speed = e.speed * 1.4
-                stamina = stamina - dt
+                _PLAYER.stamina = _PLAYER.stamina - dt
             end
         end
 

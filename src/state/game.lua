@@ -215,6 +215,11 @@ function game:update(dt)
     self.time = self.time + dt
     if self.time > math.pi * 2 then self.time = 0 end
 
+    self.player.time = self.player.time + dt * 0.05
+    if self.player.time >= 24 then
+        self.player.time = 0 
+    end
+
     -- Handle dying
     if health <= 0 then
         if self.player.spawnX and self.player.spawnY then

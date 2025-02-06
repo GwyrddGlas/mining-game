@@ -20,6 +20,12 @@ local barConfigs = {
         fillColour = {0, 0.6, 0.2, 1},           -- Bright green
         label = "Stamina",
         icon = nil
+    },
+    time = {
+        backgroundColour = {0.1, 0.1, 0.1, 0.8},  -- Dark background
+        fillColour = {1, 1, 1, 1},               -- White 
+        label = "Time",
+        icon = nil
     }
 }
 
@@ -35,6 +41,41 @@ end
 local function drawDropShadow(x, y, width, height, radius, shadowColor, offset)
     lg.setColor(shadowColor)
     lg.rectangle("fill", x + offset, y + offset, width, height, radius, radius)
+end
+
+local function lerpColor(color1, color2, t)
+    return {
+        color1[1] + (color2[1] - color1[1]) * t,
+        color1[2] + (color2[2] - color1[2]) * t,
+        color1[3] + (color2[3] - color1[3]) * t,
+        color1[4] + (color2[4] - color1[4]) * t
+    }
+end
+
+local function getTimeOfDayColor(time)
+    -- Normalize time to a 24-hour cycle (0 to 1)
+    local normalizedTime = time % 24 / 24
+
+    -- Define color transitions
+    local sunriseColor = {1, 0.8, 0.4, 1}  -- Orange-yellow (sunrise)
+    local dayColor = {0.6, 0.8, 1, 1}      -- Light blue (daytime)
+    local sunsetColor = {1, 0.4, 0.2, 1}   -- Red-orange (sunset)
+    local nightColor = {0.1, 0.1, 0.3, 1}  -- Dark blue (nighttime)
+
+    -- Interpolate colors based on time
+    if normalizedTime < 0.25 then
+        -- Sunrise to daytime
+        return lerpColor(sunriseColor, dayColor, normalizedTime / 0.25)
+    elseif normalizedTime < 0.5 then
+        -- Daytime to sunset
+        return lerpColor(dayColor, sunsetColor, (normalizedTime - 0.25) / 0.25)
+    elseif normalizedTime < 0.75 then
+        -- Sunset to nighttime
+        return lerpColor(sunsetColor, nightColor, (normalizedTime - 0.5) / 0.25)
+    else
+        -- Nighttime to sunrise
+        return lerpColor(nightColor, sunriseColor, (normalizedTime - 0.75) / 0.25)
+    end
 end
 
 function statusBars.drawBar(x, y, width, height, value, maxValue, barType)
@@ -60,9 +101,18 @@ function statusBars.drawBar(x, y, width, height, value, maxValue, barType)
     end, "replace", 1)
 
     lg.setStencilTest("greater", 0)
-    local gradient = createSmoothGradientMesh(fillWidth, height, config.fillColour)
-    lg.setColor(1, 1, 1, 1)
-    lg.draw(gradient, x, y)
+
+    if barType == "time" then
+        local timeColor = getTimeOfDayColor(value)
+        local gradient = createSmoothGradientMesh(fillWidth, height, timeColor)
+        lg.setColor(1, 1, 1, 1)
+        lg.draw(gradient, x, y)
+    else
+        local gradient = createSmoothGradientMesh(fillWidth, height, config.fillColour)
+        lg.setColor(1, 1, 1, 1)
+        lg.draw(gradient, x, y)
+    end
+
     lg.setStencilTest()
 
     -- Draw outline
@@ -73,11 +123,18 @@ function statusBars.drawBar(x, y, width, height, value, maxValue, barType)
     -- Draw label
     lg.setFont(font.tiny)
     local label = string.format("%s: %d/%d", config.label, value, maxValue)
+    local labelTime = string.format("%s: %02d:00", config.label, value % 24) 
     local labelWidth = font.tiny:getWidth(label)
     local labelX = x + 10 
     local labelY = y + (height - font.tiny:getHeight()) / 2
+
     lg.setColor(1, 1, 1, 1)
-    lg.print(label, labelX, labelY)
+
+    if barType == "time" then
+        lg.print(labelTime, labelX, labelY)
+    else
+        lg.print(label, labelX, labelY)
+    end
 
     if config.icon then
         local icon = love.graphics.newImage(config.icon)
@@ -91,6 +148,7 @@ function statusBars.drawAllBars(player, x, y, width, spacing)
     statusBars.drawBar(x, y, width, barHeight, player.health, 10, "health")
     statusBars.drawBar(x, y + barHeight + spacing, width, barHeight, player.magic, player.magicCap, "magic")
     statusBars.drawBar(x, y + (barHeight + spacing) * 2, width, barHeight, player.stamina, 10, "stamina")
+    statusBars.drawBar(x, y + (barHeight + spacing) * 3, width, barHeight, player.time, 24, "time") 
 end
 
 return statusBars
