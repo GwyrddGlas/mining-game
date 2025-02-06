@@ -240,12 +240,13 @@ function menu:load(args)
             createButton("Graphics", 30, 30, 40, 9, changeScreen("graphics")),
             createButton("Sounds", 30, 40, 40, 9, changeScreen("sounds")),
             createButton("Controls", 30, 50, 40, 9, changeScreen("controls")),
-            createButton("Save", 30, 60, 40, 9, function()
+            createButton("Debug", 30, 60, 40, 9, changeScreen("debug")),
+            createButton("Save", 30, 70, 40, 9, function()
                 clear_config()
                 save_config()
                 note:new("Settings saved!", "success")
             end),
-            createButton("Back", 30, 70, 40, 9, changeScreen("main")),
+            createButton("Back", 30, 80, 40, 9, changeScreen("main")),
         },
         skins = {
             label.new("Name", self.color.bg, font.tiny, self.width * 0.38, self.height * 0.42, "left"),
@@ -363,7 +364,30 @@ function menu:load(args)
             end),
             createButton("Back", 30, 80, 40, 9, revertScreen()),
         },
-        credits = {}
+        debug = {
+            label.new("Debug", self.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
+            checkbox.new("Debug Enabled", self.color.white, self.color.white, self.width * 0.4, self.height * 0.3, self.width * 0.4, self.height * 0.05, config.debug.enabled, 
+                function(isChecked) 
+                    config.debug.enabled = isChecked
+                end),    
+            
+                checkbox.new("Show Chunk Borders", self.color.white, self.color.white, self.width * 0.4, self.height * 0.4, self.width * 0.4, self.height * 0.05, config.debug.showChunkBorders, 
+                function(isChecked) 
+                    config.debug.showChunkBorders = isChecked
+                end),  
+
+                checkbox.new("Show Collisions", self.color.white, self.color.white, self.width * 0.4, self.height * 0.5, self.width * 0.4, self.height * 0.05, config.debug.showCollision, 
+                function(isChecked) 
+                    config.debug.showCollision = isChecked
+                end),    
+
+                checkbox.new("Player Collision", self.color.white, self.color.white, self.width * 0.4, self.height * 0.6, self.width * 0.4, self.height * 0.05, config.debug.playerCollision, 
+                function(isChecked) 
+                    config.debug.playerCollision = isChecked
+                end),    
+            
+            createButton("Back", 30, 70, 40, 9, revertScreen()),
+        }
     }
 
     local y = 0.4

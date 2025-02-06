@@ -53,7 +53,7 @@ local default_config = {
         colour2 = {25/255, 60/255, 62/255, 1.0} 
     },
     debug = {
-        enabled = true,
+        enabled = false,
         text_color = {255, 255, 255},
         showChunkBorders = false,
         showCollision = false,

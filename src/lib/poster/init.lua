@@ -55,15 +55,20 @@ local poster_meta = {__index = poster}
 
 -- Loading built in shaders
 print("Loading shaders...")
+note:new("Loading shaders...")
+
 local shader_directory = fs.getDirectoryItems(shader_path)
 for _, shader in ipairs(shader_directory) do
     local name, extension = shader:match("(%w+).(%w+)")
     if extension == "frag" then
         print(f("Loading shader '%s/%s'.", shader_path, shader))
+        note:new(f("Loading shader '%s/%s'.", shader_path, shader))
         poster.loaded_shaders[name] = lg.newShader(f("%s/%s", shader_path, shader))
     end
 end
+
 print("Shaders loaded.")
+note:new("Shaders loaded.")
 
 -- Sending a default imageSize to shaders that use it.
 print("Sending 'imageSize' to shaders in the 'shaders_with_imageSize' list")

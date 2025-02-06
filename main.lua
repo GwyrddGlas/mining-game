@@ -85,39 +85,52 @@ function love.load()
 
     -- Loading audio
     gameAudio = {
-        background = 0
+        background = {},
+        currentTrackIndex = 1,
+        isMusicPlaying = false
     }
 
     local function loadAudio(trackList, path)
         local audioSources = {}
         for _, trackName in ipairs(trackList) do
             local trackPath = path .. trackName .. ".mp3"
-            if love.filesystem.exists(trackPath) then
-                table.insert(audioSources, love.audio.newSource(trackPath, "stream"))
+            if fs.getInfo(trackPath) then
+                local source = love.audio.newSource(trackPath, "stream")
+                source:setVolume(config.audio.master * config.audio.music)
+                table.insert(audioSources, source)
             else
-                print("Track " .. trackName .. " not found at path: " .. path)
+                print("Track " .. trackName .. " not found at path: " .. trackPath)
             end
         end
         return audioSources
     end
 
     local audioPath = "src/assets/audio/"
-    local backgroundTracks = {"1"}
+    local backgroundTracks = {"vanishinghope", "dreadfulwhispers"}
     gameAudio.background = loadAudio(backgroundTracks, audioPath)
 
-    local function playBackgroundMusic()
+    local function playNextTrack()
         if #gameAudio.background > 0 then
-            local music = gameAudio.background[1]
-            if not music:isPlaying() then
-                music:setLooping(true)
-                music:play()
+            -- Stop the current track if it's playing
+            if gameAudio.isMusicPlaying then
+                gameAudio.background[gameAudio.currentTrackIndex]:stop()
             end
+
+            -- Move to the next track
+            gameAudio.currentTrackIndex = (gameAudio.currentTrackIndex % #gameAudio.background) + 1
+            local music = gameAudio.background[gameAudio.currentTrackIndex]
+
+            -- Play the next track
+            music:setLooping(false) -- Disable looping for individual tracks
+            music:play()
+            gameAudio.isMusicPlaying = true
         else
+            note:new("No background music available to play.")
             print("No background music available to play.")
         end
     end
 
-    playBackgroundMusic()
+    playNextTrack()
     applyMasterVolume()
 
     state:load("menu", {worldName = "test"})
