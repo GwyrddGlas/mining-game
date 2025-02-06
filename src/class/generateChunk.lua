@@ -96,21 +96,21 @@ if type(chunksToGenerate) == "table" then
                 -- Tile setup
                 local tile = wall
 
-                -- Determine biome and terrain
                 local tileBiome = biomes[biome]
                 local sway = -1 + (noise(tileY * 0.01, tileX * 0.01, seed) * 2)
                 local swayAmount = 0.05
 
-                -- Use cave noise for generating organic voids
                 if generateCaveNoise(tileX, tileY, tileBiome.caveScaleBase, tileBiome.caveScaleDetail, tileBiome.caveThresh + (swayAmount * sway), tileBiome.caveRatio1, tileBiome.caveRatio2, 0) then
                     tile = ground
 
-                    -- Ores generation within the caves
                     for i, ore in ipairs(tileBiome.ores) do
-                        if generateCaveNoise(tileX, tileY, ore.scaleBase, ore.scaleDetail, ore.thresh + 0.1, ore.ratio1, ore.ratio2, ore.seedOffset) then
-                            local probability = ore.spawnProbability * 0.5 + (love.math.random() * (1 - (ore.spawnProbability * 0.5)))
-                            if probability >= 1 - ore.spawnProbability then
-                                tile = i + 2
+                        local oreNoiseValue = noise(tileX * ore.scaleBase, tileY * ore.scaleBase, seed + ore.seedOffset)
+                        local oreThreshold = ore.thresh + (swayAmount * sway)
+
+                        if oreNoiseValue > oreThreshold then
+                            if love.math.random() < ore.spawnProbability then
+                                tile = i + 2 
+                                break 
                             end
                         end
                     end

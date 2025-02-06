@@ -120,40 +120,53 @@ end
 
 local function convertIconToDefinition(iconValue)
     local iconDefinitions = {
-        [1] = 5,    -- Coal
-        [2] = 6,    -- Iron
-        [3] = 7,    -- Gold
-        [4] = 8,    -- Uranium
-        [5] = 9,    -- Diamond
-        [6] = 10,   -- Ruby
-        [7] = 11,   -- Tanzenite
-        [8] = 12,   -- Copper
-        [9] = 3,    -- Shrub (stick)
-        [18] = 1,   -- Wall
-        [28] = 14,  -- Crafting
-        [29] = 13,  -- Furnace
-        [30] = 15,  -- StoneBrick
-        [31] = 17,  -- Grass
-        [32] = 12,  -- Dirt 
-        [33] = 16,  -- Torch
-        [34] = 12,  -- Chest 
-        [35] = 12,  -- Water 
-        [36] = 12,  -- Teleporter 
-        [41] = 12,  -- Health 
-        [42] = 12,  -- HalfHeart 
-        [49] = 4,   -- MagicPlant
-        [51] = 18,  -- Mushroom
+        ["Wall"] = 1,
+        ["Floor"] = 2,
+        ["Shrub"] = 3,
+        ["MagicPlant"] = 4,
+        ["Coal"] = 5,
+        ["Iron"] = 6,
+        ["Gold"] = 7,
+        ["Uranium"] = 8,
+        ["Diamond"] = 9,
+        ["Ruby"] = 10,
+        ["Tanzenite"] = 11,
+        ["Copper"] = 12,
+        ["Furnace"] = 13,
+        ["Crafting"] = 14,
+        ["Teleporter"] = 15,
+        ["StoneBrick"] = 16,
+        ["Torch"] = 17,
+        ["Grass"] = 18,
+        ["Mushroom"] = 19,
     }
-    
-    return iconDefinitions[iconValue] or 12
+
+    if type(iconValue) == "string" then
+        return iconDefinitions[iconValue] or 2 
+    else
+        return iconDefinitions[iconValue] or 2 
+    end
 end
 
 function entity:place(id)
+    -- Ensure the id is valid
+    if not id then
+        print("Error: No item ID provided for placement.")
+        return
+    end
+
     local newTileType = convertIconToDefinition(id)
-    --tprint(tileData)
+
+    if not tileData[newTileType] then
+        print("Error: Invalid tile type for placement: " .. tostring(newTileType))
+        return
+    end
+
     if tileData[newTileType].placeable and not self.tileData.interactable then
         self:setType(newTileType)
         self.chunk.modified = true
+    else
+        print("Error: Tile type " .. newTileType .. " is not placeable or the target tile is interactable.")
     end
 end
 

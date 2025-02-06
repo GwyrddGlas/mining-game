@@ -129,7 +129,7 @@ function entity:interact(tile)
     end
 end
 
-function entity:place(tile, id)
+function entity:placeTile(tile)
     if tile.entityType ~= "tile" then
         return
     end
@@ -142,11 +142,11 @@ function entity:place(tile, id)
     if type(itemQuantity) == "number" and itemQuantity > 0 then
         local originalType = tile.type
 
-        tile:place(id)
+        tile:place(selectedItem)
 
         if tile.type ~= originalType then
             inventory[selectedItem] = itemQuantity - 1
-            
+
             if inventory[selectedItem] <= 0 then
                 inventory[selectedItem] = nil
                 for i, item in ipairs(inventoryOrder) do
