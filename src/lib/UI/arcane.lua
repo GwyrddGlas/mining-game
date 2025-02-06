@@ -84,6 +84,32 @@ function ArcaneUI:init()
     self:updateListButtons()
 end
 
+local glowShader = love.graphics.newShader[[
+    extern float time;
+    vec4 effect(vec4 color, Image texture, vec2 texture_coords, vec2 screen_coords) {
+        vec2 uv = screen_coords / love_ScreenSize.xy;
+        float glow = sin(time * 2.0 + uv.x * 10.0) * 0.5 + 0.5;
+        return vec4(0.2, 0.2, 0.4, 0.2) * glow;  // Blueish glow
+    }
+]]
+
+function ArcaneUI:drawBackground()
+    lg.setShader(glowShader)
+    glowShader:send("time", love.timer.getTime())
+    lg.setColor(1, 1, 1, 1)
+    lg.rectangle("fill", 0, 0, lg.getWidth(), lg.getHeight())
+    lg.setShader()
+end
+
+function ArcaneUI:craftRipple(x, y)
+    lg.setShader(rippleShader)
+    rippleShader:send("time", love.timer.getTime())
+    rippleShader:send("center", {x, y})
+    lg.setColor(1, 1, 1, 1)
+    lg.circle("fill", x, y, 50, 32)  -- Draw a ripple effect
+    lg.setShader()  -- Reset shader
+end
+
 function ArcaneUI:toggleSection(section)
     if self.activeSections[section] then
         self.activeSections[section] = nil
@@ -126,7 +152,7 @@ function ArcaneUI:updateListButtons()
                             _INVENTORY:giveItem(convertIconToName(recipe.output), 1)
                             console:addMessage("Conjured " .. recipe.name, "")
                         else
-                            console:addMessage("Not enough conjuration", "")
+                            console:addMessage("Not enough magic", "")
                         end
                     end
                 ) 
@@ -158,6 +184,8 @@ end
 
 function ArcaneUI:draw()
     if not self.isOpen then return end
+    self:drawBackground() 
+
     for _, button in ipairs(self.sectionButtons) do
         button:draw()
     end

@@ -57,34 +57,52 @@ function ArcaneButton:update(dt)
     self.scale = self.scale + (self.targetScale - self.scale) * 10 * dt
 end
 
+local buttonGlowShader = love.graphics.newShader[[
+    extern float time;
+    extern vec2 size;
+    extern vec2 position;
+    vec4 effect(vec4 color, Image texture, vec2 texture_coords, vec2 screen_coords) {
+        vec2 uv = (screen_coords - position) / size;
+        float glow = sin(time * 3.0 + uv.x * 10.0) * 0.5 + 0.5;
+        return vec4(0.5, 0.5, 1.0, 1) * glow;  // Glowing border color
+    }
+]]
+
 function ArcaneButton:draw()
     local centerX, centerY = self.x + self.width/2, self.y + self.height/2
     local scaledWidth, scaledHeight = self.width * self.scale, self.height * self.scale
     local drawX, drawY = centerX - scaledWidth/2, centerY - scaledHeight/2
     local spriteScale = 2
 
+    -- Draw button background
+    lg.setColor(1, 1, 1, 0.2)
+    lg.rectangle("fill", self.x, self.y, self.width, self.height, 5, 5)
+    lg.setColor(1, 1, 1, 1)
+
+    -- Draw sprites if they exist
+    if self.leftSprite then
+        lg.draw(tileAtlas, self.leftSprite, self.x + self.height * 0.2, self.y + self.height * 0.25, 0, spriteScale, spriteScale)
+    end
+    
+    if self.rightSprite then
+        lg.draw(tileAtlas, self.rightSprite, self.x + self.width - self.height * 1.2, self.y + self.height * 0.25, 0, spriteScale, spriteScale)
+    end
+
     lg.push()
     lg.translate(centerX, centerY)
     lg.scale(self.scale)
     lg.translate(-centerX, -centerY)
 
+    -- Draw glowing border with shader
+    lg.setShader(buttonGlowShader)
+    buttonGlowShader:send("time", love.timer.getTime())
+    buttonGlowShader:send("size", {self.width, self.height})
+    buttonGlowShader:send("position", {self.x, self.y})
+   
     lg.setColor(self.color)
+    lg.rectangle("line", self.x, self.y, self.width, self.height, 5, 5)
+    lg.setShader()  -- Reset shader
 
-    -- Draw button background
-    lg.draw(tileAtlas, self.buttonLeft, self.x, self.y, 0, self.height / config.graphics.assetSize, self.height / config.graphics.assetSize)
-    lg.draw(tileAtlas, self.buttonCenter, self.x + self.height, self.y, 0, (self.width - (self.height * 2)) / config.graphics.assetSize, self.height / config.graphics.assetSize)
-    lg.draw(tileAtlas, self.buttonRight, self.x + self.width - self.height, self.y, 0, self.height / config.graphics.assetSize, self.height / config.graphics.assetSize)
-
-    local leftSpriteX = self.x + self.height * 0.2
-    local rightSpriteX = self.x + self.width - self.height * 1.2
-    
-    -- Draw sprites if they exist
-    if self.leftSprite then
-        lg.draw(tileAtlas, self.leftSprite, leftSpriteX, self.y + self.height * 0.25, 0, spriteScale, spriteScale)
-    end
-    if self.rightSprite then
-        lg.draw(tileAtlas, self.rightSprite, rightSpriteX, self.y + self.height * 0.25, 0, spriteScale, spriteScale)
-    end
         
     -- Text
     lg.setColor(self.textColor)
@@ -92,8 +110,8 @@ function ArcaneButton:draw()
     local textX, textWidth
     
     if self.leftSprite and self.rightSprite then
-        textX = leftSpriteX + self.height * 1.2
-        textWidth = rightSpriteX - textX
+        textX = self.x + self.height * 1.2
+        textWidth = self.width - self.height * 2.4
     else
         textX = self.x + self.height * 0.5
         textWidth = self.width - self.height
