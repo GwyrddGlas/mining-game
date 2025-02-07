@@ -1,18 +1,33 @@
 local TeleporterUI = {}
+local teleporter_meta = {__index = TeleporterUI}
+
 local lg = love.graphics
+
+local hoverSound = love.audio.newSource("src/assets/audio/button-hover.wav", "static")
+
+local buttonGlowShader = love.graphics.newShader[[
+    extern float time;
+    extern vec2 size;
+    extern vec2 position;
+    vec4 effect(vec4 color, Image texture, vec2 texture_coords, vec2 screen_coords) {
+        vec2 uv = (screen_coords - position) / size;
+        float glow = sin(time * 3.0 + uv.x * 10.0) * 0.5 + 0.5;
+        return vec4(0.5, 0.5, 1.0, 1) * glow;  // Glowing border color
+    }
+]]
 
 local glowShader = love.graphics.newShader[[
     extern float time;
     vec4 effect(vec4 color, Image texture, vec2 texture_coords, vec2 screen_coords) {
-        float glow = sin(time * 2.0 + screen_coords.x * 0.1 + screen_coords.y * 0.1) * 0.5 + 0.5;
-        return vec4(0.5, 0.5, 1.0, glow);  // Blueish glow
+        vec2 uv = screen_coords / love_ScreenSize.xy;
+        float glow = sin(time * 2.0 + uv.x * 10.0) * 0.5 + 0.5;
+        return vec4(0.2, 0.2, 0.4, 0.2) * glow;  // Blueish glow
     }
 ]]
 
 local dimensions = {
-    {name = "The Grasslands", color = {0.2, 0.8, 0.2}},  -- Green
-    {name = "tmp", color = {0.8, 0.6, 0.2}},  -- Yellow
-    {name = "tmp", color = {0.6, 0.8, 1.0}},     -- Light blue
+    {name = "Grasslands", color = {0.2, 0.8, 0.2}},  -- Green
+    {name = "The Caverns", color = {0.6, 0.8, 1.0}},  -- Light blue
 }
 
 local buttons = {}
@@ -27,14 +42,16 @@ function TeleporterUI:init()
 
     for i, dimension in ipairs(dimensions) do
         buttons[i] = {
+            name = dimension.name,
+            color = dimension.color,
             x = startX,
             y = startY + (i - 1) * (buttonHeight + spacing),
             width = buttonWidth,
             height = buttonHeight,
-            color = dimension.color,
-            name = dimension.name,
+            scale = 1,
+            targetScale = 1,
             isHovered = false,
-            isSelected = false
+            isClicked = false,
         }
     end
 end
@@ -52,9 +69,27 @@ function TeleporterUI:update(dt)
     if not self.isOpen then return end
 
     local mx, my = love.mouse.getPosition()
-    for i, button in ipairs(buttons) do
+    for _, button in ipairs(buttons) do
         button.isHovered = mx > button.x and mx < button.x + button.width and
                            my > button.y and my < button.y + button.height
+
+        if button.isHovered then
+            button.targetScale = 1.05
+            if not button.wasHovered then
+                hoverSound:stop()
+                hoverSound:setVolume(config.audio.sfx)
+                hoverSound:play()
+            end
+        else
+            button.targetScale = 1
+        end
+
+        if button.isClicked then
+            button.targetScale = 0.95
+        end
+
+        button.scale = button.scale + (button.targetScale - button.scale) * 10 * dt
+        button.wasHovered = button.isHovered
     end
 end
 
@@ -68,14 +103,26 @@ function TeleporterUI:draw()
     lg.rectangle("fill", 0, 0, lg.getWidth(), lg.getHeight())
     lg.setShader()
 
-    -- Draw dimension buttons
-    for i, button in ipairs(buttons) do
-        lg.setColor(button.color)
-        if button.isHovered or button.isSelected then
-            lg.setColor(button.color[1] * 1.2, button.color[2] * 1.2, button.color[3] * 1.2)
-        end
-        lg.rectangle("fill", button.x, button.y, button.width, button.height, 5, 5)
+    -- Draw teleporter buttons
+    for _, button in ipairs(buttons) do
+        local centerX, centerY = button.x + button.width / 2, button.y + button.height / 2
+        local scaledWidth, scaledHeight = button.width * button.scale, button.height * button.scale
+        local drawX, drawY = centerX - scaledWidth / 2, centerY - scaledHeight / 2
 
+        lg.setColor(button.color)
+        lg.rectangle("fill", drawX, drawY, scaledWidth, scaledHeight, 5, 5)
+
+        lg.setShader(buttonGlowShader)
+        buttonGlowShader:send("time", love.timer.getTime())
+        buttonGlowShader:send("size", {button.width, button.height})
+        buttonGlowShader:send("position", {button.x, button.y})
+
+        lg.setColor(button.color)
+        lg.rectangle("line", drawX, drawY, scaledWidth, scaledHeight, 5, 5)
+
+        lg.setShader()
+        
+        -- Draw text
         lg.setColor(1, 1, 1)
         lg.printf(button.name, button.x, button.y + button.height / 2 - 10, button.width, "center")
     end
@@ -83,9 +130,10 @@ end
 
 function TeleporterUI:mousepressed(x, y, button)
     if not self.isOpen then return end
-    
-    for i, btn in ipairs(buttons) do
+
+    for _, btn in ipairs(buttons) do
         if x > btn.x and x < btn.x + btn.width and y > btn.y and y < btn.y + btn.height then
+            btn.isClicked = true
             selectedDimension = btn.name
             self:teleport(selectedDimension)
         end
@@ -93,12 +141,16 @@ function TeleporterUI:mousepressed(x, y, button)
 end
 
 function TeleporterUI:mousereleased(x, y, button)
-
+    if button == 1 then
+        for _, btn in ipairs(buttons) do
+            btn.isClicked = false
+        end
+    end
 end
 
 function TeleporterUI:teleport(dimension)
-    print("Teleporting to " .. dimension)
     self:close()
+    state:load(""..dimension, {})
 end
 
 return TeleporterUI

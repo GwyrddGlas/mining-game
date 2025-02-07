@@ -350,10 +350,6 @@ function game:keypressed(key)
         UI:toggle("arcane", {})
     end
 
-   -- if entity.type == 36 then
-   --     UI:open("teleporter", {})
-   -- end
-
     -- Inventory
     self.inventory:keypressed(key)
 
@@ -386,13 +382,20 @@ function game:mousepressed(x, y, button)
 
     UI:mousepressed(x, y, button)
 
-    --Placing/Interacting
+    -- Placing/Interacting
     if button == 2 and self.hoverEntity and not self.inventory.inventoryOpen then
         local itemId = self.icon[self.inventory.highlightedItem]
-        self.player:placeTile(self.hoverEntity)
-        self.player:interact(self.hoverEntity)
+
+        -- If it's a teleporter, open the UI instead of placing a tile
+        if self.hoverEntity.type == 15 and itemId == nil then
+            UI:open("teleporter", {})
+        else
+            self.player:placeTile(self.hoverEntity)  -- Place a block
+            self.player:interact(self.hoverEntity)  -- Interact only if not a teleporter
+        end
     end
 end
+
 
 function game:mousereleased(x, y, button)
     UI:mousereleased(x, y, button)

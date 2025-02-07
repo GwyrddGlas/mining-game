@@ -455,9 +455,9 @@ function menu:update(dt)
 
     backgroundShader:send("time", time)           
     backgroundShader:send("contrast", 1.5)  
-    backgroundShader:send("colour_1", {0, 0, 0, 1.0}) -- (Green)
-    backgroundShader:send("colour_2", {0, 0, 0, 1.0}) --(Blue)
-    backgroundShader:send("colour_3", {0.7, 0.5, 0.9, 0.7}) --White)
+    backgroundShader:send("colour_1", {0, 0, 0, 1.0})
+    backgroundShader:send("colour_2", {0, 0, 0, 1.0})
+    backgroundShader:send("colour_3", {0.7, 0.5, 0.9, 0.7})
 
     local selected = colourPicker.getSelectedColor()
 
