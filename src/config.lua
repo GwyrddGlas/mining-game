@@ -75,6 +75,7 @@ function Config.load()
         end
     end
 
+    Config.save(default_config)
     return default_config
 end
 

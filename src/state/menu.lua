@@ -23,8 +23,9 @@ local nightSkyImageScaleX, nightSkyImageScaleY
 local cloudSpeed = 11
 local cloudOffset = 0
 local skinColourToggle = false
+local backgroundShader = love.graphics.newShader("src/lib/poster/shaders/background.frag")
 
-function changeScreen(screen)
+local function changeScreen(screen)
     return function()
         if not menu.screen[screen] then
             note:new("Error: Screen '" .. tostring(screen) .. "' does not exist!")
@@ -444,10 +445,19 @@ function updateSkinColours(colour1, colour2)
     --replaceShader:send("replacementcolour2", colour2)
 end
 
+local time = 0
 function menu:update(dt)
     self.titleOffset = self.titleAmplitude * math.sin(love.timer.getTime() * self.titleSpeed / self.titleAmplitude)
     cloudOffset = cloudOffset + cloudSpeed * dt
     colourPicker.update(dt)
+
+    time = time + dt/10
+
+    backgroundShader:send("time", time)           
+    backgroundShader:send("contrast", 1.5)  
+    backgroundShader:send("colour_1", {0, 0, 0, 1.0}) -- (Green)
+    backgroundShader:send("colour_2", {0, 0, 0, 1.0}) --(Blue)
+    backgroundShader:send("colour_3", {0.7, 0.5, 0.9, 0.7}) --White)
 
     local selected = colourPicker.getSelectedColor()
 
@@ -505,7 +515,10 @@ function menu:drawCharacterEditor()
 end
 
 function menu:draw()
+    lg.setShader(backgroundShader)
+
     love.graphics.draw(nightSkyImage, 0, 0, 0, nightSkyImageScaleX, nightSkyImageScaleY)  
+    lg.setShader()
     
     if self.currentScreen == "skins" then
         self:drawCharacterEditor()

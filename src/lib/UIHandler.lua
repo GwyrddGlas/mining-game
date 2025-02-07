@@ -24,6 +24,14 @@ function UIHandler:open(ftype, data)
     end
 end
 
+function UIHandler:toggle(ftype, data)
+    if self.active == self.types[ftype] then
+        self:close()
+    else
+        self:open(ftype, data)
+    end
+end
+
 function UIHandler:close()
     if self.active then
         self.active:close()

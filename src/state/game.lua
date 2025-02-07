@@ -347,7 +347,7 @@ function game:keypressed(key)
     end
 
     if key == gameControls.conjure and not console.isOpen then
-        UI:open("arcane", {})
+        UI:toggle("arcane", {})
     end
 
    -- if entity.type == 36 then
