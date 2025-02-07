@@ -95,7 +95,7 @@ function console:init(width, height, font)
     self.messages = {}
     self.input = ""
     self.scroll = 0
-    self.maxMessages = 7
+    self.maxMessages = 6
     self.activeChannel = "all"
     self.isOpen = false
     self.inputBox = {

@@ -232,9 +232,6 @@ function menu:load(args)
             createButton("Load world", 30, 50, 40, 9, changeScreen("load")),
             createButton("Back", 30, 60, 40, 9, revertScreen()),
         },
-        multiplayer = {
-            createButton("Back", 30, 80, 40, 9, changeScreen("main")),
-        },
         options = {
             label.new("Settings", self.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
             createButton("Graphics", 30, 30, 40, 9, changeScreen("graphics")),
@@ -314,6 +311,7 @@ function menu:load(args)
         },
         load = {
             label.new("Select World", self.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
+            createButton("Back", 30, 90, 40, 9, revertScreen()), --tmp
         },
         sounds = {
             label.new("Sound Settings", self.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),

@@ -256,6 +256,10 @@ function inventory:drawItemName(item, x, y, itemSize)
     lg.print(tostring(item), x + padding, y - nameHeight + padding)
 end
 
+function inventory:hasItem(itemName)
+    return self.player.inventory[itemName] and self.player.inventory[itemName] > 0
+end
+
 function inventory:drawHotbar(icon)
     self.icon = icon
 

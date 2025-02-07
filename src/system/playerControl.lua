@@ -49,7 +49,7 @@ return {
         local sprint = kb.isDown(gameControls.sprint) or isJoystickButtonDown(1)
         local speed = e.speed
 
-        if UI.active then
+        if UI.active then --why did i do this?
             return
         end
 

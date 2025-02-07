@@ -347,12 +347,12 @@ function game:keypressed(key)
     end
 
     if key == gameControls.conjure and not console.isOpen then
-        UI:open("teleporter", {}) --tmp while testing teleporter ui
+        UI:open("arcane", {})
     end
 
-   --if entity.type == 36 then
-   --    UI:open("teleporter", {})
-   --end
+   -- if entity.type == 36 then
+   --     UI:open("teleporter", {})
+   -- end
 
     -- Inventory
     self.inventory:keypressed(key)
