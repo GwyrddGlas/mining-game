@@ -6,33 +6,30 @@ local state = {
     stateHistory = {} 
 }
 
--- state_module: Path to a state module file
--- name: Name of the state, Used in state:load
 function state:define_state(state_module, name)
     self.state_list[name] = state_module
 end
 
--- state: state name as defined with define_state
--- data: Anything you want to pass to the state in the state's load function
 function state:load(state_name, data)
+    if not self.state_list[state_name] then
+        error(string.format("STATE: State '%s' does not exist!", state_name))
+    end
+
     if self.currentState then
         table.insert(self.stateHistory, {
             name = self.loadedStateName,
             state = self.currentState
         })
     end
-    
-    self.currentState = nil
-    if self.state_list[state_name] then
-        self.loadedStateName = state_name
-        self.currentState = love.filesystem.load(self.state_list[state_name])()
-        if type(self.currentState.load) == "function" and self.currentState then
-            self.currentState:load(data)
-        end
-    else
-        error(string.format("STATE: State '%s' does not exist!", state_name))
+
+   -- self.currentState = nil
+    self.loadedStateName = state_name
+    self.currentState = love.filesystem.load(self.state_list[state_name])()
+        
+    if type(self.currentState.load) == "function" then
+        self.currentState:load(data)
     end
-end 
+end
 
 function state:unload()
     self.currentState = nil

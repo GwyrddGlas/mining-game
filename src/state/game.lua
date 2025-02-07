@@ -48,12 +48,12 @@ function game:load(data)
         self.seed = data.seed
         note:new("Created world '"..self.worldName.."'", "success")
     elseif data.type == "load" then
-        local worldData = fs.load("worlds/"..data.worldName.."/config.lua")()
-        self.worldName = worldData.name
-        self.seed = worldData.seed
-        playerInventory = worldData.player.inventory
-        playerX = worldData.player.x 
-        playerY = worldData.player.y 
+        self.worldData = fs.load("worlds/"..data.worldName.."/config.lua")()
+        self.worldName = self.worldData.name
+        self.seed = self.worldData.seed
+        playerInventory = self.worldData.player.inventory
+        playerX = self.worldData.player.x 
+        playerY = self.worldData.player.y 
         playerLoaded = true
 
         note:new("Loaded world '"..self.worldName.."'", "success")
@@ -64,9 +64,8 @@ function game:load(data)
     self.world:loadSystemFromFolder("src/system")
 
     --Exposing self.world for debug purposes
-    if config.debug.enabled then
-        _WORLD = self.world
-    end
+    _WORLD = self.world
+    _WORLDATA = self.worldData
 
     -- Initializing player
     self.player = self.world:newEntity("src/entity/player.lua", playerX, playerY, {x = playerX, y = playerY, inventory = playerInventory, playerLoaded = playerLoaded})

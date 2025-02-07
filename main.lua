@@ -45,7 +45,7 @@ function love.load()
     state:define_state("src/state/game.lua", "game")
     state:define_state("src/state/menu.lua", "menu")
     state:define_state("src/state/paused.lua", "paused")
-    state:define_state("src/state/grasslands.lua", "Grasslands")
+    state:define_state("src/state/grasslands.lua", "grasslands")
 
     -- POSTER
     poster = require("src.lib.poster")
