@@ -53,6 +53,10 @@ function entity:load(data, ecs)
     self.playerLoaded = data.playerLoaded
     self.selectedSkin = "default"
     
+    self.chatMessage = nil
+    self.chatMessageTimer = 0
+    self.chatMessageDuration = 3
+
     self.color = {1, 1, 1}
 
     -- Animation related stuff
@@ -89,6 +93,11 @@ function entity:load(data, ecs)
     -- Updating coordinates
     self:updateChunkCoordinates()
     self:updateGridCoordinates()
+end
+
+function entity:setChatMessage(message)
+    self.chatMessage = message
+    self.chatMessageTimer = self.chatMessageDuration
 end
 
 function entity:updateChunkCoordinates()
@@ -183,6 +192,15 @@ local function getJoystickAxis(axis)
     return 0
 end
 
+function entity:update(dt)
+    if self.chatMessageTimer > 0 then
+        self.chatMessageTimer = self.chatMessageTimer - dt
+        if self.chatMessageTimer <= 0 then
+            self.chatMessage = nil
+        end
+    end
+end
+
 function entity:draw()
     if self.control then
         -- Facing the player
@@ -222,6 +240,13 @@ function entity:draw()
         local y = self.y - (self.tileSize / 2)
         
         self.animation[self.direction]:draw(x, y, self.tileSize / config.graphics.assetSize, self.tileSize / config.graphics.assetSize)
+   
+        if self.chatMessage then
+            local bubbleX = self.x
+            local bubbleY = self.y - self.tileSize
+            lg.setColor(1, 1, 1, 1)
+            lg.print(self.chatMessage, bubbleX + 10, bubbleY + 10)
+        end
     end
 end
 

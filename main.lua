@@ -18,7 +18,7 @@ local floor = math.floor
 local Config = require("src.config")
 
 function love.load()
-    love.setDeprecationOutput(false) -- Remove when updating to Love 12
+    love.setDeprecationOutput(false)
 
     -- Load configuration
     config = Config.load()

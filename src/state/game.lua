@@ -212,6 +212,8 @@ function game:update(dt)
     worldGen:update(dt)
     UI:update(dt)
 
+    self.player:update(dt)
+
     -- Internal timer used for shaders
     self.time = self.time + dt
     if self.time > math.pi * 2 then self.time = 0 end

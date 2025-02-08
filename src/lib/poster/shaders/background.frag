@@ -12,7 +12,7 @@ extern MY_HIGHP_OR_MEDIUMP number contrast;
 
 #define PIXEL_SIZE_FAC 600.
 #define WAVE_SPEED 0.6
-#define DISTORTION_AMOUNT 0.2
+#define DISTORTION_AMOUNT 0.5
 
 vec4 effect(vec4 colour, Image texture, vec2 texture_coords, vec2 screen_coords)
 {

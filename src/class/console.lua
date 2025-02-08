@@ -89,6 +89,8 @@ function console:init(width, height, font)
     self.inputHeight = fixedInputHeight
     self.chatHeight = self.height - self.inputHeight
 
+    love.keyboard.setTextInput(true)
+
     self.x = 0
     self.y = lg.getHeight() - self.height
 
@@ -253,6 +255,9 @@ function console:processInput()
         end
     else
         self:addMessage(self.input, self.activeChannel)
+        if _PLAYER then
+            _PLAYER:setChatMessage(self.input)
+        end
     end
 
     self.input = ""
