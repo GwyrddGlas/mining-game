@@ -29,6 +29,7 @@ function grasslands:load(data)
     
     self.worldName = worldData.name
     self.seed = worldData.seed
+    self.worldType = "surface"
    
     playerInventory = worldData.player.inventory
     playerX = worldData.player.x 
@@ -45,8 +46,13 @@ function grasslands:load(data)
 
     self.crafting = crafting:new(self.player)
 
-    -- Initializing worldGen
-    worldGen:load({player = self.player, world = self.world, worldName = self.worldName, seed = self.seed})
+    worldGen:load({
+        player = self.player,
+        world = self.world,
+        worldName = self.worldName,
+        seed = self.seed,
+        worldType = self.worldType
+    })
     
     self.renderBuffer = worldGen.tileSize * 2
     self.hoverEntity = false -- Contains the entity the mouse is over, Used for mining
@@ -184,26 +190,21 @@ function grasslands:update(dt)
     if self.player.time >= 24 then
         self.player.time = 0 
     end
---
---  -- Handle dying
---  if health <= 0 then
---      if self.player.spawnX and self.player.spawnY then
---          self.player:teleport(self.player.spawnX, self.player.spawnY)
---      end
---      
---      health = 10
---      
---      for item, _ in pairs(self.player.inventory) do
---          self.player.inventory[item] = nil
---      end
---      self.player.inventoryOrder = {}
---  end
---
---  -- Handle music transitioning 
---  if grasslandsAudio.background[currentIndex] and not grasslandsAudio.background[currentIndex]:isPlaying() then
---      playNextTrack()
---  end
---
+  
+    -- Handle dying
+    if health <= 0 then
+        if self.player.spawnX and self.player.spawnY then
+            self.player:teleport(self.player.spawnX, self.player.spawnY)
+        end
+        
+        health = 10
+        
+        for item, _ in pairs(self.player.inventory) do
+            self.player.inventory[item] = nil
+        end
+        self.player.inventoryOrder = {}
+    end
+  
     --Mining
     if lm.isDown(1) and self.hoverEntity and not self.inventory.inventoryOpen then
         self.player:mine(self.hoverEntity)

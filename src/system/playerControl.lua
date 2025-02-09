@@ -58,6 +58,11 @@ return {
                 speed = e.speed * 1.4
                 _PLAYER.stamina = _PLAYER.stamina - dt
             end
+
+            if _PLAYER.stamina <= 0 and _PLAYER.health > 1 then
+                _PLAYER.health = _PLAYER.health - dt/7 --slow dercease
+
+            end
         end
 
         _PLAYER.magic = min(_PLAYER.magic + dt * 0.1, _PLAYER.magicCap)

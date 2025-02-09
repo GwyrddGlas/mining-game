@@ -52,25 +52,21 @@ local commands = {
     ["/w"] = function(self, target, message)
         self:addMessage(message, "whisper", target)
     end,
-    ["/conjure"] = function(self, quantity)
-        local amount = math.min(tonumber(quantity), magicCap)
+    [ "/conjure" ] = function(self, quantity)
+        local amount = math.min(tonumber(quantity) or 1, magicCap)
         magic = math.min(magic + amount, magicCap)
         self:addMessage(truncateMessage("Gave " .. tostring(amount) .. " conjuration", maxMessageLength), "system")
-    end,
-    ["/give"] = function(self, ...)
+    end,    
+    [ "/give" ] = function(self, ...)
         local args = {...}
-        if #args < 2 then
-            self:addMessage(truncateMessage("Usage: /give <item> <quantity>", maxMessageLength), "system")
+        if #args < 1 then
+            self:addMessage(truncateMessage("Usage: /give <item> [quantity]", maxMessageLength), "system")
             return
         end
+
         local item = args[1]
-        local quantity = tonumber(args[2])
-
-        if not quantity or quantity <= 0 then
-            self:addMessage(truncateMessage("Invalid quantity. Please use a positive number.", maxMessageLength), "system")
-            return
-        end
-
+        local quantity = math.max(tonumber(args[2]) or 1, 1)
+    
         if _INVENTORY and _INVENTORY.giveItem then
             _INVENTORY:giveItem(item, quantity)
             self:addMessage(truncateMessage("Gave " .. quantity .. " " .. item .. "(s).", maxMessageLength), "system")
