@@ -2,33 +2,40 @@ local pauseScreen = {
     width = 0,
     height = 0,
     color = {
+        title = {1.000, 0.722, 0.0},
         fg = {1, 1, 1},
         bg = {0, 0, 0},
         success = {223/255, 147/255, 95/255},
     },
 }
 
-gamePaused = false
+local nightSkyImage
+local nightSkyImageScaleX
+local nightSkyImageScaleY
 
 function pauseScreen:load()
     self.width, self.height = love.graphics.getDimensions()
 
+    nightSkyImage = love.graphics.newImage("src/assets/background.png")
+    nightSkyImageScaleX = love.graphics.getWidth() / nightSkyImage:getWidth()
+    nightSkyImageScaleY = love.graphics.getHeight() / nightSkyImage:getHeight()
+    
     local buttonData = {
         {text = "Resume", action = function() self:resume() end},
         {text = "Main Menu", action = function() self:returnToMainMenu() end},
+        {text = "Settings", action = function() self:returnToSettingsMenu() end},
         {text = "Quit Game", action = function() love.event.quit() end},
     }
     
     self.elements = {
-        label.new("Paused", self.color.fg, font.title, 0, self.height * 0.2, "center")
+        label.new("Paused", self.color.title, font.title, 0, self.height * 0.2, "center")
     }
 
     for i, data in ipairs(buttonData) do
-        table.insert(self.elements, button.new(data.text, self.color.fg, self.color.bg,
+        table.insert(self.elements, button.new(data.text, self.color.fg, self.color.fg,
             self.width * 0.3, self.height * (0.3 + i * 0.1), self.width * 0.4, self.height * 0.09, data.action))
     end
 end
-
 
 function pauseScreen:update(dt)
     for _, element in ipairs(self.elements) do
@@ -39,9 +46,7 @@ function pauseScreen:update(dt)
 end
 
 function pauseScreen:draw()
-    -- Draw a semi-transparent background
-    love.graphics.setColor(0, 0, 0, 0.7)
-    love.graphics.rectangle("fill", 0, 0, self.width, self.height)
+    love.graphics.draw(nightSkyImage, 0, 0, 0, nightSkyImageScaleX, nightSkyImageScaleY)
 
     -- Draw all elements
     for _, element in ipairs(self.elements) do
@@ -89,6 +94,11 @@ function pauseScreen:resize(w, h)
         element.width = w * 0.4
         element.height = h * 0.09
     end
+
+    if nightSkyImage then
+        nightSkyImageScaleX = w / nightSkyImage:getWidth()
+        nightSkyImageScaleY = h / nightSkyImage:getHeight()
+    end
 end
 
 function pauseScreen:resume()
@@ -97,6 +107,10 @@ end
 
 function pauseScreen:returnToMainMenu()
     state:load("menu")
+end
+
+function pauseScreen:returnToSettingsMenu()
+    state:load("menu", {initialScreen = "options"})
 end
 
 return pauseScreen

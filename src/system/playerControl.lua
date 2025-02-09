@@ -46,20 +46,18 @@ return {
         local left = kb.isDown(gameControls.left) or getJoystickAxis(1) < 0
         local down = kb.isDown(gameControls.down) or getJoystickAxis(2) > 0
         local up = kb.isDown(gameControls.up) or getJoystickAxis(2) < 0
-        local space = kb.isDown(gameControls.sprint) or isJoystickButtonDown(1)
+        local sprint = kb.isDown(gameControls.sprint) or isJoystickButtonDown(1)
         local speed = e.speed
 
-        if UI.active then
+        if UI.active then --why did i do this?
             return
         end
 
-        if space then 
+        if sprint then 
             if _PLAYER.stamina > 0 then
-                speed = e.speed * 1.4 
+                speed = e.speed * 1.4
                 _PLAYER.stamina = _PLAYER.stamina - dt
             end
-        else
-            _PLAYER.stamina = min(_PLAYER.stamina + dt * 0.5, 10)
         end
 
         _PLAYER.magic = min(_PLAYER.magic + dt * 0.1, _PLAYER.magicCap)

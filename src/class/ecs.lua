@@ -34,15 +34,15 @@ local bumpFound = false --
 
 -- Checking for bump.lua and loading it if its found
 local bump
-if fs.getInfo(directory.."/bump.lua") then
-    bump = require(directory.."/bump")
+if fs.getInfo(directory.."bump.lua") then
+    bump = require(directory..".bump")
     bumpFound = true
 end
 
 -- Checking if spatial.lua is present and loading it/throwing error
 local spatial
 if fs.getInfo(directory.."/spatial.lua") then
-    spatial = require(directory.."/spatial")
+    spatial = require(directory..".spatial")
 else
     error("spatial.lua not found!")
 end

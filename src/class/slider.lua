@@ -1,7 +1,49 @@
 local slider = {}
 local slider_meta = {__index = slider}
 
+-- Helper function to validate numeric values
+local function validateNumber(value, name, default)
+    if type(value) ~= "number" or value ~= value then -- Check for NaN
+        print(string.format("Warning: Invalid %s. Using default value: %d", name, default))
+        return default
+    end
+    return value
+end
+
+-- Helper function to validate color tables
+local function validateColor(color, name, default)
+    if type(color) ~= "table" or #color < 3 or #color > 4 then
+        print(string.format("Warning: Invalid %s. Using default color: {1, 1, 1, 1}", name))
+        return default
+    end
+    return color
+end
+
 function slider.new(label, min, max, value, x, y, width, height, color, handleColor, onValueChange)
+    -- Validate inputs
+    min = validateNumber(min, "min", 0)
+    max = validateNumber(max, "max", 100)
+    value = validateNumber(value, "value", min)
+    x = validateNumber(x, "x", 0)
+    y = validateNumber(y, "y", 0)
+    width = validateNumber(width, "width", 200)
+    height = validateNumber(height, "height", 20)
+    color = validateColor(color, "color", {0.5, 0.5, 0.5, 1})
+    handleColor = validateColor(handleColor, "handleColor", {1, 1, 1, 1})
+
+    -- Ensure min <= value <= max
+    if min > max then
+        print("Warning: min > max. Swapping min and max values.")
+        min, max = max, min
+    end
+    value = math.min(math.max(value, min), max)
+
+    -- Ensure onValueChange is a function or nil
+    if onValueChange and type(onValueChange) ~= "function" then
+        print("Warning: onValueChange is not a function. Setting to nil.")
+        onValueChange = nil
+    end
+
     return setmetatable({
         min = min,
         max = max,
@@ -12,19 +54,19 @@ function slider.new(label, min, max, value, x, y, width, height, color, handleCo
         height = height,
         color = color,
         handleColor = handleColor,
-        label = label,
+        label = label or "Slider",
         dragging = false,
-        onValueChange = onValueChange 
+        onValueChange = onValueChange
     }, slider_meta)
 end
 
 function slider:getValue()
-    return self.value or 0
+    return self.value or self.min
 end
 
 function slider:setValue(value)
     if value == nil then
-        value = self.min or 0
+        value = self.min
     end
     self.value = math.min(math.max(value, self.min), self.max)
 end
@@ -54,10 +96,17 @@ function slider:mousemoved(x, y, dx, dy)
 end
 
 function slider:updateValue(x)
+    if x < self.x then
+        x = self.x
+    elseif x > self.x + self.width then
+        x = self.x + self.width
+    end
+
     local value = (x - self.x) / self.width
     value = value * (self.max - self.min) + self.min
     local oldValue = self.value
     self:setValue(value)
+
     if self.value ~= oldValue and self.onValueChange then
         self.onValueChange(self.value)
     end
@@ -65,6 +114,11 @@ end
 
 function slider:drawLabel()
     local font = love.graphics.getFont()
+    if not font then
+        print("Warning: No font set")
+        return
+    end
+
     local labelWidth = font:getWidth(self.label)
     local labelHeight = font:getHeight()
     local labelX = self.x + (self.width - labelWidth) / 2
@@ -87,8 +141,6 @@ function slider:draw()
 
     love.graphics.setColor(self.handleColor)
     love.graphics.rectangle("fill", handleX, handleY, handleWidth, handleHeight)
-
-   -- print("test slider")
 
     -- Draw label
     self:drawLabel()

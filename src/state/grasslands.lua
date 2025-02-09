@@ -11,29 +11,11 @@ local lm = love.mouse
 local joy = love.joystick
 local lt = love.thread
 
-local game = {}
+local grasslands = {}
 
 local currentIndex = 1
-currentTrack = gameAudio.background[currentIndex]
 
-local function playNextTrack()
-    currentIndex = currentIndex + 1
-    if currentIndex > #gameAudio.background then
-        currentIndex = 1
-    end
-    
-    currentTrack = gameAudio.background[currentIndex]
-    if currentTrack then
-        currentTrack:play()
-        currentTrack:setVolume(config.audio.music * config.audio.master)
-    end
-end
-
-local function playBackgroundMusic()
-    playNextTrack()
-end
-
-function game:load(data)
+function grasslands:load(data)
     config = ttf.load("config.lua")
 
     lg.setBackgroundColor(0, 0, 0)
@@ -42,39 +24,26 @@ function game:load(data)
     local playerX, playerY = 0, 0 -- Grid coordinates!
     local playerLoaded = false -- True if player loaded from save file
     local playerInventory = {}
+  
+    local worldData = fs.load("worlds/"..data.name.."/config.lua")()
+    
+    self.worldName = worldData.name
+    self.seed = worldData.seed
    
-    if data.type == "new" then
-        self.worldName = data.worldName
-        self.seed = data.seed
-        note:new("Created world '"..self.worldName.."'", "success")
-    elseif data.type == "load" then
-        self.worldData = fs.load("worlds/"..data.worldName.."/config.lua")()
-        self.worldName = self.worldData.name
-        self.seed = self.worldData.seed
-        playerInventory = self.worldData.player.inventory
-        playerX = self.worldData.player.x 
-        playerY = self.worldData.player.y 
-        playerLoaded = true
-
-        note:new("Loaded world '"..self.worldName.."'", "success")
-    end
-
+    playerInventory = worldData.player.inventory
+    playerX = worldData.player.x 
+    playerY = worldData.player.y 
+    playerLoaded = true
+    
     -- Initializing the ECS world
     self.world = ecs.new()
     self.world:loadSystemFromFolder("src/system")
 
-    --Exposing self.world for debug purposes
-    _WORLD = self.world
-    _WORLDATA = self.worldData
-
     -- Initializing player
-    self.player = self.world:newEntity("src/entity/player.lua", playerX, playerY, {x = playerX, y = playerY, inventory = playerInventory, playerLoaded = playerLoaded})
-    self.inventory = inventory:new(self.player)
-    self.crafting = crafting:new(self.player)
+    self.player = _PLAYER
+    self.inventory = _INVENTORY
 
-    -- Exposing for debug purposes
-    _PLAYER = self.player
-    _INVENTORY = self.inventory
+    self.crafting = crafting:new(self.player)
 
     -- Initializing worldGen
     worldGen:load({player = self.player, world = self.world, worldName = self.worldName, seed = self.seed})
@@ -155,16 +124,9 @@ function game:load(data)
         {"verticalBlur", "amount", 3},
         {"horizontalBlur", "amount", 3},
     })
-
-    self.inventory.inventoryOpen = false
-
-    playBackgroundMusic()
-
-    UI:register("arcane", require("src/lib/UI/arcane"))
-    UI:register("teleporter", require("src/lib/UI/teleporter"))
 end
 
-function game:unload()
+function grasslands:unload()
     ecs.unload()
     self.world = nil
 end
@@ -190,12 +152,11 @@ local function isJoystickButtonDown(button)
     return false
 end
 
-function game:update(dt)
+function grasslands:update(dt)
     self.visibleEntities = self.world:queryRect(camera.x - self.renderBuffer, camera.y - self.renderBuffer, lg.getWidth() + self.renderBuffer * 2, lg.getHeight() + self.renderBuffer * 2)
     local health = config.player.health
-
     local mx, my = camera:getMouse()
-    
+
     for i,v in ipairs(self.visibleEntities) do
         v.hover = false
         if fmath.pointInRect(mx, my, v.x, v.y, v.width, v.height) and fmath.distance(v.gridX, v.gridY, self.player.gridX, self.player.gridY) < self.player.reach and not self.inventory.inventoryOpen and not UI.active then
@@ -203,52 +164,53 @@ function game:update(dt)
             self.hoverEntity = v
         end
     end
-    
+
     -- Updating camera
     camera:lookAtEntity(self.player)
     camera:update(dt)
-    
+  
     -- Updating world
     worldGen:update(dt)
     UI:update(dt)
 
-    self.player:update(dt)
-
     -- Internal timer used for shaders
     self.time = self.time + dt
-    if self.time > math.pi * 2 then self.time = 0 end
-
+    if self.time > math.pi * 2 then 
+        self.time = 0 
+    end
+   
     self.player.time = self.player.time + dt * 0.05
+   
     if self.player.time >= 24 then
         self.player.time = 0 
     end
-
-    -- Handle dying
-    if health <= 0 then
-        if self.player.spawnX and self.player.spawnY then
-            self.player:teleport(self.player.spawnX, self.player.spawnY)
-        end
-        
-        health = 10
-        
-        for item, _ in pairs(self.player.inventory) do
-            self.player.inventory[item] = nil
-        end
-        self.player.inventoryOrder = {}
-    end
-
-    -- Handle music transitioning 
-    if gameAudio.background[currentIndex] and not gameAudio.background[currentIndex]:isPlaying() then
-        playNextTrack()
-    end
-
+--
+--  -- Handle dying
+--  if health <= 0 then
+--      if self.player.spawnX and self.player.spawnY then
+--          self.player:teleport(self.player.spawnX, self.player.spawnY)
+--      end
+--      
+--      health = 10
+--      
+--      for item, _ in pairs(self.player.inventory) do
+--          self.player.inventory[item] = nil
+--      end
+--      self.player.inventoryOrder = {}
+--  end
+--
+--  -- Handle music transitioning 
+--  if grasslandsAudio.background[currentIndex] and not grasslandsAudio.background[currentIndex]:isPlaying() then
+--      playNextTrack()
+--  end
+--
     --Mining
     if lm.isDown(1) and self.hoverEntity and not self.inventory.inventoryOpen then
         self.player:mine(self.hoverEntity)
     end
 end
 
-function game:drawHud()
+function grasslands:drawHud()
     local iconScale = 30 * scale_x
     local radiationScale = 34 * scale_x
     local width, height = lg.getWidth(), lg.getHeight()
@@ -273,11 +235,11 @@ function game:drawHud()
     self.inventory:drawHotbar(self.icon)
 end
 
-function game:gamepadpressed(joystick, button)
+function grasslands:gamepadpressed(joystick, button)
     self.inventory:gamepadpressed(joystick, button)
 end
 
-function game:draw()
+function grasslands:draw()
     self.canvas:set()
     lg.clear()
 
@@ -299,7 +261,7 @@ function game:draw()
     else
         self.canvas:draw()
     end
-   
+    
     self:drawHud()
 
     local all, all_len = self.world:query()
@@ -332,7 +294,7 @@ function game:draw()
     UI:draw()
 
     minimap:draw(self.player, all, camera, "right")
-   
+    
     local barWidth = 250
     local barSpacing = 10
     local barsX = 30
@@ -340,20 +302,19 @@ function game:draw()
     statusBars.drawAllBars(self.player, barsX, barsY, barWidth, barSpacing)
 end
 
-function game:keypressed(key)
+function grasslands:keypressed(key)
     local gameControls = config.settings.gameControls
-
     if key == gameControls.save then
         worldGen:saveWorld()
     end
-
+    
     if key == gameControls.conjure and not console.isOpen then
         UI:toggle("arcane", {})
     end
 
     -- Inventory
     self.inventory:keypressed(key)
-
+    
     -- Hotbar selection
     if tonumber(key) and tonumber(key) >= 1 and tonumber(key) <= 8 then
         self.inventory.selectedIndex = tonumber(key)
@@ -361,7 +322,7 @@ function game:keypressed(key)
     end
 end
 
-function game:wheelmoved(x, y)
+function grasslands:wheelmoved(x, y)
     self.inventory.selectedIndex = self.inventory.selectedIndex + y
     if self.inventory.selectedIndex < 1 then
         self.inventory.selectedIndex = 8
@@ -371,11 +332,11 @@ function game:wheelmoved(x, y)
     self.inventory.highlightedItem = self.inventory.inventoryOrder[self.inventory.selectedIndex]
 end
 
-function game:resize(w, h)
+function grasslands:resize(w, h)
 
 end
 
-function game:mousepressed(x, y, button)
+function grasslands:mousepressed(x, y, button)
     if self.inventory.inventoryOpen then
         self.inventory:mousepressed(x, y, button)
         self.crafting:mousepressed(x, y, button)
@@ -397,9 +358,8 @@ function game:mousepressed(x, y, button)
     end
 end
 
-
-function game:mousereleased(x, y, button)
+function grasslands:mousereleased(x, y, button)
     UI:mousereleased(x, y, button)
 end
 
-return game
+return grasslands

@@ -32,21 +32,25 @@ local icon = {
 }
 
 local recipes = {
-    Resources = {
+    Gems = {
         {name = "Iron", input = icon.Iron, output = icon.ironIngot, cost = 4, description = "Smelt Iron Ore into Iron Ingot" },
         {name = "Gold", input = icon.Gold, output = icon.goldIngot, cost = 5, description = "Smelt Gold Ore into Gold Ingot" },
         {name = "Diamond", input = icon.Diamond, output = icon.diamondIngot, cost = 7, description = "Smelt Diamond Ore into Diamond Ingot" },
         {name = "Tazenite", input = icon.Tanzenite, output = icon.tanzeniteIngot, cost = 6, description = "Smelt Tanzenite Ore into Tanzenite Ingot" },
         {name = "Copper", input = icon.Copper, output = icon.copperIngot, cost = 3, description = "Smelt Copper Ore into Copper Ingot" },
         {name = "Ruby", input = icon.Ruby, output = icon.rubyIngot, cost = 6, description = "Smelt Ruby Ore into Ruby Ingot" },
+    },
+    Resources = {
         {name = "StoneBrick", input = icon.Wall, output = icon.StoneBrick, cost = 3, description = ""},
         {name = "Grass", input = icon.Dirt, output = icon.Grass, cost = 3, description = ""},
         {name = "Dirt", input = icon.Grass, output = icon.Dirt, cost = 3, description = ""},
     },
-    Tools = {},
-    Misc = {
-        {name = "Chest", input = icon.Shrub, output = icon.Chest, cost = 5, description = "Smelt Tanzenite Ore into Tanzenite Ingot" },
-        {name = "Torch", input = icon.Coal, output = icon.Torch, cost = 3, description = "Smelt Tanzenite Ore into Tanzenite Ingot" },
+    Tools = {
+        {name = "Torch", input = icon.Coal, output = icon.Torch, cost = 3, description = "" },
+    },
+    Utility = {
+        {name = "Chest", input = icon.Shrub, output = icon.Chest, cost = 5, description = "" },
+        {name = "Teleporter", input = icon.emeraldIngot, output = icon.Teleporter, cost = 5, description = "" },
     }
 }
 

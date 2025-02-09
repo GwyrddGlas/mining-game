@@ -14,6 +14,33 @@ local f = string.format
 local floor = math.floor
 local joy = love.joystick
 
+local colors = {
+    inventoryBackground = {30, 30, 40, 220},      -- Dark gray with slight transparency
+    hotbarBackground = {40, 40, 50, 220},         -- Slightly lighter dark gray
+    defaultSlot = {60, 60, 70, 200},              -- Default slot color
+    hoveredSlot = {100, 150, 255, 200},           -- Light blue for hovered slots
+    selectedSlot = {255, 200, 100, 200},          -- Gold for selected slots
+    itemNameText = {255, 255, 255},               -- White text for item names
+    itemNameBackground = {0, 0, 0, 150},          -- Semi-transparent black for item name backgrounds
+    quantityText = {255, 255, 255},               -- White text for quantities
+    defaultBorder = {80, 80, 90, 200},            -- Default border color
+    highlightedBorder = {255, 100, 150, 200},     -- Pink for highlighted borders
+}
+
+local function setColor(r, g, b, a)
+    if type(r) == "table" then
+        r, g, b, a = r[1], r[2], r[3], r[4]
+    end
+    a = a or 255
+    lg.setColor(r/255, g/255, b/255, a/255)
+end
+
+-- Draw a drop shadow for depth
+local function drawDropShadow(x, y, width, height, radius, shadowColor, offset)
+    lg.setColor(shadowColor)
+    lg.rectangle("fill", x + offset, y + offset, width, height, radius, radius)
+end
+
 local function isJoystickButtonDown(button)
     local joysticks = love.joystick.getJoysticks()
     for _, joystick in ipairs(joysticks) do
@@ -46,7 +73,7 @@ end
 
 function inventory:getInventoryBounds()
     local width, height = lg.getWidth(), lg.getHeight()
-    local inventoryRows, inventoryColumns = 4, 8
+    local inventoryRows, inventoryColumns = 4, 4
     local itemSize = self:getInventoryItemSize()
     local itemSpacing = self:getInventoryItemSpacing()
     local inventoryWidth = inventoryColumns * (itemSize + itemSpacing) - itemSpacing
@@ -65,7 +92,7 @@ function inventory:getInventoryItemSpacing()
 end
 
 function inventory:getInventoryColumns()
-    return 8
+    return 4
 end
 
 function inventory:getInventoryItemAtIndex(index)
@@ -174,6 +201,7 @@ function inventory:mousepressed(x, y, button)
     local inventoryPadding = itemSize * 0.2
     local clickedIndex = nil
     
+    -- Check if the click is within the inventory bounds
     if x >= inventoryX and x <= inventoryX + inventoryWidth and y >= inventoryY and y <= inventoryY + inventoryHeight then
         for row = 1, inventoryRows do
             for col = 1, inventoryColumns do
@@ -189,6 +217,7 @@ function inventory:mousepressed(x, y, button)
         end
     end
 
+    -- Handle the click
     if clickedIndex then
         local clickedItem = self:getInventoryItemAtIndex(clickedIndex)
         if button == 1 then
@@ -227,6 +256,10 @@ function inventory:drawItemName(item, x, y, itemSize)
     lg.print(tostring(item), x + padding, y - nameHeight + padding)
 end
 
+function inventory:hasItem(itemName)
+    return self.player.inventory[itemName] and self.player.inventory[itemName] > 0
+end
+
 function inventory:drawHotbar(icon)
     self.icon = icon
 
@@ -238,20 +271,26 @@ function inventory:drawHotbar(icon)
     local hotbarHeight = height * 0.07
     local itemSize = hotbarHeight * 0.8
     local maxHotbarItems = 8
-    local itemSpacing = itemSize *0.2
-    local cornerRadius = 2
+    local itemSpacing = itemSize * 0.2
+    local cornerRadius = 5 
 
     local hotbarPadding = itemSize * 0.08 
-    local adjustedHotbarWidth = hotbarWidth + hotbarPadding * 2
+    local totalHotbarWidth = (itemSize + itemSpacing) * maxHotbarItems - itemSpacing + hotbarPadding * 2
 
-    local itemX = hotbarX - (adjustedHotbarWidth * 0.5) + hotbarPadding
-    local itemY = hotbarY + (hotbarHeight - itemSize) * 0.5
-
-    local selectedIndex = self.selectedIndex
+    -- Center the hotbar horizontally
+    local hotbarBackgroundX = hotbarX - totalHotbarWidth * 0.5
+    local hotbarBackgroundY = hotbarY
 
     -- Draw hotbar background
-    --lg.setColor(83/255, 83/255, 83/255, 0.9)  -- Dark gray background from inventory
-    --lg.rectangle("fill", hotbarX - adjustedHotbarWidth * 0.5, hotbarY, adjustedHotbarWidth, hotbarHeight, cornerRadius, cornerRadius)
+    drawDropShadow(hotbarBackgroundX, hotbarBackgroundY, totalHotbarWidth, hotbarHeight, cornerRadius, {0, 0, 0, 0.5}, 2)
+    setColor(colors.hotbarBackground)
+    lg.rectangle("fill", hotbarBackgroundX, hotbarBackgroundY, totalHotbarWidth, hotbarHeight, cornerRadius, cornerRadius)
+
+    -- Calculate the starting position for the items
+    local itemX = hotbarBackgroundX + hotbarPadding
+    local itemY = hotbarBackgroundY + (hotbarHeight - itemSize) * 0.5
+
+    local selectedIndex = self.selectedIndex
 
     for i = 1, maxHotbarItems do
         local x = itemX + (i - 1) * (itemSize + itemSpacing)
@@ -259,18 +298,17 @@ function inventory:drawHotbar(icon)
     
         -- Draw item slot
         if i == selectedIndex then
-            lg.setColor(0.2, 0.6, 0.8, 0.8)  -- Bright blue for selected slot
+            setColor(colors.selectedSlot)
         else
-            lg.setColor(51/255, 51/255, 51/255, 0.7)  -- Darker gray for slots from inventory
+            setColor(colors.defaultSlot)
         end
-        lg.rectangle("fill", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
-    
+
         -- Draw item slot border
         if i == selectedIndex then
-            lg.setColor(0.3, 0.8, 1)  -- Brighter blue border for selected slot
+            setColor(colors.highlightedBorder)
             lg.setLineWidth(3)
         else
-            lg.setColor(99/255, 99/255, 99/255, 0.9)  -- Light gray border from inventory
+            setColor(colors.defaultBorder)
             lg.setLineWidth(2)
         end
         lg.rectangle("line", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
@@ -282,7 +320,7 @@ function inventory:drawHotbar(icon)
             local quantity = self.player.inventory[item]
             if self.icon[item] then
                 if tileAtlas and tiles[self.icon[item]] then
-                    lg.setColor(1, 1, 1)
+                    lg.setColor(1, 1, 1, 1)
                     lg.draw(tileAtlas, tiles[self.icon[item]], x + itemSize * 0.1, y + itemSize * 0.1, 0, itemSize * 0.8 / config.graphics.assetSize, itemSize * 0.8 / config.graphics.assetSize)
                     
                     lg.setFont(font.regular)
@@ -292,12 +330,13 @@ function inventory:drawHotbar(icon)
                     local textX = x + itemSize - textWidth - itemSize * 0.1
                     local textY = y + itemSize - textHeight - itemSize * 0.1
     
-                    lg.setColor(1, 1, 1)
+                    setColor(colors.quantityText)
                     lg.print(quantityText, textX, textY)
                 end
             end
         end
     end
+    lg.setColor(1, 1, 1, 1)
 end
 
 function inventory:draw(icon, itemSize, itemSpacing, cornerRadius, maxHotbarItems)
@@ -315,7 +354,7 @@ function inventory:draw(icon, itemSize, itemSpacing, cornerRadius, maxHotbarItem
     local inventoryY = height * 0.5 - inventoryHeight * 0.5
     
     -- Inventory background
-    lg.setColor(83/255, 83/255, 83/255)
+    setColor(colors.inventoryBackground)
     lg.rectangle("fill", inventoryX, inventoryY, inventoryWidth, inventoryHeight, cornerRadius, cornerRadius)
 
     local mouseX, mouseY = love.mouse.getPosition()
@@ -329,28 +368,24 @@ function inventory:draw(icon, itemSize, itemSpacing, cornerRadius, maxHotbarItem
             local y = inventoryY + inventoryPadding + (row - 1) * (itemSize + itemSpacing)
             local item = self.player.inventoryOrder[index]
 
-            -- Inventory slots
-            lg.setColor(51/255,51/255,51/255) 
+            -- Default slot color
+            setColor(colors.defaultSlot)
             lg.rectangle("fill", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
-            lg.setColor(99/255,99/255,99/255)  -- Light gray border
-            lg.setLineWidth(2)
-            lg.rectangle("line", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
-            lg.setLineWidth(1)
+
+            -- Highlight selected item
+            if item == self.selectedItem then
+                setColor(colors.selectedSlot)
+                lg.setLineWidth(3)
+                lg.rectangle("line", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
+                lg.setLineWidth(1)
+            end
 
             if item then
                 local quantity = self.player.inventory[item]
                 
-                -- Selected item
-                if self.selectedItem == item then
-                    lg.setColor(0.2, 0.6, 0.8, 0.8) 
-                    lg.setLineWidth(3)
-                    lg.rectangle("line", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
-                    lg.setLineWidth(1)
-                end
-                
                 if icon[item] then
-                    lg.setColor(1, 1, 1)
                     if tileAtlas and tiles[icon[item]] then
+                        lg.setColor(1, 1, 1, 1) 
                         lg.draw(tileAtlas, tiles[icon[item]], x + itemSize * 0.1, y + itemSize * 0.1, 0, itemSize * 0.8 / config.graphics.assetSize, itemSize * 0.8 / config.graphics.assetSize)
 
                         lg.setFont(font.regular)
@@ -360,7 +395,7 @@ function inventory:draw(icon, itemSize, itemSpacing, cornerRadius, maxHotbarItem
                         local textX = x + itemSize - textWidth - itemSize * 0.1
                         local textY = y + itemSize - textHeight - itemSize * 0.1
 
-                        lg.setColor(1, 1, 1)
+                        setColor(colors.quantityText)
                         lg.print(quantityText, textX, textY)
                     end
                 else
@@ -375,7 +410,7 @@ function inventory:draw(icon, itemSize, itemSpacing, cornerRadius, maxHotbarItem
                     hoveredX, hoveredY = x, y
                 end
 
-                lg.setColor(0.3, 0.8, 1)
+                setColor(colors.highlightedBorder)
                 lg.setLineWidth(3)
                 lg.rectangle("line", x, y, itemSize, itemSize, cornerRadius, cornerRadius)
                 lg.setLineWidth(1)

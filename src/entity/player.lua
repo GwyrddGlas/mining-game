@@ -40,10 +40,12 @@ function entity:load(data, ecs)
     self.reach = 6
     self.mineSpeed = 10
     self.mineTick = 0
-    self.health = 10
-    self.stamina = 10
-    self.magic = 2
-    self.magicCap = 10
+    self.health = config.player.health
+    self.stamina = config.player.stamina
+    self.maxStamina = 10
+    self.magic = config.player.magic
+    self.time = config.player.time or 6
+    self.magicCap = config.player.magicCap
     self.inventory = data.inventory or {}
     self.craftingGrid = data.craftingGrid or {}
     self.craftingResult = data.craftingResult
@@ -51,6 +53,10 @@ function entity:load(data, ecs)
     self.playerLoaded = data.playerLoaded
     self.selectedSkin = "default"
     
+    self.chatMessage = nil
+    self.chatMessageTimer = 0
+    self.chatMessageDuration = 3
+
     self.color = {1, 1, 1}
 
     -- Animation related stuff
@@ -87,6 +93,11 @@ function entity:load(data, ecs)
     -- Updating coordinates
     self:updateChunkCoordinates()
     self:updateGridCoordinates()
+end
+
+function entity:setChatMessage(message)
+    self.chatMessage = message
+    self.chatMessageTimer = self.chatMessageDuration
 end
 
 function entity:updateChunkCoordinates()
@@ -129,7 +140,7 @@ function entity:interact(tile)
     end
 end
 
-function entity:place(tile, id)
+function entity:placeTile(tile)
     if tile.entityType ~= "tile" then
         return
     end
@@ -142,11 +153,11 @@ function entity:place(tile, id)
     if type(itemQuantity) == "number" and itemQuantity > 0 then
         local originalType = tile.type
 
-        tile:place(id)
+        tile:place(selectedItem)
 
         if tile.type ~= originalType then
             inventory[selectedItem] = itemQuantity - 1
-            
+
             if inventory[selectedItem] <= 0 then
                 inventory[selectedItem] = nil
                 for i, item in ipairs(inventoryOrder) do
@@ -179,6 +190,15 @@ local function getJoystickAxis(axis)
         end
     end
     return 0
+end
+
+function entity:update(dt)
+    if self.chatMessageTimer > 0 then
+        self.chatMessageTimer = self.chatMessageTimer - dt
+        if self.chatMessageTimer <= 0 then
+            self.chatMessage = nil
+        end
+    end
 end
 
 function entity:draw()
@@ -220,6 +240,13 @@ function entity:draw()
         local y = self.y - (self.tileSize / 2)
         
         self.animation[self.direction]:draw(x, y, self.tileSize / config.graphics.assetSize, self.tileSize / config.graphics.assetSize)
+   
+        if self.chatMessage then
+            local bubbleX = self.x
+            local bubbleY = self.y - self.tileSize
+            lg.setColor(1, 1, 1, 1)
+            lg.print(self.chatMessage, bubbleX + 10, bubbleY + 10)
+        end
     end
 end
 

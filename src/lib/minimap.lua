@@ -5,38 +5,47 @@ local minimap = {}
 local minimapRadius = 125
 local minimapScale = 8
 
+-- Enhanced color palette for the minimap
 local miniMapColors = {
-    {0.2, 0.2, 0.2, 1},    -- 0: Black (Wall)
-    {0.65, 0.65, 0.7, 1},  -- 1: Light Gray (Stone)
-    {0.7, 0.5, 0.3, 1},    -- 2: Brown (Shrub)
-    {0.1, 0.1, 0.1, 1},    -- 3: Brown (Coal)
+    {0.2, 0.2, 0.2, 1},        -- 0: Black (Wall)
+    {0.65, 0.65, 0.7, 1},      -- 1: Light Gray (Stone)
+    {0.7, 0.5, 0.3, 1},        -- 2: Brown (Shrub)
+    {0.1, 0.1, 0.1, 1},        -- 3: Dark Brown (Coal)
     {0.7529, 0.7529, 0.7529, 1}, -- 4: Silver (Tanzenite)
-    {1.0, 1.8, 0.2, 1},    -- 5: Yellow (Gold)
-    {0, 0.2, 0.8, 1},      -- 6: Green (Uranium)
-    {1, 0.2, 0, 1},        -- 8: Purple (Unknown)
-    {0.8, 0.2, 0.2, 1},    -- 7: Red (Ruby)
-    {0.2, 0, 0.8, 1},      -- 9: Cyan (Diamond)
-    {1.0, 0.5, 0.2, 1},    -- 10: Orange (Copper)
-    {0.8, 0.8, 0.2, 1},    -- 11: Yellow-Green (Uranium)
-    {1, 1, 1, 1},          -- 12: 
-    {1, 1, 1, 1},          -- 13: 
-    {1, 1, 1, 1},          -- 14: 
+    {1.0, 0.8, 0.2, 1},        -- 5: Gold (Gold)
+    {1.0, 0.5, 0.2, 1},          -- 6: Blue (Uranium)
+    {0, 1, 0, 1},            -- 7: Red (Ruby)
+    {0.8, 0.2, 0.2, 1},        -- 8: Dark Red (Unknown)
+    {0.2, 0, 0.8, 1},          -- 9: Purple (Diamond)
+    {0, 0.2, 0.8, 1},        -- 10: Orange (Copper)
+    {0.8588, 0.3765, 0.0784, 1},        -- 11: Yellow-Green (Copper actual)
+    {1, 1, 1, 1},              -- 12: White (Unused)
+    {1, 1, 1, 1},              -- 13: White (Unused)
+    {1, 1, 1, 1},              -- 14: White (Unused)
     {102/255, 123/255, 13/255, 1}, -- 15: Grass (Green)
 }
 
-local function atan2(y, x)
-    if x > 0 then
-        return math.atan(y/x)
-    elseif x < 0 and y >= 0 then
-        return math.atan(y/x) + math.pi
-    elseif x < 0 and y < 0 then
-        return math.atan(y/x) - math.pi
-    elseif x == 0 and y > 0 then
-        return math.pi/2
-    elseif x == 0 and y < 0 then
-        return -math.pi/2
-    else -- x == 0 and y == 0
-        return 0
+-- Helper function to create a smooth gradient
+local function createGradientMesh(width, height, color)
+    return lg.newMesh({
+        {0, 0, 0, 0, color[1], color[2], color[3], color[4]},
+        {width, 0, 1, 0, color[1] * 0.8, color[2] * 0.8, color[3] * 0.8, color[4]},
+        {width, height, 1, 1, color[1] * 0.6, color[2] * 0.6, color[3] * 0.6, color[4]},
+        {0, height, 0, 1, color[1] * 0.4, color[2] * 0.4, color[3] * 0.4, color[4]}
+    }, "fan")
+end
+
+-- Draw a drop shadow for depth
+local function drawDropShadow(x, y, radius, shadowColor, offset)
+    lg.setColor(shadowColor)
+    lg.circle("fill", x + offset, y + offset, radius)
+end
+
+-- Draw a glowing effect
+local function drawGlow(x, y, radius, color)
+    lg.setColor(color)
+    for i = 1, 3 do
+        lg.circle("line", x, y, radius + i, 32)
     end
 end
 
@@ -56,24 +65,28 @@ function minimap:draw(player, all, camera, position)
         minimapY = minimapRadius + padding
     end
 
+    -- Draw drop shadow
+    drawDropShadow(minimapX, minimapY, minimapRadius, {0, 0, 0, 0.5}, 2)
+
+    -- Draw minimap background
     lg.setColor(0.1, 0.1, 0.1, 0.8)
     lg.circle("fill", minimapX, minimapY, minimapRadius)
-    
-    lg.setColor(1,1,1) 
+
+    -- Draw minimap outline
+    lg.setColor(1, 1, 1, 0.8)
     lg.setLineWidth(2)
     lg.circle("line", minimapX, minimapY, minimapRadius)
-    
-    
+
     -- Draw compass points
-    local compassColor = {1,1,1}
+    local compassColor = {1, 1, 1, 0.8}
     local compassOffset = minimapRadius + 20
     lg.setColor(compassColor)
-    lg.setFont(font.regular)
+    lg.setFont(font.tiny)
     lg.print("N", minimapX - 5, minimapY - compassOffset - 15)
     lg.print("S", minimapX - 5, minimapY + compassOffset - 15)
-    lg.print("W", minimapX - compassOffset - 7, minimapY - 7)
+    lg.print("W", minimapX - compassOffset - 12, minimapY - 7)
     lg.print("E", minimapX + compassOffset - 7, minimapY - 7)
-    
+
     -- Draw minimap coordinates
     lg.setColor(1, 1, 1, 1)
     lg.setFont(font.tiny)
@@ -83,22 +96,19 @@ function minimap:draw(player, all, camera, position)
     local xTextY = minimapY + minimapRadius + 15 
     lg.print(xText, xTextX, xTextY)
     
-    -- Draw y-coordinate
     local yText = string.format("y: %i", player.gridY)
     local yTextWidth = lg.getFont():getWidth(yText)
     local yTextX = minimapX + minimapRadius - yTextWidth
     local yTextY = minimapY + minimapRadius + 15
     lg.print(yText, yTextX, yTextY)    
-    
+
     -- Set circular stencil
     lg.stencil(function()
         lg.circle("fill", minimapX, minimapY, minimapRadius - 2)
     end, "replace", 1)
     lg.setStencilTest("greater", 0)
     
-    local playerColor = {0, 1, 0, 1}
-    local playerSize = minimapScale
-    
+    -- Draw tiles
     for i, v in ipairs(all) do
         if v.entityType == "tile" then
             local tileType = tonumber(v.type)
@@ -114,13 +124,15 @@ function minimap:draw(player, all, camera, position)
                 )
             end
         elseif v.entityType == "player" then
-            lg.setColor(playerColor[1], playerColor[2], playerColor[3], playerColor[4])
+            -- Draw player indicator with a glowing effect
+            lg.setColor(0, 1, 0, 1)
+            drawGlow(minimapX, minimapY, 5, {0, 1, 0, 0.5})
             lg.rectangle(
                 "fill",
-                minimapX - playerSize / 2,
-                minimapY - playerSize / 2,
-                playerSize,
-                playerSize
+                minimapX - minimapScale / 2,
+                minimapY - minimapScale / 2,
+                minimapScale,
+                minimapScale
             )
         end
     end
@@ -131,7 +143,7 @@ function minimap:draw(player, all, camera, position)
     -- Draw player direction indicator
     local directionLength = 15
     local mx, my = camera:getMouse()
-    local playerAngle = atan2(my - player.y, mx - player.x)
+    local playerAngle = math.atan2(my - player.y, mx - player.x)
     lg.setColor(1, 1, 1, 0.8)
     lg.setLineWidth(2)
     lg.line(

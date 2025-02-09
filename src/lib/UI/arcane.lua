@@ -84,6 +84,23 @@ function ArcaneUI:init()
     self:updateListButtons()
 end
 
+local glowShader = love.graphics.newShader[[
+    extern float time;
+    vec4 effect(vec4 color, Image texture, vec2 texture_coords, vec2 screen_coords) {
+        vec2 uv = screen_coords / love_ScreenSize.xy;
+        float glow = sin(time * 2.0 + uv.x * 10.0) * 0.5 + 0.5;
+        return vec4(0.2, 0.2, 0.4, 0.2) * glow;  // Blueish glow
+    }
+]]
+
+function ArcaneUI:drawBackground()
+    lg.setShader(glowShader)
+    glowShader:send("time", love.timer.getTime())
+    lg.setColor(1, 1, 1, 1)
+    lg.rectangle("fill", 0, 0, lg.getWidth(), lg.getHeight())
+    lg.setShader()
+end
+
 function ArcaneUI:toggleSection(section)
     if self.activeSections[section] then
         self.activeSections[section] = nil
@@ -120,14 +137,24 @@ function ArcaneUI:updateListButtons()
                     recipe.input,
                     recipe.output,
                     function()                         
-                        if _PLAYER.magic > recipe.cost then
-                            _PLAYER.magic = _PLAYER.magic - recipe.cost
-                            _INVENTORY:removeItemFromInventory(convertIconToName(recipe.input))
-                            _INVENTORY:giveItem(convertIconToName(recipe.output), 1)
-                            console:addMessage("Conjured " .. recipe.name, "system")
-                        else
-                            console:addMessage("Not enough conjuration", "system")
+                        -- Check if the player has enough magic
+                        if _PLAYER.magic < recipe.cost then
+                            console:addMessage("Not enough magic", "")
+                            return
                         end
+
+                        -- Check if the player has the required input item
+                        local inputItemName = convertIconToName(recipe.input)
+                        if not _INVENTORY:hasItem(inputItemName) then
+                            console:addMessage("You need " .. inputItemName .. " to craft this!", "")
+                            return
+                        end
+
+                        -- Deduct magic and input item, then give the output item
+                        _PLAYER.magic = _PLAYER.magic - recipe.cost
+                        _INVENTORY:removeItemFromInventory(inputItemName)
+                        _INVENTORY:giveItem(convertIconToName(recipe.output), 1)
+                        console:addMessage("Conjured " .. recipe.name, "")
                     end
                 ) 
             end
@@ -158,6 +185,8 @@ end
 
 function ArcaneUI:draw()
     if not self.isOpen then return end
+    self:drawBackground() 
+
     for _, button in ipairs(self.sectionButtons) do
         button:draw()
     end
