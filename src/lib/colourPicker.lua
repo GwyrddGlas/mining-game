@@ -14,6 +14,13 @@ local prints = love.graphics.print
 local rec = love.graphics.rectangle
 local cir = love.graphics.circle
 
+local lg = love.graphics
+local fs = love.system
+local kb = love.keyboard
+local lm = love.mouse
+local lt = love.thread
+local li = love.image
+
 local function setpallet(x, y)
     local r, g, b = palletd:getPixel(x, y)
     selectedcolor = {r, g, b}
@@ -29,11 +36,11 @@ local function rgbtohex(selected)
 end
 
 function colorPicker.load(imagePath, initialColor)
-    palletd = love.image.newImageData(imagePath) --pallet 300px
+    palletd = li.newImageData(imagePath) --pallet 300px
     palletw, palleth = palletd:getDimensions()
-    pallet = love.graphics.newImage(palletd)
+    pallet = lg.newImage(palletd)
     prevx = palletw + 50
-    hand = love.mouse.getSystemCursor("hand")
+    hand = lm.getSystemCursor("hand")
 
     -- Set initial color if provided
     if initialColor then
@@ -57,7 +64,7 @@ function colorPicker.load(imagePath, initialColor)
 end
 
 function colorPicker.update(dt)
-    if love.mouse.isDown(1) then
+    if lm.isDown(1) then
         istouch = true
     else
         istouch = nil
@@ -77,7 +84,7 @@ function colorPicker.update(dt)
         setpallet(c_x, c_y)
     end
 
-    getcopy = (love.system.getClipboardText() == "(" .. table.concat(selectedcolor, ",") .. ")" or love.system.getClipboardText() == rgbtohex(selectedcolor)) and true or false
+    getcopy = (fs.getClipboardText() == "(" .. table.concat(selectedcolor, ",") .. ")" or love.system.getClipboardText() == rgbtohex(selectedcolor)) and true or false
 end
 
 function colorPicker.keypressed(key)

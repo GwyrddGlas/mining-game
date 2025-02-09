@@ -5,6 +5,7 @@ local fs = love.filesystem
 local kb = love.keyboard
 local lm = love.mouse
 local lt = love.thread
+
 local gameControls = config.settings.gameControls
 
 local menu = {

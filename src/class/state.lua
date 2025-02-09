@@ -6,6 +6,8 @@ local state = {
     stateHistory = {} 
 }
 
+local fs = love.filesystem
+
 function state:define_state(state_module, name)
     self.state_list[name] = state_module
 end
@@ -16,15 +18,15 @@ function state:load(state_name, data)
     end
 
     if self.currentState then
-        table.insert(self.stateHistory, {
+        self.stateHistory[#self.stateHistory+1] = {
             name = self.loadedStateName,
             state = self.currentState
-        })
+        }
     end
 
    -- self.currentState = nil
     self.loadedStateName = state_name
-    self.currentState = love.filesystem.load(self.state_list[state_name])()
+    self.currentState = fs.load(self.state_list[state_name])()
         
     if type(self.currentState.load) == "function" then
         self.currentState:load(data)
