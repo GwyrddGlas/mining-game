@@ -33,24 +33,28 @@ local icon = {
 
 local recipes = {
     Gems = {
-        {name = "Iron", input = icon.Iron, output = icon.ironIngot, cost = 4, description = "Smelt Iron Ore into Iron Ingot" },
-        {name = "Gold", input = icon.Gold, output = icon.goldIngot, cost = 5, description = "Smelt Gold Ore into Gold Ingot" },
-        {name = "Diamond", input = icon.Diamond, output = icon.diamondIngot, cost = 7, description = "Smelt Diamond Ore into Diamond Ingot" },
-        {name = "Tazenite", input = icon.Tanzenite, output = icon.tanzeniteIngot, cost = 6, description = "Smelt Tanzenite Ore into Tanzenite Ingot" },
-        {name = "Copper", input = icon.Copper, output = icon.copperIngot, cost = 3, description = "Smelt Copper Ore into Copper Ingot" },
-        {name = "Ruby", input = icon.Ruby, output = icon.rubyIngot, cost = 6, description = "Smelt Ruby Ore into Ruby Ingot" },
+        {name = "Iron Ingot", input = icon.Iron, output = icon.ironIngot, cost = 4, description = "Smelt Iron Ore into Iron Ingot" },
+        {name = "Gold Ingot", input = icon.Gold, output = icon.goldIngot, cost = 5, description = "Smelt Gold Ore into Gold Ingot" },
+        {name = "Diamond Ingot", input = icon.Diamond, output = icon.diamondIngot, cost = 7, description = "Smelt Diamond Ore into Diamond Ingot" },
+        {name = "Tanzenite Ingot", input = icon.Tanzenite, output = icon.tanzeniteIngot, cost = 6, description = "Smelt Tanzenite Ore into Tanzenite Ingot" },
+        {name = "Copper Ingot", input = icon.Copper, output = icon.copperIngot, cost = 3, description = "Smelt Copper Ore into Copper Ingot" },
+        {name = "Ruby Ingot", input = icon.Ruby, output = icon.rubyIngot, cost = 6, description = "Smelt Ruby Ore into Ruby Ingot" },
     },
     Resources = {
-        {name = "StoneBrick", input = icon.Wall, output = icon.StoneBrick, cost = 3, description = ""},
-        {name = "Grass", input = icon.Dirt, output = icon.Grass, cost = 3, description = ""},
-        {name = "Dirt", input = icon.Grass, output = icon.Dirt, cost = 3, description = ""},
+        {name = "Stone Brick", input = icon.Wall, output = icon.StoneBrick, cost = 3, description = "Craft Stone Bricks from Stone" },
+        {name = "Grass", input = icon.Dirt, output = icon.Grass, cost = 3, description = "Grow Grass on Dirt" },
+        {name = "Dirt", input = icon.Grass, output = icon.Dirt, cost = 3, description = "Turn Grass into Dirt" },
+        {name = "Magic Plant", input = icon.Mushroom, output = icon.MagicPlant, cost = 2, description = "Craft a Magic Plant from Mushrooms" },
     },
     Tools = {
-        {name = "Torch", input = icon.Coal, output = icon.Torch, cost = 3, description = "" },
+        {name = "Torch", input = icon.Coal, output = icon.Torch, cost = 3, description = "Craft a Torch using Coal" },
+        {name = "Furnace", input = icon.StoneBrick, output = icon.Furnace, cost = 8, description = "Craft a Furnace using Stone Bricks" },
     },
     Utility = {
-        {name = "Chest", input = icon.Shrub, output = icon.Chest, cost = 5, description = "" },
-        {name = "Teleporter", input = icon.emeraldIngot, output = icon.Teleporter, cost = 5, description = "" },
+        {name = "Chest", input = icon.Shrub, output = icon.Chest, cost = 5, description = "Craft a Chest using Sticks" },
+        {name = "Teleporter", input = icon.emeraldIngot, output = icon.Teleporter, cost = 5, description = "Craft a Teleporter using Emerald Ingots" },
+      -- {name = "Health Potion", input = icon.MagicPlant, output = icon.health, cost = 3, description = "Craft a Health Potion using Magic Plants" },
+      -- {name = "Half Heart", input = icon.Mushroom, output = icon.halfHeart, cost = 2, description = "Craft a Half Heart using Mushrooms" },
     }
 }
 

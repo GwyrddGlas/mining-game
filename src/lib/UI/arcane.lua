@@ -121,10 +121,10 @@ function ArcaneUI:updateListButtons()
     for section, isActive in pairs(self.activeSections) do
         if isActive and recipes[section] then
             local xPosition = self.sectionPositions[section]
-            
+
             for i, recipe in ipairs(recipes[section]) do
                 local buttonY = startY + (i - 1) * (rectHeight + spacing)
-                
+
                 self.listButtons[#self.listButtons + 1] = ArcaneButton.new(
                     recipe.cost,
                     "->",
@@ -136,7 +136,7 @@ function ArcaneUI:updateListButtons()
                     rectHeight,
                     recipe.input,
                     recipe.output,
-                    function()                         
+                    function()
                         -- Check if the player has enough magic
                         if _PLAYER.magic < recipe.cost then
                             console:addMessage("Not enough magic", "")

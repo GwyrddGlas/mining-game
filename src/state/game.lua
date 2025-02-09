@@ -173,9 +173,10 @@ local function getJoystickAxis(axis)
     local joysticks = joy.getJoysticks()
     for _, joystick in ipairs(joysticks) do
         local value = joystick:getAxis(axis)
+
         if math.abs(value) > 0.2 then  -- Dead zone
             return value
-        end
+        end    
     end
     return 0
 end
@@ -196,12 +197,35 @@ function game:update(dt)
 
     local mx, my = camera:getMouse()
     
+    local lookX = getJoystickAxis(3) -- Right Stick X
+    local lookY = getJoystickAxis(4) -- Right Stick Y
+
     for i,v in ipairs(self.visibleEntities) do
         v.hover = false
         if fmath.pointInRect(mx, my, v.x, v.y, v.width, v.height) and fmath.distance(v.gridX, v.gridY, self.player.gridX, self.player.gridY) < self.player.reach and not self.inventory.inventoryOpen and not UI.active then
             v.hover = true
             self.hoverEntity = v
         end
+    end
+    
+    --attempt for controller
+    --for i,v in ipairs(self.visibleEntities) do
+    --    v.hover = false
+    --    if fmath.pointInRect(lookX, lookY, v.x, v.y, v.width, v.height) and fmath.distance(v.gridX, v.gridY, self.player.gridX, self.player.gridY) < self.player.reach and not self.inventory.inventoryOpen and not UI.active then
+    --        v.hover = true
+    --        self.hoverEntity = v
+    --    end
+    --end
+    
+    local placeTrigger = getJoystickAxis(5) -- LT
+    local mineTrigger = getJoystickAxis(6) -- RT
+     
+    if mineTrigger > 0.5 and self.hoverEntity and not self.inventory.inventoryOpen then
+        self.player:mine(self.hoverEntity)
+    end
+    
+    if placeTrigger > 0.5 and self.hoverEntity and not self.inventory.inventoryOpen then
+        self.player:placeTile(self.hoverEntity)
     end
     
     -- Updating camera

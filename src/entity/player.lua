@@ -211,7 +211,7 @@ function entity:draw()
         local angle
     
         if math.abs(rightStickX) > 0.2 or math.abs(rightStickY) > 0.2 then
-            angle = math.deg(math.atan2(-rightStickY, rightStickX))
+            angle = math.deg(math.atan2(rightStickY, rightStickX))
         else
             angle = math.deg(fmath.angle(self.x, self.y, mx, my))
         end
@@ -227,7 +227,6 @@ function entity:draw()
         end
 
         lg.setColor(self.color)
-        --lg.rectangle("fill", self.x, self.y, config.graphics.tileSize * scale_x, config.graphics.tileSize * scale_x)
         if self.moving then
             self.animation[self.direction]:start()
             self.animation[self.direction]:update(love.timer.getDelta())
@@ -241,6 +240,7 @@ function entity:draw()
         
         self.animation[self.direction]:draw(x, y, self.tileSize / config.graphics.assetSize, self.tileSize / config.graphics.assetSize)
    
+        -- Draw chat bubble if there's a chat message
         if self.chatMessage then
             local bubbleX = self.x
             local bubbleY = self.y - self.tileSize

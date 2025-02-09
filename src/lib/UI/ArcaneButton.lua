@@ -5,6 +5,39 @@ local lg = love.graphics
 
 local hoverSound = love.audio.newSource("src/assets/audio/button-hover.wav", "static")
 
+local icon = {
+    Coal = 1, --1 - 8 are ores
+    Iron = 2,
+    Gold = 3,
+    Uranium = 4,
+    Diamond = 5,
+    Ruby = 6,
+    Tanzenite = 7,
+    Copper = 8,
+    Shrub = 9, --stick
+    ironIngot = 10, 
+    goldIngot = 11, 
+    emeraldIngot = 12, 
+    diamondIngot = 13, 
+    rubyIngot = 14,
+    tanzeniteIngot = 15, 
+    copperIngot = 16, 
+    Wall = 18,
+    Crafting = 28,
+    Furnace = 29,
+    StoneBrick = 30,
+    Grass = 31,
+    Dirt = 32,
+    Torch = 33,
+    Chest = 34,
+    Water = 35,
+    Teleporter = 36,
+    health = 41,
+    halfHeart = 42,
+    MagicPlant = 49,
+    Mushroom = 51,
+}
+
 function ArcaneButton.new(number, text, color, textColor, x, y, width, height, leftSprite, rightSprite, func)
     return setmetatable({
         number = number,
@@ -69,9 +102,9 @@ local buttonGlowShader = love.graphics.newShader[[
 ]]
 
 function ArcaneButton:draw()
-    local centerX, centerY = self.x + self.width/2, self.y + self.height/2
+    local centerX, centerY = self.x + self.width / 2, self.y + self.height / 2
     local scaledWidth, scaledHeight = self.width * self.scale, self.height * self.scale
-    local drawX, drawY = centerX - scaledWidth/2, centerY - scaledHeight/2
+    local drawX, drawY = centerX - scaledWidth / 2, centerY - scaledHeight / 2
     local spriteScale = 2
 
     -- Draw button background
@@ -83,7 +116,7 @@ function ArcaneButton:draw()
     if self.leftSprite then
         lg.draw(tileAtlas, self.leftSprite, self.x + self.height * 0.2, self.y + self.height * 0.25, 0, spriteScale, spriteScale)
     end
-    
+
     if self.rightSprite then
         lg.draw(tileAtlas, self.rightSprite, self.x + self.width - self.height * 1.2, self.y + self.height * 0.25, 0, spriteScale, spriteScale)
     end
@@ -98,17 +131,16 @@ function ArcaneButton:draw()
     buttonGlowShader:send("time", love.timer.getTime())
     buttonGlowShader:send("size", {self.width, self.height})
     buttonGlowShader:send("position", {self.x, self.y})
-   
+
     lg.setColor(self.color)
     lg.rectangle("line", self.x, self.y, self.width, self.height, 5, 5)
     lg.setShader()  -- Reset shader
 
-        
     -- Text
     lg.setColor(self.textColor)
     local font = lg.getFont()
     local textX, textWidth
-    
+
     if self.leftSprite and self.rightSprite then
         textX = self.x + self.height * 1.2
         textWidth = self.width - self.height * 2.4
@@ -116,14 +148,28 @@ function ArcaneButton:draw()
         textX = self.x + self.height * 0.5
         textWidth = self.width - self.height
     end
-    
+
     local y = self.y + (self.height / 2) - ((font:getAscent() - font:getDescent()) / 2)
     lg.printf(self.text, textX, y, textWidth, "center")
 
-    -- Draw the number
     if self.number then
-        local numberX = self.x + self.width * 0.25
-        lg.print(self.number, numberX, self.y + (self.height / 2) - ((font:getAscent() - font:getDescent()) / 2))
+        local magicIcon = icon.MagicPlant
+        local magicIconScale = 0.5
+        local magicIconX = self.x + self.width * 0.25
+        local magicIconY = self.y + (self.height / 2) - ((font:getAscent() - font:getDescent()) / 2)
+
+        -- Draw the magic icon
+        lg.draw(tileAtlas, magicIcon, magicIconX, magicIconY, 0, magicIconScale, magicIconScale)
+
+        lg.setColor(0.2, 0.8, 1)
+        lg.print(self.number, magicIconX + 20, magicIconY) 
+        
+        if self.isHovered then
+            lg.setColor(0, 0, 0, 0.8)
+            lg.rectangle("fill", self.x, self.y - 30, self.width, 25, 5, 5)
+            lg.setColor(1, 1, 1)
+            lg.print("Magic Cost: " .. self.number, self.x + 5, self.y - 25)
+        end
     end
 
     lg.pop()
