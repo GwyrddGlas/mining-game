@@ -247,4 +247,17 @@ tileData[#tileData+1] = {
     itemTextureID = 51,
 }
 
+tileData[#tileData+1] = {
+    type = "Ice",
+    textureID = 18, 
+    maxHP = 8,
+    drop = {1, 1}, 
+    destructible = true, 
+    edible = true,
+    solid = false,
+    item = "Ice",
+    placeable = true,
+    itemTextureID = 35,
+}
+
 return tileData

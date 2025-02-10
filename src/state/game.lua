@@ -354,11 +354,14 @@ function game:draw()
         lg.setColor(1, 0, 0)
         local bumpItems = self.world:getBumpWorld():countItems()
         lg.setFont(font.tiny)
-        lg.printf("FPS: "..love.timer.getFPS()..
-        "\nRam: " .. tostring(math.floor(collectgarbage("count")/1024)+100).." MB"..
-        "\nVRam: " .. tostring(math.floor(love.graphics.getStats().texturememory/1024/1024)).." MB"..
-        "\nLoaded chunks: "..worldGen.loadedChunkCount..
-        "\nBump items: "..bumpItems, -12, 12, lg.getWidth(), "center")
+        lg.printf("FPS: " .. love.timer.getFPS() ..
+        "\nRam: " .. tostring(math.floor(collectgarbage("count") / 1024) + 100) .. " MB" ..
+        "\nVRam: " .. tostring(math.floor(love.graphics.getStats().texturememory / 1024 / 1024)) .. " MB" ..
+        "\nLoaded chunks: " .. worldGen.loadedChunkCount ..
+        "\nBump items: " .. bumpItems ..
+        "\nDimension: " .. _worldType, 
+        -12, 12, lg.getWidth(), "center")
+    
         worldGen:draw()
     end
 
@@ -443,7 +446,6 @@ function game:mousepressed(x, y, button)
         end
     end
 end
-
 
 function game:mousereleased(x, y, button)
     UI:mousereleased(x, y, button)

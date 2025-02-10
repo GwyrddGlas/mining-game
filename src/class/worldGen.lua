@@ -28,6 +28,9 @@ function worldGen:load(data)
     self.seed = data.seed
     self.worldType = data.worldType or "cave"
 
+    --DEBUG
+    _worldType = self.worldType  
+
     self.chunks = {}
     self.tiles = {} 
     self.loadedChunkCount = 0

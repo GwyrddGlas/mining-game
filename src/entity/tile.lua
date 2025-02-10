@@ -135,6 +135,7 @@ local function convertIconToDefinition(iconValue)
         ["Torch"] = 17,
         ["Grass"] = 18,
         ["Mushroom"] = 19,
+        ["Ice"] = 20,
     }
 
     if type(iconValue) == "string" then

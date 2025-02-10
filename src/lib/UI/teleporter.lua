@@ -27,7 +27,7 @@ local glowShader = love.graphics.newShader[[
 
 local dimensions = {
     {name = "grasslands", color = {0.2, 0.8, 0.2}},  -- Green
-    {name = "The Caverns", color = {0.6, 0.8, 1.0}},  -- Light blue
+    {name = "game", color = {0.6, 0.8, 1.0}},  -- Light blue
 }
 
 local buttons = {}

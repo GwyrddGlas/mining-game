@@ -53,12 +53,12 @@ local function biomeNoise(x, y, scale)
 end
 
 -- Tile definitions
-local grass = 1
+local grass = 18
 local sand = 2
-local water = 3
-local stone = 4
-local tree = 5
-local rock = 6
+local water = 20
+local stone = 1
+local tree = 3
+local rock = 16
 
 -- Generating the requested chunks
 if type(chunksToGenerate) == "table" then

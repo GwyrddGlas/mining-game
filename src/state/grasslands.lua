@@ -41,7 +41,8 @@ function grasslands:load(data)
     self.world:loadSystemFromFolder("src/system")
 
     -- Initializing player
-    self.player = _PLAYER
+    self.player = self.world:newEntity("src/entity/player.lua", playerX, playerY, {x = playerX, y = playerY, inventory = playerInventory, playerLoaded = playerLoaded})
+    _PLAYER = self.player -- Set global reference
     self.inventory = _INVENTORY
 
     self.crafting = crafting:new(self.player)
@@ -53,7 +54,7 @@ function grasslands:load(data)
         seed = self.seed,
         worldType = self.worldType
     })
-    
+      
     self.renderBuffer = worldGen.tileSize * 2
     self.hoverEntity = false -- Contains the entity the mouse is over, Used for mining
     self.time = 0 -- Timer used for shader animations
@@ -161,7 +162,11 @@ end
 function grasslands:update(dt)
     self.visibleEntities = self.world:queryRect(camera.x - self.renderBuffer, camera.y - self.renderBuffer, lg.getWidth() + self.renderBuffer * 2, lg.getHeight() + self.renderBuffer * 2)
     local health = config.player.health
+
     local mx, my = camera:getMouse()
+    
+    local lookX = getJoystickAxis(3) -- Right Stick X
+    local lookY = getJoystickAxis(4) -- Right Stick Y
 
     for i,v in ipairs(self.visibleEntities) do
         v.hover = false
@@ -170,27 +175,69 @@ function grasslands:update(dt)
             self.hoverEntity = v
         end
     end
+    
+    --attempt for controller
+    if math.abs(lookX) > 0.2 or math.abs(lookY) > 0.2 then
+       local direction = {x = lookX, y = lookY}
+       local directionLength = math.sqrt(direction.x * direction.x + direction.y * direction.y)
+       direction.x = direction.x / directionLength
+       direction.y = direction.y / directionLength
 
+       local closestEntity = nil
+       local closestDistance = math.huge
+           for i, v in ipairs(self.visibleEntities) do
+           local entityCenterX = v.x + v.width / 2
+           local entityCenterY = v.y + v.height / 2
+           local playerCenterX = self.player.x + self.player.width / 2
+           local playerCenterY = self.player.y + self.player.height / 2
+                   local dx = entityCenterX - playerCenterX
+           local dy = entityCenterY - playerCenterY
+           local distance = math.sqrt(dx * dx + dy * dy)
+
+           local dotProduct = direction.x * dx + direction.y * dy
+           local angle = math.acos(dotProduct / (directionLength * distance))
+
+           if angle < math.pi / 4 and distance < closestDistance then
+               closestEntity = v
+               closestDistance = distance
+           end
+       end
+           if closestEntity and fmath.distance(closestEntity.gridX, closestEntity.gridY, self.player.gridX, self.player.gridY) < self.player.reach and not self.inventory.inventoryOpen and not UI.active then
+           closestEntity.hover = true
+           self.hoverEntity = closestEntity
+       end
+    end
+
+    local placeTrigger = getJoystickAxis(5) -- LT
+    local mineTrigger = getJoystickAxis(6) -- RT
+     
+    if mineTrigger > 0.5 and self.hoverEntity and not self.inventory.inventoryOpen then
+        self.player:mine(self.hoverEntity)
+    end
+    
+    if placeTrigger > 0.5 and self.hoverEntity and not self.inventory.inventoryOpen then
+        self.player:placeTile(self.hoverEntity)
+    end
+    
     -- Updating camera
     camera:lookAtEntity(self.player)
     camera:update(dt)
-  
+    
     -- Updating world
     worldGen:update(dt)
     UI:update(dt)
 
+    self.player:update(dt)
+
     -- Internal timer used for shaders
     self.time = self.time + dt
-    if self.time > math.pi * 2 then 
-        self.time = 0 
-    end
-   
+    if self.time > math.pi * 2 then self.time = 0 end
+
     self.player.time = self.player.time + dt * 0.05
-   
     if self.player.time >= 24 then
         self.player.time = 0 
     end
-  
+
     -- Handle dying
     if health <= 0 then
         if self.player.spawnX and self.player.spawnY then
@@ -204,12 +251,13 @@ function grasslands:update(dt)
         end
         self.player.inventoryOrder = {}
     end
-  
+
     --Mining
     if lm.isDown(1) and self.hoverEntity and not self.inventory.inventoryOpen then
         self.player:mine(self.hoverEntity)
     end
 end
+
 
 function grasslands:drawHud()
     local iconScale = 30 * scale_x
@@ -270,11 +318,14 @@ function grasslands:draw()
         lg.setColor(1, 0, 0)
         local bumpItems = self.world:getBumpWorld():countItems()
         lg.setFont(font.tiny)
-        lg.printf("FPS: "..love.timer.getFPS()..
-        "\nRam: " .. tostring(math.floor(collectgarbage("count")/1024)+100).." MB"..
-        "\nVRam: " .. tostring(math.floor(love.graphics.getStats().texturememory/1024/1024)).." MB"..
-        "\nLoaded chunks: "..worldGen.loadedChunkCount..
-        "\nBump items: "..bumpItems, -12, 12, lg.getWidth(), "center")
+        lg.printf("FPS: " .. love.timer.getFPS() ..
+        "\nRam: " .. tostring(math.floor(collectgarbage("count") / 1024) + 100) .. " MB" ..
+        "\nVRam: " .. tostring(math.floor(love.graphics.getStats().texturememory / 1024 / 1024)) .. " MB" ..
+        "\nLoaded chunks: " .. worldGen.loadedChunkCount ..
+        "\nBump items: " .. bumpItems ..
+        "\nDimension: " .. _worldType, 
+        -12, 12, lg.getWidth(), "center")
+    
         worldGen:draw()
     end
 
@@ -305,17 +356,18 @@ end
 
 function grasslands:keypressed(key)
     local gameControls = config.settings.gameControls
+
     if key == gameControls.save then
         worldGen:saveWorld()
     end
-    
+
     if key == gameControls.conjure and not console.isOpen then
         UI:toggle("arcane", {})
     end
 
     -- Inventory
     self.inventory:keypressed(key)
-    
+
     -- Hotbar selection
     if tonumber(key) and tonumber(key) >= 1 and tonumber(key) <= 8 then
         self.inventory.selectedIndex = tonumber(key)

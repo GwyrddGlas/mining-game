@@ -10,7 +10,7 @@ local miniMapColors = {
     {0.2, 0.2, 0.2, 1},        -- 0: Black (Wall)
     {0.65, 0.65, 0.7, 1},      -- 1: Light Gray (Stone)
     {0.7, 0.5, 0.3, 1},        -- 2: Brown (Shrub)
-    {0.1, 0.1, 0.1, 1},        -- 3: Dark Brown (Coal)
+    {102/255, 123/255, 13/255, 1},        -- 3: Dark Brown (Coal)
     {0.7529, 0.7529, 0.7529, 1}, -- 4: Silver (Tanzenite)
     {1.0, 0.8, 0.2, 1},        -- 5: Gold (Gold)
     {1.0, 0.5, 0.2, 1},          -- 6: Blue (Uranium)
