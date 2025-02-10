@@ -85,8 +85,6 @@ function console:init(width, height, font)
     self.inputHeight = fixedInputHeight
     self.chatHeight = self.height - self.inputHeight
 
-    love.keyboard.setTextInput(true)
-
     self.x = 0
     self.y = lg.getHeight() - self.height
 
@@ -208,15 +206,26 @@ function console:draw()
 end
 
 function console:keypressed(key)
-    if state.loadedStateName ~= "game" and not self.isOpen then
+    if state.loadedStateName ~= "game" then
+        return 
+    end
+
+    if key == "t" and not self.isOpen then
+        self.isOpen = true
+        love.keyboard.setTextInput(true)
         return 
     end
 
     if key == "return" and #self.input >= 1 then
         self:processInput()
         self.isOpen = false
+        love.keyboard.setTextInput(false)
     elseif key == "backspace" then
         self.input = self.input:sub(1, -2)
+    elseif key == "escape" then
+        self.isOpen = false
+        love.keyboard.setTextInput(false)
+        self.input = ""
     end
 end
 
@@ -252,7 +261,7 @@ function console:processInput()
     else
         self:addMessage(self.input, self.activeChannel)
         if _PLAYER then
-            _PLAYER:setChatMessage(self.input)
+            _PLAYER:setChatMessage(tostring(config.settings.playerName)..": "..self.input)
         end
     end
 

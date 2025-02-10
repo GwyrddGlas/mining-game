@@ -4,6 +4,7 @@ seed = tonumber(seed)
 
 love.math = require("love.math")
 love.mouse = require("love.mouse")
+require("src.class.util")
 
 local fs = love.filesystem
 local noise = love.math.noise
@@ -53,12 +54,12 @@ local function biomeNoise(x, y, scale)
 end
 
 -- Tile definitions
-local grass = 18
-local sand = 2
-local water = 20
-local stone = 1
-local tree = 3
-local rock = 16
+local grass = convertIconToDefinition("Grass")
+local sand = convertIconToDefinition("Dirt")
+local water = convertIconToDefinition("Water")
+local stone = convertIconToDefinition("Wall")
+local tree = convertIconToDefinition("Shrub")
+local rock = convertIconToDefinition("Grass")
 
 -- Generating the requested chunks
 if type(chunksToGenerate) == "table" then

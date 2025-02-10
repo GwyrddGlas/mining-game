@@ -178,34 +178,35 @@ function grasslands:update(dt)
     
     --attempt for controller
     if math.abs(lookX) > 0.2 or math.abs(lookY) > 0.2 then
-       local direction = {x = lookX, y = lookY}
-       local directionLength = math.sqrt(direction.x * direction.x + direction.y * direction.y)
-       direction.x = direction.x / directionLength
-       direction.y = direction.y / directionLength
+        local direction = {x = lookX, y = lookY}
+        local directionLength = math.sqrt(direction.x * direction.x + direction.y * direction.y)
+        direction.x = direction.x / directionLength
+        direction.y = direction.y / directionLength
 
-       local closestEntity = nil
-       local closestDistance = math.huge
-           for i, v in ipairs(self.visibleEntities) do
-           local entityCenterX = v.x + v.width / 2
-           local entityCenterY = v.y + v.height / 2
-           local playerCenterX = self.player.x + self.player.width / 2
-           local playerCenterY = self.player.y + self.player.height / 2
-                   local dx = entityCenterX - playerCenterX
-           local dy = entityCenterY - playerCenterY
-           local distance = math.sqrt(dx * dx + dy * dy)
+        local closestEntity = nil
+        local closestDistance = math.huge
+        
+        for i, v in ipairs(self.visibleEntities) do
+            local entityCenterX = v.x + v.width / 2
+            local entityCenterY = v.y + v.height / 2
+            local playerCenterX = self.player.x + self.player.width / 2
+            local playerCenterY = self.player.y + self.player.height / 2
+            local dx = entityCenterX - playerCenterX
+            local dy = entityCenterY - playerCenterY
+            local distance = math.sqrt(dx * dx + dy * dy)
+            local dotProduct = direction.x * dx + direction.y * dy
+            local angle = math.acos(dotProduct / (directionLength * distance))
+            
+            if angle < math.pi / 4 and distance < closestDistance then
+                closestEntity = v
+                closestDistance = distance
+            end
+        end
 
-           local dotProduct = direction.x * dx + direction.y * dy
-           local angle = math.acos(dotProduct / (directionLength * distance))
-
-           if angle < math.pi / 4 and distance < closestDistance then
-               closestEntity = v
-               closestDistance = distance
-           end
-       end
-           if closestEntity and fmath.distance(closestEntity.gridX, closestEntity.gridY, self.player.gridX, self.player.gridY) < self.player.reach and not self.inventory.inventoryOpen and not UI.active then
-           closestEntity.hover = true
-           self.hoverEntity = closestEntity
-       end
+        if closestEntity and fmath.distance(closestEntity.gridX, closestEntity.gridY, self.player.gridX, self.player.gridY) < self.player.reach and not self.inventory.inventoryOpen and not UI.active then
+            closestEntity.hover = true
+            self.hoverEntity = closestEntity
+        end
     end
 
     local placeTrigger = getJoystickAxis(5) -- LT
@@ -257,7 +258,6 @@ function grasslands:update(dt)
         self.player:mine(self.hoverEntity)
     end
 end
-
 
 function grasslands:drawHud()
     local iconScale = 30 * scale_x

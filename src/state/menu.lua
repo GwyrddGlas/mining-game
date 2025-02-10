@@ -1,4 +1,5 @@
 local colourPicker = require("src.lib.colourPicker")
+local network = require("src.class.network")
 
 local lg = love.graphics
 local fs = love.filesystem
@@ -193,6 +194,37 @@ local function setNewKey(action, key)
     gameControls[action] = key
 end
 
+local function hostHame()
+    local port = menu.screen.host.port.text
+    network.host(port)
+    note:new("Server hosted on "..tostring(port))
+end
+
+local function joinHame()
+    local port = menu.screen.join.joinPort.text
+    local IP = menu.screen.join.IP.text
+
+    -- Validate IP and port
+    if IP == "" or port == "" then
+        note:new("Please enter a valid IP and port.", "danger")
+        return
+    end
+
+    -- Attempt to join the server
+    local success, err = pcall(function()
+        network.join(IP, port)
+    end)
+
+    if success then
+        note:new("Connected to server at " .. IP .. ":" .. port, "success")
+       
+       
+       -- state:load("game", {type = "multiplayer", IP = IP, port = port})
+    else
+        note:new("Failed to connect to server: " .. tostring(err), "danger")
+    end
+end
+
 function menu:getSelectedTextbox(screen)
     for i, v in ipairs(self.screen[screen]) do
         if v.type == "textbox" and v.selected then
@@ -230,14 +262,38 @@ function menu:load(args)
             label.new(""..str, self.color.white, font.regular, 20, 20, "left"),
            
             createButton("Singleplayer", 30, 40, 40, 9, changeScreen("singleplayer")),
-            createButton("Settings", 30, 50, 40, 9, changeScreen("options")),
-            createButton("Quit Game", 30, 60, 40, 9, exitButton),
+            createButton("LAN Multiplayer", 30, 50, 40, 9, changeScreen("multiplayer")),
+            createButton("Settings", 30, 60, 40, 9, changeScreen("options")),
+            createButton("Quit Game", 30, 70, 40, 9, exitButton),
         },
         singleplayer = {
             label.new("Singleplayer", self.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
             createButton("New world", 30, 40, 40, 9, changeScreen("new")),
             createButton("Load world", 30, 50, 40, 9, changeScreen("load")),
             createButton("Back", 30, 60, 40, 9, revertScreen()),
+        },
+        multiplayer = {
+            label.new("Multiplayer", self.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
+            createButton("Host", 30, 40, 40, 9, changeScreen("host")),
+            createButton("Join", 30, 50, 40, 9, changeScreen("join")),
+            createButton("Back", 30, 60, 40, 9, revertScreen()),
+        },
+        host = {
+            label.new("Host", self.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
+            port = textbox.new("25565", "Port", self.color.fg, self.color.idle, self.color.fg, self.width * 0.38, self.height * 0.45, self.width * 0.15, self.height * 0.05),
+
+            createButton("Host", 38, 51, 15, 5, hostHame),
+
+            createButton("Back", 30, 60, 40, 9, revertScreen()),
+        },
+        join = {
+            label.new("Join", self.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
+            IP = textbox.new("", "IP", self.color.fg, self.color.idle, self.color.fg, self.width * 0.38, self.height * 0.45, self.width * 0.15, self.height * 0.05),
+            joinPort = textbox.new("", "Port", self.color.fg, self.color.idle, self.color.fg, self.width * 0.38, self.height * 0.50, self.width * 0.15, self.height * 0.05),
+
+            createButton("Join", 38, 60, 15, 5, joinHame),
+
+            createButton("Back", 30, 70, 40, 9, revertScreen()),
         },
         options = {
             label.new("Settings", self.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),

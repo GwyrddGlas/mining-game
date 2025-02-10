@@ -7,13 +7,13 @@ return {
     caveThresh = 0.47,
     caveRatio1 = 0.8,
     caveRatio2 = 0.2,
-    elevationScale = 0.1,
+    elevationScale = 0.05,
     waterLevel = 0.3,
-    sandLevel = 0.1,
+    sandLevel = 0.3,
     stoneLevel = 0.1,
     featureScale = 0.2,
     treeThreshold = 0.8,
-    rockThreshold = 0.6,
+    rockThreshold = 0,
 
     ores = {
         {

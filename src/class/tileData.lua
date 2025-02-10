@@ -57,7 +57,6 @@ tileData[#tileData+1] = {
     solid = false,
     destructible = true,
     interactable = true,
-    edible = true,
     placeable = true,
     item = "MagicPlant",
     itemTextureID = 49,
@@ -240,7 +239,7 @@ tileData[#tileData+1] = {
     maxHP = 8,
     drop = {1, 1}, 
     destructible = true, 
-    edible = true,
+    interactable = true,
     solid = false,
     item = "Mushroom",
     placeable = true,
@@ -253,11 +252,22 @@ tileData[#tileData+1] = {
     maxHP = 8,
     drop = {1, 1}, 
     destructible = true, 
-    edible = true,
     solid = false,
     item = "Ice",
     placeable = true,
     itemTextureID = 35,
+}
+
+tileData[#tileData+1] = {
+    type = "Water",
+    textureID = 18, 
+    maxHP = 0,
+    drop = {1, 1}, 
+    destructible = false, 
+    solid = false,
+    item = "Water",
+    placeable = true,
+    itemTextureID = 37,
 }
 
 return tileData

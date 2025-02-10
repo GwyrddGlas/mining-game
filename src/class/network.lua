@@ -1,53 +1,79 @@
-local socket = require("socket")
+local socket = require("src.lib.socket")
 
-local network = {}
+local multiplayer = {}
 
-function network:init(ip, port)
-    self.ip = ip
-    self.port = port
-    self.server = nil
-    self.client = nil
-end
+function multiplayer.host(port)
+    local server = assert(socket.bind("*", port))
+    local ip, port = server:getsockname()
 
-function network:createServer()
-    self.server = socket.bind(self.ip, self.port)
-    self.server:settimeout(0)
-    print("Server created at " .. self.ip .. ":" .. self.port)
-end
+    note:new("Server started on " .. ip .. ":" .. port)
+    note:new("Waiting for players to join...")
 
-function network:connect()
-    self.client = socket.tcp()
-    self.client:settimeout(0)
-    local success, err = self.client:connect(self.ip, self.port)
-    if not success then
-        note:new("Failed to connect: ".. err, "danger")
-        return false
-    end
-    return true
-end
+    local clients = {} 
 
-function network:send(data)
-    if self.client then
-        self.client:send(data .. "\n")
-    end
-end
+    return {
+        accept = function()
+            local client = server:accept() 
+            client:settimeout(10)  
 
-function network:receive()
-    if self.server then
-        local client = self.server:accept()
-        if client then
-            client:settimeout(0)
-            local data, err = client:receive()
-            if data then
-                print("Received: " .. data)
+            table.insert(clients, client)
+            note:new("Player connected! Total players: " .. #clients)
+
+            return client
+        end,
+        receive = function(client)
+            local message, err = client:receive()
+            if err then
+                note:new("Player disconnected or error: " .. err)
+                return nil, err
+            end
+            return message
+        end,
+        send = function(client, message)
+            client:send(message .. "\n")
+        end,
+        broadcast = function(message)
+            for _, client in ipairs(clients) do
+                client:send(message .. "\n")
+            end
+        end,
+        close = function(client)
+            client:close()
+        end,
+        closeAll = function()
+            for _, client in ipairs(clients) do
+                client:close()
             end
         end
-    elseif self.client then
-        local data, err = self.client:receive()
-        if data then
-            print("Received: " .. data)
-        end
-    end
+    }
 end
 
-return network
+function multiplayer.join(ip, port)
+    local client = assert(socket.tcp())
+    client:settimeout(0) 
+
+    local success, err = client:connect(ip, port)
+    if not success and err ~= "timeout" then
+        return nil, err
+    end
+
+    return {
+        send = function(message)
+            client:send(message .. "\n")
+        end,
+        receive = function()
+            local message, err = client:receive()
+            if err == "timeout" then
+                return nil
+            elseif err then
+                return nil, err
+            end
+            return message
+        end,
+        close = function()
+            client:close()
+        end
+    }
+end
+
+return multiplayer

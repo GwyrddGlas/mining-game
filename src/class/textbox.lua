@@ -14,6 +14,7 @@ local floor = math.floor
 
 local defaultInputFilter = function() return true end
 
+love.keyboard.setTextInput(true)
 function textbox.new(text, placeholder, color, textColor, textColorSelected, x, y, width, height, inputFilter, maxLength)
     return setmetatable({
         type = "textbox",

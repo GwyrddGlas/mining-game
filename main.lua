@@ -213,9 +213,6 @@ function love.keypressed(key)
         if _INVENTORY and _INVENTORY.inventoryOpen then
             _INVENTORY:toggleInventory()
         end
-        if state.loadedStateName == "game" then
-            console.isOpen = true
-        end
     elseif key == "f2" then
         config.debug.enabled = not config.debug.enabled
     end 

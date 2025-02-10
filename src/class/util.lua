@@ -59,9 +59,35 @@ function require_folder(folder)
     end
 end
 
-function hasValue(t, val)
-    for k,v in pairs(t) do
-        if v == val then return true end
+function convertIconToDefinition(iconValue)
+    local iconDefinitions = {
+        ["Wall"] = 1,
+        ["Floor"] = 2,
+        ["Shrub"] = 3,
+        ["MagicPlant"] = 4,
+        ["Coal"] = 5,
+        ["Iron"] = 6,
+        ["Gold"] = 7,
+        ["Uranium"] = 8,
+        ["Diamond"] = 9,
+        ["Ruby"] = 10,
+        ["Tanzenite"] = 11,
+        ["Copper"] = 12,
+        ["Furnace"] = 13,
+        ["Crafting"] = 14,
+        ["Teleporter"] = 15,
+        ["StoneBrick"] = 16,
+        ["Torch"] = 17,
+        ["Grass"] = 18,
+        ["Mushroom"] = 19,
+        ["Ice"] = 20,
+        ["Water"] = 21,
+    }
+
+    if type(iconValue) == "string" then
+        return iconDefinitions[iconValue] or 2 
+    else
+        return iconDefinitions[iconValue] or 2 
     end
 end
 
