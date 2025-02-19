@@ -71,7 +71,9 @@ function game:load(data)
     self.player = self.world:newEntity("src/entity/player.lua", playerX, playerY, {x = playerX, y = playerY, inventory = playerInventory, playerLoaded = playerLoaded})
     self.inventory = inventory:new(self.player)
     self.crafting = crafting:new(self.player)
-
+    
+    self.slimes = {}
+        
     -- Exposing for debug purposes
     _PLAYER = self.player
     _INVENTORY = self.inventory
@@ -191,6 +193,33 @@ local function isJoystickButtonDown(button)
     return false
 end
 
+local function centerEntityOnTile(entity, x, y, tileSize)
+    entity.x = x * tileSize + (tileSize / 2)
+    entity.y = y * tileSize + (tileSize / 2) - (entity.collisionBoxHeight / 2)
+end
+
+function worldGen:centerPlayerOnTile(x, y)
+    x = x or self.player.gridX
+    y = y or self.player.gridY
+    centerEntityOnTile(self.player, x, y, self.tileSize)
+end
+
+local function spawnSlimes(playerX, playerY, world)
+    local spawnRadius = 16 
+    local spawnAttempts = 5
+
+    for i = 1, spawnAttempts do
+        local spawnX = playerX + math.random(-spawnRadius, spawnRadius)
+        local spawnY = playerY + math.random(-spawnRadius, spawnRadius)
+
+        local slime = world:newEntity("src/entity/slime.lua", spawnX, spawnY, {x = spawnX, y = spawnY})
+
+        centerEntityOnTile(slime, spawnX, spawnY, worldGen.tileSize)
+
+        return slime
+    end
+end
+
 function game:update(dt)
     self.visibleEntities = self.world:queryRect(camera.x - self.renderBuffer, camera.y - self.renderBuffer, lg.getWidth() + self.renderBuffer * 2, lg.getHeight() + self.renderBuffer * 2)
     local health = config.player.health
@@ -205,6 +234,14 @@ function game:update(dt)
         if fmath.pointInRect(mx, my, v.x, v.y, v.width, v.height) and fmath.distance(v.gridX, v.gridY, self.player.gridX, self.player.gridY) < self.player.reach and not self.inventory.inventoryOpen and not UI.active then
             v.hover = true
             self.hoverEntity = v
+        end
+    end
+
+    self.slimeSpawnTimer = (self.slimeSpawnTimer or 0) + dt
+    if self.slimeSpawnTimer >= 120 then
+        self.slimeSpawnTimer = 0
+        if #self.slimes < 5 then
+            self.slimes[#self.slimes+1] = spawnSlimes(self.player.gridX, self.player.gridY, self.world)
         end
     end
     
@@ -260,6 +297,10 @@ function game:update(dt)
     UI:update(dt)
 
     self.player:update(dt)
+
+    for _, v in ipairs(self.slimes) do
+        v:update(dt)
+    end
 
     -- Internal timer used for shaders
     self.time = self.time + dt
@@ -331,6 +372,11 @@ function game:draw()
     camera:push()
     self.world:update(self.visibleEntities)
     self.player:draw()
+
+    for _, v in ipairs(self.slimes) do
+        v:draw()
+    end
+
     floatText:draw()
     camera:pop()
 

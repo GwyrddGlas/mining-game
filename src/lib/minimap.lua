@@ -134,6 +134,14 @@ function minimap:draw(player, all, camera, position)
                 minimapScale,
                 minimapScale
             )
+        elseif v.entityType == "slime" then
+            lg.rectangle(
+                "fill",
+                minimapX - minimapScale / 2,
+                minimapY - minimapScale / 2,
+                minimapScale,
+                minimapScale
+            )
         end
     end
     

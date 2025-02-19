@@ -18,15 +18,15 @@ function entity:load(data, ecs)
     self.entityType = "player"
     self.visible = false
 
-    self.tileSize = math.floor(config.graphics.tileSize * scale_x)
+    self.tileSize = floor(config.graphics.tileSize * scale_x)
 
     self.x = data.x * self.tileSize
     self.y = data.y * self.tileSize
 
     self.width = self.tileSize
     self.height = self.tileSize
-    self.collisonBoxWidth = math.floor(config.graphics.tileSize * scale_x * 0.7)
-    self.collisionBoxHeight = math.floor(config.graphics.tileSize * scale_x * 0.5)
+    self.collisonBoxWidth = floor(config.graphics.tileSize * scale_x * 0.7)
+    self.collisionBoxHeight = floor(config.graphics.tileSize * scale_x * 0.5)
 
     -- Chunk coordinates, Used to detect when player moves to a new chunk
     self.chunkX = 0
@@ -108,8 +108,8 @@ function entity:updateChunkCoordinates()
 end
 
 function entity:updateGridCoordinates()
-    self.gridX = math.floor(self.x / floor(config.graphics.tileSize * scale_x))
-    self.gridY = math.floor(self.y / floor(config.graphics.tileSize * scale_x))
+    self.gridX = floor(self.x / floor(config.graphics.tileSize * scale_x))
+    self.gridY = floor(self.y / floor(config.graphics.tileSize * scale_x))
 end
 
 function entity:teleport(x, y)
