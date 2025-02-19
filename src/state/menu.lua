@@ -7,12 +7,12 @@ local kb = love.keyboard
 local lm = love.mouse
 local lt = love.thread
 
-local gameControls = config.settings.gameControls
 
 local menu = {
     selectedWorld = nil,
     currentScreen = nil,
     previousScreen = nil,
+    screenHistory = {},
     titleOffset = 0,
     titleSpeed = 20,  
     titleAmplitude = 10,
@@ -27,22 +27,37 @@ local cloudOffset = 0
 local skinColourToggle = false
 local backgroundShader = love.graphics.newShader("src/lib/poster/shaders/background.frag")
 
-local function changeScreen(screen)
+function changeScreen(screen)
     return function()
         if not menu.screen[screen] then
             note:new("Error: Screen '" .. tostring(screen) .. "' does not exist!")
             return
         end
 
-        menu.previousScreen = menu.currentScreen
+        table.insert(menu.screenHistory, menu.currentScreen)
         menu.currentScreen = screen
     end
 end
 
-local function revertScreen()
+function createButton(text, xPercent, yPercent, widthPercent, heightPercent, action)
+    return button.new(
+        text, 
+        menu.color.white, 
+        menu.color.white, 
+        menu.width * (xPercent / 100), 
+        menu.height * (yPercent / 100), 
+        menu.width * (widthPercent / 100), 
+        menu.height * (heightPercent / 100), 
+        action
+    )
+end
+
+function revertScreen()
     return function()
-        if menu.previousScreen then
-            menu.currentScreen = menu.previousScreen
+        if #menu.screenHistory > 0 then
+            menu.currentScreen = table.remove(menu.screenHistory)
+        else
+            menu.currentScreen = "main"
         end
     end
 end
@@ -113,19 +128,6 @@ local function loadSkins()
     characterSprite = love.graphics.newImage("src/assets/player/skin.png")
 end
 
-local function createButton(text, xPercent, yPercent, widthPercent, heightPercent, action)
-    return button.new(
-        text, 
-        menu.color.white, 
-        menu.color.white, 
-        menu.width * (xPercent / 100), 
-        menu.height * (yPercent / 100), 
-        menu.width * (widthPercent / 100), 
-        menu.height * (heightPercent / 100), 
-        action
-    )
-end
-
 local function load()
     if menu.selectedWorld then
         state:load("game", {type = "load", worldName = menu.selectedWorld})
@@ -190,9 +192,6 @@ local function delete()
     end
 end
 
-local function setNewKey(action, key)
-    gameControls[action] = key
-end
 
 local function hostHame()
     local port = menu.screen.host.port.text
@@ -249,255 +248,36 @@ function menu:load(args)
         success = {223/255, 147/255, 95/255},
         darker1 = {200.7/255, 132.3/255, 85.5/255},
         darker2 = {180/255, 119/255, 76.5/255} 
-    }
-    
-    local major, minor, revision, codename = love.getVersion()
-    local str = string.format("%d.%d.%d - %s", major, minor, revision, codename)
+    }  
+
+    local mainMenu = require("src.state.menus.MainMenu")
+    local singleplayerMenu = require("src.state.menus.SingleplayerMenu")
+    local multiplayerMenu = require("src.state.menus.MultiplayerMenu")
+    local optionsMenu = require("src.state.menus.OptionsMenu")
+    local graphicsMenu = require("src.state.menus.GraphicsMenu")
+    local newWorld = require("src.state.menus.NewWorld")
+    local selectWorld = require("src.state.menus.SelectWorld")
+    local hostMenu = require("src.state.menus.HostMenu")
+    local joinMenu = require("src.state.menus.JoinMenu")
+    local soundMenu = require("src.state.menus.SoundMenu")
+    local controlsMenu = require("src.state.menus.ControlsMenu")
+    local debugMenu = require("src.state.menus.DebugMenu")
+    local skinsMenu = require("src.state.menus.SkinsMenu")
 
     self.screen = {
-        main = {
-            label.new(VERSION, self.color.white, font.regular, self.width * 0.47 - font.regular:getWidth(VERSION) * 0.4, self.height - 55, "center"),
-            label.new("dsc.gg/miners-odyssey", self.color.white, font.regular, 10, self.height - 55, "left"),
-            label.new(""..NAME, self.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
-            label.new(""..str, self.color.white, font.regular, 20, 20, "left"),
-           
-            createButton("Singleplayer", 30, 40, 40, 9, changeScreen("singleplayer")),
-            createButton("LAN Multiplayer", 30, 50, 40, 9, changeScreen("multiplayer")),
-            createButton("Settings", 30, 60, 40, 9, changeScreen("options")),
-            createButton("Quit Game", 30, 70, 40, 9, exitButton),
-        },
-        singleplayer = {
-            label.new("Singleplayer", self.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
-            createButton("New world", 30, 40, 40, 9, changeScreen("new")),
-            createButton("Load world", 30, 50, 40, 9, changeScreen("load")),
-            createButton("Back", 30, 60, 40, 9, revertScreen()),
-        },
-        multiplayer = {
-            label.new("Multiplayer", self.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
-            createButton("Host", 30, 40, 40, 9, changeScreen("host")),
-            createButton("Join", 30, 50, 40, 9, changeScreen("join")),
-            createButton("Back", 30, 60, 40, 9, revertScreen()),
-        },
-        host = {
-            label.new("Host", self.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
-            port = textbox.new("25565", "Port", self.color.fg, self.color.idle, self.color.fg, self.width * 0.38, self.height * 0.45, self.width * 0.15, self.height * 0.05),
-
-            createButton("Host", 38, 51, 15, 5, hostHame),
-
-            createButton("Back", 30, 60, 40, 9, revertScreen()),
-        },
-        join = {
-            label.new("Join", self.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
-            IP = textbox.new("", "IP", self.color.fg, self.color.idle, self.color.fg, self.width * 0.38, self.height * 0.45, self.width * 0.15, self.height * 0.05),
-            joinPort = textbox.new("", "Port", self.color.fg, self.color.idle, self.color.fg, self.width * 0.38, self.height * 0.50, self.width * 0.15, self.height * 0.05),
-
-            createButton("Join", 38, 60, 15, 5, joinHame),
-
-            createButton("Back", 30, 70, 40, 9, revertScreen()),
-        },
-        options = {
-            label.new("Settings", self.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
-            createButton("Graphics", 30, 30, 40, 9, changeScreen("graphics")),
-            createButton("Sounds", 30, 40, 40, 9, changeScreen("sounds")),
-            createButton("Controls", 30, 50, 40, 9, changeScreen("controls")),
-            createButton("Debug", 30, 60, 40, 9, changeScreen("debug")),
-            createButton("Save", 30, 70, 40, 9, function()
-                clear_config()
-                save_config()
-                note:new("Settings saved!", "success")
-            end),
-            createButton("Back", 30, 80, 40, 9, changeScreen("main")),
-        },
-        skins = {
-            label.new("Name", self.color.bg, font.tiny, self.width * 0.38, self.height * 0.42, "left"),
-            characterName = textbox.new("", "Pickle", self.color.fg, self.color.idle, self.color.fg, self.width * 0.38, self.height * 0.45, self.width * 0.15, self.height * 0.05),
-            createButton("Colour Picker", 38, 51, 15, 5, function()
-                skinColourToggle = not skinColourToggle
-            end),
-            createButton("Save", 38, 65, 15, 5, function()
-                save_config()
-                note:new("Settings saved!", "success")
-            end),
-            createButton("Back", 30, 90, 40, 9, revertScreen()),
-        },
-        graphics = {
-            label.new("Graphics Settings", self.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
-        
-            checkbox.new(
-                "Shaders", self.color.white, self.color.white, 
-                self.width * 0.3, self.height * 0.3, self.width * 0.4, self.height * 0.05, 
-                config.graphics.useShaders, 
-                function(isChecked) 
-                    config.graphics.useShaders = isChecked 
-                end
-            ),
-        
-            checkbox.new(
-                "Vsync", self.color.white, self.color.white, 
-                self.width * 0.4, self.height * 0.3, self.width * 0.4, self.height * 0.05, 
-                config.window.vsync, 
-                function(isChecked) 
-                    love.window.setVSync(isChecked)
-                    config.graphics.vsync = isChecked
-                end
-            ),
-        
-            checkbox.new(
-                "Fog", self.color.white, self.color.white, 
-                self.width * 0.5, self.height * 0.3, self.width * 0.4, self.height * 0.05, 
-                config.graphics.useLight, 
-                function(isChecked) 
-                    config.graphics.useLight = isChecked 
-                end
-            ),
-        
-            slider.new(
-                "Bloom", 0, 1, config.graphics.bloom, 
-                self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.05, 
-                {0.4, 0.4, 0.4}, {1, 1, 1}, 
-                function(value) config.graphics.bloom = value end
-            ),
-        
-            slider.new(
-                "Light Distance", 0, 600, config.graphics.lightDistance, 
-                self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.05, 
-                {0.4, 0.4, 0.4}, {1, 1, 1}, 
-                function(value) config.graphics.lightDistance = value end
-            ),
-        
-            slider.new(
-                "Brightness", 0, 0.4, config.graphics.brightness, 
-                self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.05, 
-                {0.4, 0.4, 0.4}, {1, 1, 1}, 
-                function(value) config.graphics.brightness = value end
-            ),
-        
-            slider.new(
-                "Ambient Light", 0, 1, config.graphics.ambientLight, 
-                self.width * 0.3, self.height * 0.7, self.width * 0.4, self.height * 0.05, 
-                {0.4, 0.4, 0.4}, {1, 1, 1}, 
-                function(value) config.graphics.ambientLight = value end
-            ),
-        
-            -- Color picker for light color (commented out for now)
-            -- colourPicker.new(
-            --     "Light Color", config.graphics.lightColor, 
-            --     self.width * 0.3, self.height * 0.55, self.width * 0.4, self.height * 0.05, 
-            --     {0.4, 0.4, 0.4}, {1, 1, 1}, 
-            --     function(r, g, b) config.graphics.lightColor = {r, g, b} end
-            -- ),
-        
-            button.new(
-                "Reset Graphics Settings", self.color.white, self.color.white, 
-                self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, 
-                function()
-                    local defaultGraphics = {
-                        useLight = true,
-                        useShaders = true,
-                        bloom = 0.4,
-                        brightness = 0.19,
-                        lightDistance = 500,
-                        ambientLight = 0.3,
-                        lightColor = {1, 0.9, 0.8},
-                        tileSize = 40,
-                        assetSize = 16
-                    }
-        
-                    for key, value in pairs(defaultGraphics) do
-                        config.graphics[key] = value
-                    end
-        
-                    save_config() 
-                    note:new("Graphics settings have been reset, you will need to restart game.", "success")
-                end
-            ),
-        
-            createButton("Back", 30, 90, 40, 9, revertScreen()),
-        },
-        new = {
-            label.new("New world", self.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
-            worldName = textbox.new("", "World name", self.color.white, self.color.idle, self.color.fg, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.09),
-            seed = textbox.new("", "Seed", self.color.white, self.color.idle, self.color.fg, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.09, false, 10),
-            createButton("Create world", 30, 60, 40, 9, createNewWorld),
-            createButton("Back", 30, 70, 40, 9, revertScreen()),
-        },
-        load = {
-            label.new("Select World", self.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
-            createButton("Back", 30, 90, 40, 9, revertScreen()), --tmp
-        },
-        sounds = {
-            label.new("Sound Settings", self.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
-            slider.new("Master Volume", 0, 1, config.audio.master, self.width * 0.3, self.height * 0.4, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(value) 
-                config.audio.master = value
-                applyMasterVolume()
-              end),
-              slider.new("Music Volume", 0, 1, config.audio.music, self.width * 0.3, self.height * 0.5, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(value) 
-                config.audio.music = value
-                if currentTrack then
-                    currentTrack:setVolume(value * config.audio.master)
-                end
-            end),
-            slider.new("SFX Volume", 0, 1, config.audio.sfx, self.width * 0.3, self.height * 0.6, self.width * 0.4, self.height * 0.05, {0.4, 0.4, 0.4}, {1, 1, 1}, function(value) config.audio.sfx = value end),
-            button.new("Back", self.color.white, self.color.white, self.width * 0.3, self.height * 0.8, self.width * 0.4, self.height * 0.09, revertScreen())
-        },
-        controls = {
-            label.new("Controls", self.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
-            keybox.new("Forward", self.color.white, self.color.white, self.width * 0.3, self.height * 0.3, 120, self.height * 0.09, gameControls.up, function(key)
-                setNewKey("up", key)
-            end),
-            keybox.new("Backward", self.color.white, self.color.white, self.width * 0.3, self.height * 0.4, 120, self.height * 0.09, gameControls.down, function(key)
-                setNewKey("down", key)
-            end),
-            keybox.new("Left", self.color.white, self.color.white, self.width * 0.3, self.height * 0.5, 120, self.height * 0.09, gameControls.left, function(key)
-                setNewKey("left", key)
-            end),
-            keybox.new("Right", self.color.white, self.color.white, self.width * 0.3, self.height * 0.6, 120, self.height * 0.09, gameControls.right, function(key)
-                setNewKey("right", key)
-            end),
-            keybox.new("Sprint", self.color.white, self.color.white, self.width * 0.5, self.height * 0.3, 120, self.height * 0.09, gameControls.sprint, function(key)
-                setNewKey("sprint", key)
-            end),
-            keybox.new("Inventory", self.color.white, self.color.white, self.width * 0.5, self.height * 0.4, 120, self.height * 0.09, gameControls.inventory, function(key)
-                setNewKey("inventory", key)
-            end),
-            keybox.new("Chat", self.color.white, self.color.white, self.width * 0.5, self.height * 0.5, 120, self.height * 0.09, gameControls.chat, function(key)
-                setNewKey("chat", key)
-            end),
-            keybox.new("Pause", self.color.white, self.color.white, self.width * 0.5, self.height * 0.6, 120, self.height * 0.09, gameControls.pause, function(key)
-                setNewKey("pause", key)
-            end),
-            keybox.new("Conjure", self.color.white, self.color.white, self.width * 0.7, self.height * 0.3, 120, self.height * 0.09, gameControls.conjure, function(key)
-                setNewKey("conjure", key)
-            end),
-            keybox.new("Save", self.color.white, self.color.white, self.width * 0.7, self.height * 0.4, 120, self.height * 0.09, gameControls.save, function(key)
-                setNewKey("save", key)
-            end),
-            createButton("Back", 30, 80, 40, 9, revertScreen()),
-        },
-        debug = {
-            label.new("Debug", self.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
-            checkbox.new("Debug Enabled", self.color.white, self.color.white, self.width * 0.4, self.height * 0.3, self.width * 0.4, self.height * 0.05, config.debug.enabled, 
-                function(isChecked) 
-                    config.debug.enabled = isChecked
-                end),    
-            
-                checkbox.new("Show Chunk Borders", self.color.white, self.color.white, self.width * 0.4, self.height * 0.4, self.width * 0.4, self.height * 0.05, config.debug.showChunkBorders, 
-                function(isChecked) 
-                    config.debug.showChunkBorders = isChecked
-                end),  
-
-                checkbox.new("Show Collisions", self.color.white, self.color.white, self.width * 0.4, self.height * 0.5, self.width * 0.4, self.height * 0.05, config.debug.showCollision, 
-                function(isChecked) 
-                    config.debug.showCollision = isChecked
-                end),    
-
-                checkbox.new("Player Collision", self.color.white, self.color.white, self.width * 0.4, self.height * 0.6, self.width * 0.4, self.height * 0.05, config.debug.playerCollision, 
-                function(isChecked) 
-                    config.debug.playerCollision = isChecked
-                end),    
-            
-            createButton("Back", 30, 70, 40, 9, revertScreen()),
-        }
+        main = mainMenu(self),
+        load = selectWorld(self),
+        new = newWorld(self), 
+        singleplayer = singleplayerMenu(self),
+        multiplayer = multiplayerMenu(self),
+        host = hostMenu(self),
+        join = joinMenu(self),
+        options = optionsMenu(self),
+        graphics = graphicsMenu(self),
+        sounds = soundMenu(self),
+        controls = controlsMenu(self),
+        debug = debugMenu(self),
+        skins = skinsMenu(self)
     }
 
     local y = 0.4

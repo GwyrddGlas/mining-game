@@ -5,7 +5,6 @@ local kb = love.keyboard
 local lm = love.mouse
 local lt = love.thread
 local random = math.random
-local noise = love.math.noise
 local sin = math.sin
 local cos = math.cos
 local f = string.format
@@ -111,18 +110,18 @@ function setColor(r, g, b, a)
 end
 
 function loadAtlas(path, tileWidth, tileHeight, padding)
-	if not love.filesystem.getInfo(path) then
+	if not fs.getInfo(path) then
 		error("'"..path.."' doesn't exist.")
 	end
 
 	local a = {}
-	local img = love.graphics.newImage(path)
-	local width = math.floor(img:getWidth() / tileWidth)
-	local height = math.floor(img:getHeight() / tileHeight)
+	local img = lg.newImage(path)
+	local width = floor(img:getWidth() / tileWidth)
+	local height = floor(img:getHeight() / tileHeight)
 		
 	local x, y = padding, padding
 	for i=1, width * height do
-		a[i] = love.graphics.newQuad(x, y, tileWidth, tileHeight, img:getWidth(), img:getHeight())
+		a[i] = lg.newQuad(x, y, tileWidth, tileHeight, img:getWidth(), img:getHeight())
 		x = x + tileWidth + padding
 		if x > ((width-1) * tileWidth) then
 			x = padding

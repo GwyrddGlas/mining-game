@@ -49,7 +49,7 @@ local function drawGlow(x, y, radius, color)
     end
 end
 
-function minimap:draw(player, all, camera, position)
+function minimap:draw(player, mob, all, camera, position)
     position = position or "left"
     
     local screenWidth = lg.getWidth()
@@ -124,7 +124,6 @@ function minimap:draw(player, all, camera, position)
                 )
             end
         elseif v.entityType == "player" then
-            -- Draw player indicator with a glowing effect
             lg.setColor(0, 1, 0, 1)
             drawGlow(minimapX, minimapY, 5, {0, 1, 0, 0.5})
             lg.rectangle(
@@ -134,13 +133,20 @@ function minimap:draw(player, all, camera, position)
                 minimapScale,
                 minimapScale
             )
-        elseif v.entityType == "slime" then
+        end
+    end
+
+    for _, mobs in ipairs(mob) do
+        if mobs.entityType == "slime" then
+            lg.setColor(1, 0, 0, 1) -- Red color for slimes
             lg.rectangle(
                 "fill",
-                minimapX - minimapScale / 2,
-                minimapY - minimapScale / 2,
+                minimapX + (mobs.gridX - player.gridX) * minimapScale,
+                minimapY + (mobs.gridY - player.gridY) * minimapScale,
                 minimapScale,
-                minimapScale
+                minimapScale, 
+                6,
+                6
             )
         end
     end

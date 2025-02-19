@@ -48,7 +48,7 @@ function entity:load(data, ecs)
     }
 
     self.moving = false
-    self.direction = "forward"
+    self.direction = "backward"
 
     -- Creating bump item
     self.bumpWorld:add(self, self.x, self.y, self.collisonBoxWidth, self.collisionBoxHeight)

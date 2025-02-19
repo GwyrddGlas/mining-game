@@ -1,5 +1,5 @@
-NAME = "PICKLE"
-VERSION = "v0.012"
+NAME = "Subterra"
+VERSION = "v0.013"
 
 -- GLOBALS
 local lg = love.graphics
@@ -31,7 +31,8 @@ function love.load()
     -- Creating window
     love.window.setMode(config.window.width, config.window.height, {
         fullscreen = config.window.fullscreen,
-        resizable = config.window.resizable
+        resizable = config.window.resizable,
+        borderless = config.window.borderless,
     })
     love.window.setTitle(NAME .. " [" .. VERSION .. "]")
 

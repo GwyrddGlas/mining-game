@@ -38,6 +38,12 @@ local channels = {
 local magic = config.player.magic
 local magicCap = config.player.magicCap
 
+local max_scale_x = 1.5
+local max_scale_y = 1.5
+
+local scaleX
+local scaleY
+
 local commands = {
     ["/clear"] = function(self)
         self:clearHistory()
@@ -87,6 +93,9 @@ function console:init(width, height, font)
 
     self.x = 0
     self.y = lg.getHeight() - self.height
+
+    scaleX = math.min(scale_x, max_scale_x)
+    scaleY = math.min(scale_y, max_scale_y)
 
     self.messages = {}
     self.input = ""
@@ -145,37 +154,38 @@ function console:draw()
     local screenWidth = lg.getWidth()
     local screenHeight = lg.getHeight()
 
-    local rectWidth = 500
-    local rectHeight = 250
+    -- Apply scaling to dimensions and positions
+    local rectWidth = 400 * scaleX/1.25
+    local rectHeight = 250 * scaleY
 
-    local rectX = 20
-    local rectY = screenHeight - rectHeight - 20
+    local rectX = 20 * scaleX
+    local rectY = screenHeight - rectHeight - 20 * scaleY
 
     setColor(outlineColor)  -- Outline color
-    lg.rectangle("line", rectX, rectY, rectWidth, rectHeight, 5, 5)
-    drawDropShadow(rectX, rectY, rectWidth, rectHeight, 5, {0, 0, 0, 100}, 2)
+    lg.rectangle("line", rectX, rectY, rectWidth, rectHeight, 5 * scaleX, 5 * scaleY)
+    drawDropShadow(rectX, rectY, rectWidth, rectHeight, 5 * scaleX, {0, 0, 0, 100}, 2 * scaleX)
 
     -- Chat bubble
-    drawRoundedRectangle("fill", rectX, rectY, rectWidth, rectHeight, 5, chatBubbleColor)
-    drawRoundedRectangle("line", rectX, rectY, rectWidth, rectHeight, 5, outlineColor)
+    drawRoundedRectangle("fill", rectX, rectY, rectWidth, rectHeight, 5 * scaleX, chatBubbleColor)
+    drawRoundedRectangle("line", rectX, rectY, rectWidth, rectHeight, 5 * scaleX, outlineColor)
 
     -- Input box
-    drawRoundedRectangle("fill", rectX, rectY + rectHeight - self.inputHeight, rectWidth, self.inputHeight, 5, inputBoxColor)
-    drawRoundedRectangle("line", rectX, rectY + rectHeight - self.inputHeight, rectWidth, self.inputHeight, 5, outlineColor)
+    drawRoundedRectangle("fill", rectX, rectY + rectHeight - self.inputHeight * scaleY, rectWidth, self.inputHeight * scaleY, 5 * scaleX, inputBoxColor)
+    drawRoundedRectangle("line", rectX, rectY + rectHeight - self.inputHeight * scaleY, rectWidth, self.inputHeight * scaleY, 5 * scaleX, outlineColor)
 
     setColor({255, 255, 255})
     lg.setFont(font.tiny)
 
     if #self.input == 0 then
         setColor({150, 150, 150}) 
-        lg.print("Type a message...", rectX + 5, rectY + rectHeight - self.font:getHeight() - 5)
+        lg.print("Type a message...", rectX + 5 * scaleX, rectY + rectHeight - self.font:getHeight() * scaleY - 5 * scaleY)
     else
         setColor({255, 255, 255}) 
-        lg.print(self.input, rectX + 5, rectY + rectHeight - self.font:getHeight() - 10 + 5)
+        lg.print(self.input, rectX + 5 * scaleX, rectY + rectHeight - self.font:getHeight() * scaleY - 10 * scaleY + 5 * scaleY)
     end
 
-    local messageY = rectY + rectHeight - self.font:getHeight() - 40
-    local maxMessageWidth = rectWidth - 20
+    local messageY = rectY + rectHeight - self.font:getHeight() * scaleY - 40 * scaleY
+    local maxMessageWidth = rectWidth - 20 * scaleX
 
     -- Draw each message
     local visibleMessages = {}
@@ -184,25 +194,25 @@ function console:draw()
        local message = self.messages[i]
 
        setColor(message.color)
-       lg.printf(message.prefix, rectX + 10, messageY, maxMessageWidth)
+       lg.printf(message.prefix, rectX + 10 * scaleX, messageY, maxMessageWidth)
 
        if message.playerName then
            setColor(playerNameColor)  -- Soft gold for player name
-           local nameWidth = self.font:getWidth(message.playerName .. " ")
-           lg.print(message.playerName .. " ", rectX + 10 + lg.getFont():getWidth(message.prefix .. " "), messageY)
+           local nameWidth = self.font:getWidth(message.playerName .. " ") * scaleX
+           lg.print(message.playerName .. " ", rectX + 10 * scaleX + lg.getFont():getWidth(message.prefix .. " ") * scaleX, messageY)
 
            setColor(message.color)
-           lg.print(message.text, rectX + 10 + nameWidth + lg.getFont():getWidth(message.prefix .. " "), messageY)
+           lg.print(message.text, rectX + 10 * scaleX + nameWidth + lg.getFont():getWidth(message.prefix .. " ") * scaleX, messageY)
        else
            setColor(message.color)
-           lg.print(message.text, rectX + 10 + lg.getFont():getWidth(message.prefix), messageY)
+           lg.print(message.text, rectX + 10 * scaleX + lg.getFont():getWidth(message.prefix) * scaleX, messageY)
        end
 
-       messageY = messageY - (self.font:getHeight() + chatBubblePadding)
+       messageY = messageY - (self.font:getHeight() * scaleY + chatBubblePadding * scaleY)
     end
 
     setColor({255, 255, 255})  -- White text for the input
-    lg.print(self.input, rectX + 5, rectY + rectHeight - self.font:getHeight() - 10 + 5)
+    lg.print(self.input, rectX + 5 * scaleX, rectY + rectHeight - self.font:getHeight() * scaleY - 10 * scaleY + 5 * scaleY)
 end
 
 function console:keypressed(key)

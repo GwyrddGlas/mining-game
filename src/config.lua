@@ -6,6 +6,7 @@ local default_config = {
         width = 1280,
         height = 720,
         fullscreen = true,
+        borderless = true,
         resizable = true,
         vsync = true
     },

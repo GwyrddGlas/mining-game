@@ -427,7 +427,8 @@ function game:draw()
 
     UI:draw()
 
-    minimap:draw(self.player, all, camera, "right")
+    --TODO make slimes a mob class
+    minimap:draw(self.player, self.slimes, all, camera, "right")
    
     local barWidth = 250
     local barSpacing = 10
