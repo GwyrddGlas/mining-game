@@ -6,7 +6,7 @@ love.math = require("love.math")
 love.mouse = require("love.mouse")
 
 local fs = love.filesystem
-local noise = love.math.noise
+local noise = love.math.perlinNoise
 
 local noiseScale = 1.2
 

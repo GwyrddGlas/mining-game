@@ -53,16 +53,13 @@ local function lerpColor(color1, color2, t)
 end
 
 local function getTimeOfDayColor(time)
-    -- Normalize time to a 24-hour cycle (0 to 1)
     local normalizedTime = time % 24 / 24
 
-    -- Define color transitions
     local sunriseColor = {1, 0.8, 0.4, 1}  -- Orange-yellow (sunrise)
     local dayColor = {0.6, 0.8, 1, 1}      -- Light blue (daytime)
     local sunsetColor = {1, 0.4, 0.2, 1}   -- Red-orange (sunset)
     local nightColor = {0.1, 0.1, 0.3, 1}  -- Dark blue (nighttime)
 
-    -- Interpolate colors based on time
     if normalizedTime < 0.25 then
         -- Sunrise to daytime
         return lerpColor(sunriseColor, dayColor, normalizedTime / 0.25)

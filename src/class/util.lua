@@ -76,11 +76,12 @@ function convertIconToDefinition(iconValue)
         ["Crafting"] = 14,
         ["Teleporter"] = 15,
         ["StoneBrick"] = 16,
-        ["Torch"] = 17,
+        ["Lantern"] = 17,
         ["Grass"] = 18,
         ["Mushroom"] = 19,
         ["Ice"] = 20,
         ["Water"] = 21,
+        ["MossyCobble"] = 22,
     }
 
     if type(iconValue) == "string" then

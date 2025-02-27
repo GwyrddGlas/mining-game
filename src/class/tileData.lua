@@ -160,7 +160,7 @@ tileData[#tileData+1] = {
 
 tileData[#tileData+1] = {
     type = "Furnace",
-    textureID = 27, 
+    textureID = 29, 
     maxHP = 8,
     drop = {1, 1}, 
     destructible = true, 
@@ -210,13 +210,14 @@ tileData[#tileData+1] = {
 }
 
 tileData[#tileData+1] = {
-    type = "Torch",
+    type = "Lantern",
     textureID = 18, 
     maxHP = 8,
     drop = {1, 1}, 
     destructible = true, 
+    emitLight = true, 
     solid = true,
-    item = "Torch",
+    item = "Lantern",
     placeable = true,
     itemTextureID = 33,
 }
@@ -268,6 +269,19 @@ tileData[#tileData+1] = {
     item = "Water",
     placeable = true,
     itemTextureID = 37,
+}
+
+tileData[#tileData+1] = {
+    type = "MossyCobble",
+    textureID = 27, 
+    maxHP = 8,
+    drop = {1, 1}, 
+    destructible = true, 
+    solid = true,
+    item = false,
+    interactable = true,
+    placeable = true,
+    itemTextureID = 0,
 }
 
 return tileData

@@ -144,7 +144,7 @@ function entity:place(id)
 end
 
 local minSolidVisible = 0.3
-local torchID = "Torch"
+local torchID = "Lantern"
 
 function entity:draw()
     if _PLAYER and _PLAYER.control then
@@ -184,6 +184,12 @@ function entity:draw()
             end
         end
 
+        if self.tileData.emitLight then
+            local torchLightRadius = maxDistance
+            local torchShade = 1 - (2 / torchLightRadius) * distanceFromPlayer
+            shade = math.max(shade, torchShade)
+        end
+
         -- Add torch light if torch is selected
         if isTorchSelected then
             local torchLightRadius = maxDistance
@@ -211,7 +217,7 @@ function entity:draw()
         if self.tileData then
             if self.tileData.textureID then
                 lg.draw(tileAtlas, tiles[self.tileData.textureID], self.x, self.y, 0, self.width / config.graphics.assetSize, self.height / config.graphics.assetSize)
-            end
+            end 
 
             -- Drawing tile item
             if self.tileData.item then
