@@ -154,20 +154,20 @@ function minimap:draw(player, mob, all, camera, position)
     -- Reset stencil test
     lg.setStencilTest()
 
-    -- Draw player direction indicator
-    local directionLength = 15
-    local mx, my = camera:getMouse()
-    local playerAngle = math.atan2(my - player.y, mx - player.x)
-    lg.setColor(1, 1, 1, 0.8)
-    lg.setLineWidth(2)
-    lg.line(
-        minimapX,
-        minimapY,
-        minimapX + math.cos(playerAngle) * directionLength,
-        minimapY + math.sin(playerAngle) * directionLength
-    )
-    
-    lg.setLineWidth(1)
+   -- -- Draw player direction indicator
+   -- local directionLength = 15
+   -- local mx, my = camera:getMouse()
+   -- local playerAngle = math.atan2(my - player.y, mx - player.x)
+   -- lg.setColor(1, 1, 1, 0.8)
+   -- lg.setLineWidth(2)
+   -- lg.line(
+   --     minimapX,
+   --     minimapY,
+   --     minimapX + math.cos(playerAngle) * directionLength,
+   --     minimapY + math.sin(playerAngle) * directionLength
+   -- )
+   -- 
+   -- lg.setLineWidth(1)
 end
 
 return minimap

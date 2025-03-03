@@ -27,18 +27,16 @@ function slider.new(label, min, max, value, x, y, width, height, color, handleCo
     x = validateNumber(x, "x", 0)
     y = validateNumber(y, "y", 0)
     width = validateNumber(width, "width", 200)
-    height = validateNumber(height, "height", 20)
+    height = validateNumber(height, "height", 40)
     color = validateColor(color, "color", {0.5, 0.5, 0.5, 1})
     handleColor = validateColor(handleColor, "handleColor", {1, 1, 1, 1})
 
-    -- Ensure min <= value <= max
     if min > max then
         print("Warning: min > max. Swapping min and max values.")
         min, max = max, min
     end
     value = math.min(math.max(value, min), max)
 
-    -- Ensure onValueChange is a function or nil
     if onValueChange and type(onValueChange) ~= "function" then
         print("Warning: onValueChange is not a function. Setting to nil.")
         onValueChange = nil
@@ -50,6 +48,9 @@ function slider.new(label, min, max, value, x, y, width, height, color, handleCo
         value = value,
         x = x,
         y = y,
+        buttonLeft = tiles[57],  
+        buttonCenter = tiles[58],
+        buttonRight = tiles[59], 
         width = width,
         height = height,
         color = color,
@@ -112,38 +113,35 @@ function slider:updateValue(x)
     end
 end
 
-function slider:drawLabel()
-    local font = love.graphics.getFont()
-    if not font then
-        print("Warning: No font set")
-        return
-    end
-
-    local labelWidth = font:getWidth(self.label)
-    local labelHeight = font:getHeight()
-    local labelX = self.x + (self.width - labelWidth) / 2
-    local labelY = self.y - labelHeight - 5
-    
-    love.graphics.setColor(1, 1, 1)
-    love.graphics.print(self.label, labelX, labelY)
-end
-
 function slider:draw()
-    -- Draw slider track
-    love.graphics.setColor(self.color)
-    love.graphics.rectangle("fill", self.x, self.y + (self.height - 4) / 2, self.width, 4)
+    local lg = love.graphics
+
+    lg.setColor(self.color)
+    lg.draw(tileAtlas, self.buttonLeft, self.x, self.y, 0, self.height / config.graphics.assetSize, self.height / config.graphics.assetSize)
+
+    lg.draw(tileAtlas, self.buttonCenter, self.x + self.height, self.y, 0, (self.width - (self.height * 2)) / config.graphics.assetSize, self.height / config.graphics.assetSize)
+
+    lg.draw(tileAtlas, self.buttonRight, self.x + self.width - self.height, self.y, 0, self.height / config.graphics.assetSize, self.height / config.graphics.assetSize)
 
     -- Draw slider handle
     local handleWidth = 16
-    local handleHeight = self.height
+    local handleHeight = self.height - 10
     local handleX = self.x + (self.value - self.min) / (self.max - self.min) * (self.width - handleWidth)
-    local handleY = self.y
+    local handleY = self.y + (self.height - handleHeight) / 2
 
-    love.graphics.setColor(self.handleColor)
-    love.graphics.rectangle("fill", handleX, handleY, handleWidth, handleHeight)
+    lg.setColor(self.handleColor)
+    lg.rectangle("fill", handleX, handleY, handleWidth, handleHeight, 2, 2)
 
-    -- Draw label
-    self:drawLabel()
+    local font = lg.getFont()
+    if font then
+        local labelWidth = font:getWidth(self.label)
+        local labelHeight = font:getHeight()
+        local labelX = self.x + (self.width - labelWidth) / 2
+        local labelY = self.y + (self.height - labelHeight) / 2
+
+        lg.setColor(1, 1, 1)
+        lg.print(self.label, labelX, labelY)
+    end
 end
 
 return slider

@@ -10,7 +10,7 @@ extern MY_HIGHP_OR_MEDIUMP vec4 colour_2;
 extern MY_HIGHP_OR_MEDIUMP vec4 colour_3;
 extern MY_HIGHP_OR_MEDIUMP number contrast;
 
-#define PIXEL_SIZE_FAC 600.
+#define PIXEL_SIZE_FAC 800.
 #define WAVE_SPEED 0.6
 #define DISTORTION_AMOUNT 0.5
 

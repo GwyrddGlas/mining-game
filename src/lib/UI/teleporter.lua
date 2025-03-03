@@ -16,18 +16,30 @@ local buttonGlowShader = love.graphics.newShader[[
     }
 ]]
 
-local glowShader = love.graphics.newShader[[
-    extern float time;
-    vec4 effect(vec4 color, Image texture, vec2 texture_coords, vec2 screen_coords) {
-        vec2 uv = screen_coords / love_ScreenSize.xy;
-        float glow = sin(time * 2.0 + uv.x * 10.0) * 0.5 + 0.5;
-        return vec4(0.2, 0.2, 0.4, 0.2) * glow;  // Blueish glow
-    }
-]]
+local blurShader = love.graphics.newShader("src/lib/poster/shaders/blur.glsl")
 
 local dimensions = {
-    {name = "grasslands", color = {0.2, 0.8, 0.2}},  -- Green
-    {name = "game", color = {0.6, 0.8, 1.0}},  -- Light blue
+    {
+        name = "Grasslands",
+        dim = "grasslands",
+        color = {0.3, 0.69, 0.31},  -- Primary color for Grasslands
+        background = {0.78, 0.9, 0.79},  -- Background color for Grasslands
+        accent = {1.0, 0.92, 0.23, 0.5}  -- Accent color for Grasslands
+    },
+    {
+        name = "Caves",
+        dim = "caves",
+        color = {0.38, 0.49, 0.55},  -- Primary color for Caves
+        background = {0.22, 0.28, 0.31},  -- Background color for Caves
+        accent = {1.0, 0.6, 0.0, 0.5}  -- Accent color for Caves
+    },
+    {
+        name = "Icy Caves",
+        dim = "icy",
+        color = {0.01, 0.66, 0.96},  -- Primary color for Icy Caves
+        background = {0.88, 0.96, 1.0},  -- Background color for Icy Caves
+        accent = {1.0, 1.0, 1.0, 0.5}  -- Accent color for Icy Caves
+    }
 }
 
 local buttons = {}
@@ -43,7 +55,9 @@ function TeleporterUI:init()
     for i, dimension in ipairs(dimensions) do
         buttons[i] = {
             name = dimension.name,
+            dim = dimension.dim,
             color = dimension.color,
+            accent = dimension.accent,  -- Assign the accent color
             x = startX,
             y = startY + (i - 1) * (buttonHeight + spacing),
             width = buttonWidth,
@@ -96,10 +110,12 @@ end
 function TeleporterUI:draw()
     if not self.isOpen then return end
 
-    -- Draw glowing background
-    lg.setShader(glowShader)
-    glowShader:send("time", love.timer.getTime())
-    lg.setColor(1, 1, 1, 0.2)
+    -- Draw blurred background
+    lg.setShader(blurShader)
+    blurShader:send("blurAmount", 0)
+    blurShader:send("direction", {1.0, 0.0})
+
+    lg.setColor(0, 0, 0, 0.2)
     lg.rectangle("fill", 0, 0, lg.getWidth(), lg.getHeight())
     lg.setShader()
 
@@ -109,21 +125,29 @@ function TeleporterUI:draw()
         local scaledWidth, scaledHeight = button.width * button.scale, button.height * button.scale
         local drawX, drawY = centerX - scaledWidth / 2, centerY - scaledHeight / 2
 
+        -- Draw button shadow
+        lg.setColor(0, 0, 0, 0.3)
+        lg.rectangle("fill", drawX + 5, drawY + 5, scaledWidth, scaledHeight, 10, 10)
+
+        -- Draw button background
         lg.setColor(button.color)
-        lg.rectangle("fill", drawX, drawY, scaledWidth, scaledHeight, 5, 5)
+        lg.rectangle("fill", drawX, drawY, scaledWidth, scaledHeight, 10, 10)
 
-        lg.setShader(buttonGlowShader)
-        buttonGlowShader:send("time", love.timer.getTime())
-        buttonGlowShader:send("size", {button.width, button.height})
-        buttonGlowShader:send("position", {button.x, button.y})
+        -- Draw button glow on hover
+        if button.isHovered then
+            lg.setShader(buttonGlowShader)
+            buttonGlowShader:send("time", love.timer.getTime())
+            buttonGlowShader:send("size", {button.width, button.height})
+            buttonGlowShader:send("position", {button.x, button.y})
 
-        lg.setColor(button.color)
-        lg.rectangle("line", drawX, drawY, scaledWidth, scaledHeight, 5, 5)
+            lg.setColor(button.accent)
+            lg.rectangle("line", drawX, drawY, scaledWidth, scaledHeight, 10, 10)
+            lg.setShader()
+        end
 
-        lg.setShader()
-        
-        -- Draw text
-        lg.setColor(1, 1, 1)
+        -- Draw button text
+        lg.setColor(1, 1, 1) 
+        lg.setFont(font.tiny)
         lg.printf(button.name, button.x, button.y + button.height / 2 - 10, button.width, "center")
     end
 end
@@ -134,7 +158,7 @@ function TeleporterUI:mousepressed(x, y, button)
     for _, btn in ipairs(buttons) do
         if x > btn.x and x < btn.x + btn.width and y > btn.y and y < btn.y + btn.height then
             btn.isClicked = true
-            selectedDimension = btn.name
+            selectedDimension = btn.dim
             self:teleport(selectedDimension)
         end
     end

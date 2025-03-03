@@ -7,6 +7,7 @@ local fs = love.filesystem
 local kb = love.keyboard
 local lm = love.mouse
 local lt = love.thread
+local lw = love.window
 
 -- Load configuration module
 local Config = require("src.config")
@@ -29,23 +30,26 @@ function love.load()
     exString.import()
 
     -- Creating window
-    love.window.setMode(config.window.width, config.window.height, {
+    lw.setMode(config.window.width, config.window.height, {
         fullscreen = config.window.fullscreen,
         resizable = config.window.resizable,
         borderless = config.window.borderless,
+        highdpi = true
     })
-    love.window.setTitle(NAME .. " [" .. VERSION .. "]")
+    
+    lw.setTitle(NAME .. " [" .. VERSION .. "]")
 
     -- Defining states
     state:define_state("src/state/game.lua", "game")
     state:define_state("src/state/menu.lua", "menu")
     state:define_state("src/state/paused.lua", "paused")
     state:define_state("src/state/grasslands.lua", "grasslands")
+    state:define_state("src/state/icy.lua", "icy")
 
     -- POSTER
     poster = require("src.lib.poster")
 
-    lg.setDefaultFilter("nearest", "nearest")
+    lg.setDefaultFilter("nearest", "nearest", 16)
     lg.setLineStyle("rough")
     lm.setVisible(false)
 
@@ -59,6 +63,7 @@ function love.load()
         large = lg.newFont("src/font/inter.ttf", 6 * scale_x),
         tiny = lg.newFont("src/font/inter.ttf", 10 * scale_x),
         title = lg.newFont("src/font/MinecraftEvenings.ttf", 70 * scale_x),
+        subtitle = lg.newFont("src/font/MinecraftEvenings.ttf", 40 * scale_x),
     }
 
     lg.setFont(font.regular)
@@ -68,16 +73,16 @@ function love.load()
     tileBreakImg, tileBreak = loadAtlas("src/assets/tileBreak.png", 16, 16, 0)
 
     -- Loading shader
-    replaceShader = love.graphics.newShader("src/lib/poster/shaders/replacement.frag")
-    local targetColor = {0.149, 0.361, 0.259, 1.0}
-    replacementColor = config.skinColour.colour
-    replacementColor2 = config.skinColour.colour2
+  -- replaceShader = love.graphics.newShader("src/lib/poster/shaders/replacement.frag")
+  -- local targetColor = {0.149, 0.361, 0.259, 1.0}
+  -- replacementColor = config.skinColour.colour
+  -- replacementColor2 = config.skinColour.colour2
 
-    local tolerance = 0.1
+  -- local tolerance = 0.1
 
-    replaceShader:send("targetColor", targetColor)
-    replaceShader:send("replacementColor", replacementColor)
-    replaceShader:send("tolerance", tolerance)
+  -- replaceShader:send("targetColor", targetColor)
+  -- replaceShader:send("replacementColor", replacementColor)
+  -- replaceShader:send("tolerance", tolerance)
 
     -- Loading audio
     gameAudio = {
@@ -184,7 +189,7 @@ function love.keypressed(key)
         if UI then
             if UI.active then
                 UI:close()
-                return  -- Prevent further processing of the escape key
+                return
             elseif _INVENTORY and _INVENTORY.inventoryOpen then
                 _INVENTORY:toggleInventory()
                 return

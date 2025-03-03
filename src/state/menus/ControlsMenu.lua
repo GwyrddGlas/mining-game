@@ -7,7 +7,7 @@ end
 
 local function createControlsMenu(menu)
     return {
-        label.new("Controls", menu.color.fg, font.title, 0, lg.getHeight() * 0.15, "center"),
+        label.new("Controls", menu.color.fg, font.subtitle, 0, lg.getHeight() * 0.05, "center"),
         keybox.new("Forward", menu.color.white, menu.color.white, menu.width * 0.3, menu.height * 0.3, 120, menu.height * 0.09, gameControls.up, function(key)
             setNewKey("up", key)
         end),
