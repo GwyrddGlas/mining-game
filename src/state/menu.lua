@@ -66,36 +66,6 @@ local function exitButton()
     love.event.push("quit")
 end
 
-local function createNewWorld()
-    -- Limiting the max seed to the highest 32-bit integer minus 1000 because the world generation offsets the seed by up to 1000.
-    -- Negative seeds are not allowed. At least for now.
-    local maxSeed = 2147483647 - 1000
-    local wrldName = menu.screen.new.worldName.text
-
-    if #wrldName < 1 then
-        wrldName = "Untitled Game"
-    end
-
-    local seed = menu.screen.new.seed.text
-
-    -- If no seed is provided, use the current time
-    if #seed < 1 then
-        seed = os.time()
-    end
-
-    if tonumber(seed) then
-        seed = tonumber(seed)
-    else
-        seed = hashcode(seed)
-    end
-
-    if seed > maxSeed then
-        seed = maxSeed
-    end
-
-    state:load("game", {type = "new", worldName = wrldName, seed = tonumber(seed)})
-end
-
 local skins = {}
 local selectedSkin = "default"
 local picker
@@ -236,6 +206,7 @@ end
 function menu:load(args)
     args = args or {} 
     self.currentScreen = args.initialScreen or "main"
+    love.keyboard.setTextInput(true)
 
     lg.setBackgroundColor(0.1, 0.1, 0.1)
     self.width, self.height = lg.getWidth(), lg.getHeight()

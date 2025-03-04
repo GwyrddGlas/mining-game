@@ -23,8 +23,9 @@ function wRand(weights)
     end
 end
 
-function tprint(tbl, indent) --https://gist.github.com/ripter/4270799
-    if not indent then indent = 0 end
+function tprint(tbl, indent)
+    indent = indent or 0
+    local formatting
     for k, v in pairs(tbl) do
       formatting = string.rep("  ", indent) .. k .. ": "
       if type(v) == "table" then
@@ -82,6 +83,7 @@ function convertIconToDefinition(iconValue)
         ["Ice"] = 20,
         ["Water"] = 21,
         ["MossyCobble"] = 22,
+        ["Snow"] = 23,
     }
 
     if type(iconValue) == "string" then

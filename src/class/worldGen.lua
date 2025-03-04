@@ -37,8 +37,10 @@ function worldGen:load(data)
 
     if self.worldType == "cave" then
         self.thread = lt.newThread("src/class/generateChunk.lua")
-    else
+    elseif self.worldType == "surface" then
         self.thread = lt.newThread("src/class/generateOutsideChunk.lua")
+    elseif self.worldType == "IceCaves" then
+        self.thread = lt.newThread("src/class/generateIceChunk.lua")
     end
 
     -- File management

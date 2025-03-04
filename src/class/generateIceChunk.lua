@@ -60,7 +60,7 @@ end
 
 -- Tile definitions
 local wall = 20
-local ground = 2
+local ground = 23
 local coal = 3
 local iron = 4
 local gold = 5

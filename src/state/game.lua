@@ -59,6 +59,8 @@ function game:load(data)
         note:new("Loaded world '"..self.worldName.."'", "success")
     end
 
+    love.keyboard.setTextInput(false)
+
     -- Initializing the ECS world
     self.world = ecs.new()
     self.world:loadSystemFromFolder("src/system")

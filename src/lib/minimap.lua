@@ -51,6 +51,7 @@ end
 
 function minimap:draw(player, mob, all, camera, position)
     position = position or "left"
+    mob = mob or {}
     
     local screenWidth = lg.getWidth()
     local screenHeight = lg.getHeight()
@@ -135,7 +136,7 @@ function minimap:draw(player, mob, all, camera, position)
             )
         end
     end
-
+    
     for _, mobs in ipairs(mob) do
         if mobs.entityType == "slime" then
             lg.setColor(1, 0, 0, 1) -- Red color for slimes

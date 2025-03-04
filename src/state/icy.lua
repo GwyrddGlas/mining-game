@@ -33,7 +33,7 @@ local function playBackgroundMusic()
     playNextTrack()
 end
 
-function grasslands:load(data)
+function icy:load(data)
     config = ttf.load("config.lua")
 
     lg.setBackgroundColor(0, 0, 0)
@@ -47,7 +47,7 @@ function grasslands:load(data)
     
     self.worldName = worldData.name
     self.seed = worldData.seed
-    self.worldType = "Ice Caves"
+    self.worldType = "IceCaves"
    
     playerInventory = worldData.player.inventory
     playerX = worldData.player.x 
@@ -124,7 +124,7 @@ function grasslands:load(data)
         {"waveDistortion", "intensity", 0},
         {"waveDistortion", "scale", config.graphics.tileSize * scale_x * 0.5},
         {"waveDistortion", "phase", 0},
-        {"brightness", "amount", config.graphics.brightness},
+        {"brightness", "amount", config.graphics.brightness * 1.2},
         {"contrast", "amount", 1.2},
         {"saturation", "amount", 1.2},
         {"vignette", "radius", 1},
@@ -268,9 +268,9 @@ function icy:update(dt)
 
     self.player:update(dt)
 
-    for _, v in ipairs(self.slimes) do
-        v:update(dt)
-    end
+    --for _, v in ipairs(self.slimes) do
+    --    v:update(dt)
+    --end
 
     -- Internal timer used for shaders
     self.time = self.time + dt
@@ -343,9 +343,9 @@ function icy:draw()
     self.world:update(self.visibleEntities)
     self.player:draw()
 
-    for _, v in ipairs(self.slimes) do
-        v:draw()
-    end
+   -- for _, v in ipairs(self.slimes) do
+   --     v:draw()
+   -- end
 
     floatText:draw()
     camera:pop()
