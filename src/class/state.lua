@@ -15,7 +15,7 @@ end
 function state:load(state_name, data)
     if not self.state_list[state_name] then
         print(string.format("STATE: State '%s' does not exist!", state_name))
-        note:new(string.format("STATE: State '%s' does not exist!", state_name), "warning")
+        note:new(string.format("STATE: State '%s' does not exist!", state_name), "danger")
         return
     end
 

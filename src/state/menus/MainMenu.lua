@@ -1,5 +1,9 @@
 local lg = love.graphics
 
+local function exitButton()
+    love.event.push("quit")
+end
+
 local function createMainMenu(menu)
     return {
         label.new(VERSION, menu.color.white, font.regular, menu.width * 0.47 - font.regular:getWidth(VERSION) * 0.4, menu.height - 55, "center"),

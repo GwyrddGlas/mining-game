@@ -72,7 +72,6 @@ function game:load(data)
     -- Initializing player
     self.player = self.world:newEntity("src/entity/player.lua", playerX, playerY, {x = playerX, y = playerY, inventory = playerInventory, playerLoaded = playerLoaded})
     self.inventory = inventory:new(self.player)
-    self.crafting = crafting:new(self.player)
     
     self.slimes = {}
         
@@ -84,15 +83,25 @@ function game:load(data)
     worldGen:load({player = self.player, world = self.world, worldName = self.worldName, seed = self.seed})
     
     self.renderBuffer = worldGen.tileSize * 2
-    self.hoverEntity = false -- Contains the entity the mouse is over, Used for mining
-    self.time = 0 -- Timer used for shader animations
+    self.hoverEntity = false 
+    self.time = 0 
 
     self.inventory.selectedIndex = 1
     self.inventory.highlightedItem = self.inventory.inventoryOrder[self.inventory.selectedIndex]
 
+    self.fireflies = {}
+    for i = 1, 50 do 
+        table.insert(self.fireflies, {
+            x = math.random(self.player.x, self.player.x+50), 
+            y = math.random(self.player.y, self.player.y+50),
+            direction = math.random() * 2 * math.pi,      
+            speed = math.random(20, 50),                  
+        })
+    end
+
     -- Icon tile id's
     self.icon = {
-        Coal = 1, --1 - 8 are ores
+        Coal = 1,
         Iron = 2,
         Gold = 3,
         Uranium = 4,
@@ -109,15 +118,18 @@ function game:load(data)
         TanzeniteIngot = 15, 
         CopperIngot = 16, 
         Wall = 18,
+        MossyCobble = 27,
         Crafting = 28,
         Furnace = 29,
         StoneBrick = 30,
         Grass = 31,
         Dirt = 32,
-        Torch = 33,
+        Lantern = 33,
         Chest = 34,
-        Water = 35,
+        Ice = 35,
         Teleporter = 36,
+        Water = 37,
+        Snow = 38,
         health = 41,
         halfHeart = 42,
         MagicPlant = 49,
@@ -358,7 +370,7 @@ function game:drawHud()
     local itemX = hotbarX - (adjustedHotbarWidth * 0.5) + hotbarPadding
     local itemY = hotbarY + (hotbarHeight - itemSize) * 0.5
 
-    self.inventory:draw(self.icon, itemSize, self.crafting:getCraftingItemSpacing(), cornerRadius, maxHotbarItems)
+    self.inventory:draw(self.icon, itemSize, 10 * scale_x, cornerRadius, maxHotbarItems)
 
     self.inventory:drawHotbar(self.icon)
 end
@@ -477,7 +489,6 @@ end
 function game:mousepressed(x, y, button)
     if self.inventory.inventoryOpen then
         self.inventory:mousepressed(x, y, button)
-        self.crafting:mousepressed(x, y, button)
     end
 
     UI:mousepressed(x, y, button)

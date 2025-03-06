@@ -24,7 +24,7 @@ function note:new(text, color, time)
     self.notifications[#self.notifications+1] = {
         text = text,
         color = color or "default",
-        time = time or 2
+        time = time or 3
     } 
 end
 

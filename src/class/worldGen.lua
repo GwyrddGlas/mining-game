@@ -95,12 +95,29 @@ function worldGen:findPlayerSpawnTile()
     if not self.player.control then
         local spawnX, spawnY = 0, 0
         local foundSpawnTile = false
+
         if self.player.playerLoaded then
+            -- If the player has already been loaded, use their current position
             spawnX = self.player.x
             spawnY = self.player.y
             foundSpawnTile = true
         else
-            foundSpawnTile = true
+            -- Search for a non-solid tile to spawn the player
+            for y = -self.renderDistance, self.renderDistance do
+                for x = -self.renderDistance, self.renderDistance do
+                    local tileX = self.player.chunkX * self.chunkSize + x
+                    local tileY = self.player.chunkY * self.chunkSize + y
+
+                    -- Check if the tile exists and is not solid
+                    if self.tiles[tileY] and self.tiles[tileY][tileX] and not self.tiles[tileY][tileX].solid then
+                        spawnX = tileX
+                        spawnY = tileY
+                        foundSpawnTile = true
+                        break
+                    end
+                end
+                if foundSpawnTile then break end
+            end
         end
 
         if foundSpawnTile then
@@ -109,6 +126,8 @@ function worldGen:findPlayerSpawnTile()
             self.player.spawnX = spawnX
             self.player.spawnY = spawnY
             self:centerPlayerOnTile()
+        else
+            print("Error: No valid spawn tile found!")
         end
     end
 end

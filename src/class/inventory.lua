@@ -1,5 +1,4 @@
 local inventory = {}
-local crafting = require("src/class/crafting")
 
 local lg = love.graphics
 local fs = love.filesystem
@@ -55,9 +54,6 @@ function inventory:new(player)
     local inv = setmetatable({}, {__index = inventory})
     self.player = player -- Assign player to self.player
     player.inventoryOrder = player.inventoryOrder or {}
-    player.craftingGrid = player.craftingGrid or {} 
-    player.craftingGridOrder = player.craftingGridOrder or {} 
-    player.crafting = player.crafting or crafting:new(player) 
     
     inv.highlightedItem = nil
     inv.selectedItem = nil
@@ -385,7 +381,7 @@ function inventory:draw(icon, itemSize, itemSpacing, cornerRadius, maxHotbarItem
                 
                 if icon[item] then
                     if tileAtlas and tiles[icon[item]] then
-                        lg.setColor(1, 1, 1, 1) 
+                        lg.setColor(1, 1, 1) 
                         lg.draw(tileAtlas, tiles[icon[item]], x + itemSize * 0.1, y + itemSize * 0.1, 0, itemSize * 0.8 / config.graphics.assetSize, itemSize * 0.8 / config.graphics.assetSize)
 
                         lg.setFont(font.regular)

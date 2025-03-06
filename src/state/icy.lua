@@ -63,8 +63,6 @@ function icy:load(data)
     _PLAYER = self.player -- Set global reference
     self.inventory = _INVENTORY
 
-    self.crafting = crafting:new(self.player)
-
     worldGen:load({
         player = self.player,
         world = self.world,
@@ -82,7 +80,7 @@ function icy:load(data)
 
     -- Icon tile id's
     self.icon = {
-        Coal = 1, --1 - 8 are ores
+        Coal = 1,
         Iron = 2,
         Gold = 3,
         Uranium = 4,
@@ -99,21 +97,24 @@ function icy:load(data)
         TanzeniteIngot = 15, 
         CopperIngot = 16, 
         Wall = 18,
+        MossyCobble = 27,
         Crafting = 28,
         Furnace = 29,
         StoneBrick = 30,
         Grass = 31,
         Dirt = 32,
-        Torch = 33,
+        Lantern = 33,
         Chest = 34,
-        Water = 35,
+        Ice = 35,
         Teleporter = 36,
+        Water = 37,
+        Snow = 38,
         health = 41,
         halfHeart = 42,
         MagicPlant = 49,
         Mushroom = 51,
     }
-
+    
     -- Poster stuff
     self.canvas = poster.new()
     self.shaders = poster.newChain(
@@ -149,6 +150,25 @@ function icy:load(data)
         {"verticalBlur", "amount", 3},
         {"horizontalBlur", "amount", 3},
     })
+
+      -- Load snow texture
+      self.snowTexture = love.graphics.newImage('src/assets/raintex.png')
+      self.snowTexture:setWrap('repeat', 'repeat')
+  
+      -- Create mesh for snow
+      local vertices = {
+          { 0, 0, 0, 0, 255, 255, 255, 255 }, -- Top-left
+          { self.snowTexture:getWidth(), 0, 1, 0, 255, 255, 255, 255 }, -- Top-right
+          { self.snowTexture:getWidth(), self.snowTexture:getHeight(), 1, 1, 255, 255, 255, 255 }, -- Bottom-right
+          { 0, self.snowTexture:getHeight(), 0, 1, 255, 255, 255, 255 }, -- Bottom-left
+      }
+      self.snowMesh = love.graphics.newMesh(vertices, 'fan')
+      self.snowMesh:setTexture(self.snowTexture)
+  
+      -- Snow intensity
+      self.snowIntense = false
+      self.snowTime = 0.0
+      self.snowWave = 5.0
 end
 
 function icy:unload()
@@ -214,6 +234,23 @@ function icy:update(dt)
     --        self.slimes[#self.slimes+1] = spawnSlimes(self.player.gridX, self.player.gridY, self.world)
     --    end
     --end
+
+    self.snowTime = self.snowTime + dt * 7
+
+    if self.snowIntense then
+        self.snowWave = 5 + math.sin(self.snowTime) * 1.5
+        for i = 1, 4 do
+            local u, v = self.snowMesh:getVertexAttribute(i, 2)
+            u, v = u - dt / self.snowWave, v - dt * 1.3
+            self.snowMesh:setVertexAttribute(i, 2, u, v)
+        end
+    else
+        for i = 1, 4 do
+            local u, v = self.snowMesh:getVertexAttribute(i, 2)
+            u, v = u - dt / 12, v - dt / 2 -- Slower snow
+            self.snowMesh:setVertexAttribute(i, 2, u, v)
+        end
+    end
     
     --attempt for controller
     if math.abs(lookX) > 0.2 or math.abs(lookY) > 0.2 then
@@ -326,7 +363,7 @@ function icy:drawHud()
     local itemX = hotbarX - (adjustedHotbarWidth * 0.5) + hotbarPadding
     local itemY = hotbarY + (hotbarHeight - itemSize) * 0.5
 
-    self.inventory:draw(self.icon, itemSize, self.crafting:getCraftingItemSpacing(), cornerRadius, maxHotbarItems)
+    self.inventory:draw(self.icon, itemSize, 10 * scale_x, cornerRadius, maxHotbarItems)
 
     self.inventory:drawHotbar(self.icon)
 end
@@ -349,7 +386,7 @@ function icy:draw()
 
     floatText:draw()
     camera:pop()
-
+    
     self.canvas:unset()
 
     lg.setColor(1, 1, 1, 1)
@@ -361,6 +398,12 @@ function icy:draw()
         lg.setBlendMode("alpha")
     else
         self.canvas:draw()
+    end
+    
+    love.graphics.setColor(1, 1, 1, 0.3) -- Ensure snow is white
+    love.graphics.draw(self.snowMesh, 0, 0, 0, love.graphics.getWidth() / self.snowTexture:getWidth(), love.graphics.getHeight() / self.snowTexture:getHeight())
+    if self.snowIntense then
+        love.graphics.draw(self.snowMesh, 0, 0, 0, love.graphics.getWidth() / self.snowTexture:getWidth(), love.graphics.getHeight() / self.snowTexture:getHeight())
     end
    
     self:drawHud()
@@ -445,7 +488,6 @@ end
 function icy:mousepressed(x, y, button)
     if self.inventory.inventoryOpen then
         self.inventory:mousepressed(x, y, button)
-        self.crafting:mousepressed(x, y, button)
     end
 
     UI:mousepressed(x, y, button)

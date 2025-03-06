@@ -45,8 +45,6 @@ function grasslands:load(data)
     _PLAYER = self.player -- Set global reference
     self.inventory = _INVENTORY
 
-    self.crafting = crafting:new(self.player)
-
     worldGen:load({
         player = self.player,
         world = self.world,
@@ -64,7 +62,7 @@ function grasslands:load(data)
 
     -- Icon tile id's
     self.icon = {
-        Coal = 1, --1 - 8 are ores
+        Coal = 1,
         Iron = 2,
         Gold = 3,
         Uranium = 4,
@@ -81,15 +79,18 @@ function grasslands:load(data)
         TanzeniteIngot = 15, 
         CopperIngot = 16, 
         Wall = 18,
+        MossyCobble = 27,
         Crafting = 28,
         Furnace = 29,
         StoneBrick = 30,
         Grass = 31,
         Dirt = 32,
-        Torch = 33,
+        Lantern = 33,
         Chest = 34,
-        Water = 35,
+        Ice = 35,
         Teleporter = 36,
+        Water = 37,
+        Snow = 38,
         health = 41,
         halfHeart = 42,
         MagicPlant = 49,
@@ -279,7 +280,7 @@ function grasslands:drawHud()
     local itemX = hotbarX - (adjustedHotbarWidth * 0.5) + hotbarPadding
     local itemY = hotbarY + (hotbarHeight - itemSize) * 0.5
 
-    self.inventory:draw(self.icon, itemSize, self.crafting:getCraftingItemSpacing(), cornerRadius, maxHotbarItems)
+    self.inventory:draw(self.icon, itemSize, 10*scale_x, cornerRadius, maxHotbarItems)
 
     self.inventory:drawHotbar(self.icon)
 end
@@ -392,7 +393,6 @@ end
 function grasslands:mousepressed(x, y, button)
     if self.inventory.inventoryOpen then
         self.inventory:mousepressed(x, y, button)
-        self.crafting:mousepressed(x, y, button)
     end
 
     UI:mousepressed(x, y, button)

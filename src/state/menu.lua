@@ -62,10 +62,6 @@ function revertScreen()
     end
 end
 
-local function exitButton()
-    love.event.push("quit")
-end
-
 local skins = {}
 local selectedSkin = "default"
 local picker

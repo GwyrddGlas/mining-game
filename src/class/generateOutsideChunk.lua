@@ -59,6 +59,7 @@ local sand = convertIconToDefinition("Dirt")
 local water = convertIconToDefinition("Water")
 local stone = convertIconToDefinition("Wall")
 local tree = convertIconToDefinition("Shrub")
+local mushroom = convertIconToDefinition("Mushroom")
 local rock = convertIconToDefinition("Grass")
 
 -- Generating the requested chunks
@@ -105,7 +106,12 @@ if type(chunksToGenerate) == "table" then
                 if tile == grass or tile == sand then
                     local featureNoise = noise(tileX * biome.featureScale, tileY * biome.featureScale, seed + 200)
                     if featureNoise > biome.treeThreshold then
-                        tile = tree
+                        local randIDx = math.random(1, 2)
+                        if randIDx == 1 then
+                            tile = tree
+                        else
+                            tile = mushroom
+                        end
                     elseif featureNoise > biome.rockThreshold then
                         tile = rock
                     end

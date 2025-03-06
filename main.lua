@@ -72,18 +72,6 @@ function love.load()
     tileAtlas, tiles = loadAtlas("src/assets/tileset.png", 16, 16, 0)
     tileBreakImg, tileBreak = loadAtlas("src/assets/tileBreak.png", 16, 16, 0)
 
-    -- Loading shader
-  -- replaceShader = love.graphics.newShader("src/lib/poster/shaders/replacement.frag")
-  -- local targetColor = {0.149, 0.361, 0.259, 1.0}
-  -- replacementColor = config.skinColour.colour
-  -- replacementColor2 = config.skinColour.colour2
-
-  -- local tolerance = 0.1
-
-  -- replaceShader:send("targetColor", targetColor)
-  -- replaceShader:send("replacementColor", replacementColor)
-  -- replaceShader:send("tolerance", tolerance)
-
     -- Loading audio
     gameAudio = {
         background = {},
@@ -167,7 +155,7 @@ function love.draw()
     state:draw()
     note:draw()
 
-    if state.loadedStateName == "game" then
+    if state.loadedStateName ~= "menu" and state.loadedStateName ~= "paused" then
         console:draw()
     end
 

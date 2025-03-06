@@ -68,6 +68,7 @@ local uranium = 6
 local diamond = 7
 local ruby = 8
 local tanzenite = 9
+local mushroom = 19
 
 -- Generating the requested chunks
 if type(chunksToGenerate) == "table" then

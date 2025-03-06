@@ -236,7 +236,7 @@ tileData[#tileData+1] = {
 
 tileData[#tileData+1] = {
     type = "Mushroom",
-    textureID = 18, 
+    textureID = 31, 
     maxHP = 8,
     drop = {1, 1}, 
     destructible = true, 
@@ -244,31 +244,31 @@ tileData[#tileData+1] = {
     solid = false,
     item = "Mushroom",
     placeable = true,
-    itemTextureID = 51,
+    itemTextureID = 18,
 }
 
 tileData[#tileData+1] = {
     type = "Ice",
-    textureID = 18, 
+    textureID = 35, 
     maxHP = 8,
     drop = {1, 1}, 
     destructible = true, 
-    solid = false,
-    item = "Ice",
+    solid = true,
+    item = false,
     placeable = true,
-    itemTextureID = 35,
+    itemTextureID = 0,
 }
 
 tileData[#tileData+1] = {
     type = "Water",
-    textureID = 18, 
+    textureID = 37, 
     maxHP = 0,
     drop = {1, 1}, 
     destructible = false, 
     solid = false,
-    item = "Water",
+    item = false,
     placeable = true,
-    itemTextureID = 37,
+    itemTextureID = 0,
 }
 
 tileData[#tileData+1] = {
@@ -287,12 +287,11 @@ tileData[#tileData+1] = {
 tileData[#tileData+1] = {
     type = "Snow",
     textureID = 38, 
-    maxHP = 8,
+    maxHP = 5,
     drop = {1, 1}, 
     destructible = true, 
     solid = false,
     item = false,
-    interactable = true,
     placeable = true,
     itemTextureID = 0,
 }

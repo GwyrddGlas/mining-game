@@ -22,23 +22,30 @@ local dimensions = {
     {
         name = "Grasslands",
         dim = "grasslands",
-        color = {0.3, 0.69, 0.31},  -- Primary color for Grasslands
-        background = {0.78, 0.9, 0.79},  -- Background color for Grasslands
-        accent = {1.0, 0.92, 0.23, 0.5}  -- Accent color for Grasslands
+        color = {0.3, 0.69, 0.31}, 
+        background = {0.78, 0.9, 0.79}, 
+        accent = {1.0, 0.92, 0.23, 0.5} 
     },
     {
         name = "Caves",
         dim = "caves",
-        color = {0.38, 0.49, 0.55},  -- Primary color for Caves
-        background = {0.22, 0.28, 0.31},  -- Background color for Caves
-        accent = {1.0, 0.6, 0.0, 0.5}  -- Accent color for Caves
+        color = {0.38, 0.49, 0.55},  
+        background = {0.22, 0.28, 0.31}, 
+        accent = {1.0, 0.6, 0.0, 0.5}  
     },
     {
-        name = "Icy Caves",
+        name = "Icelands",
         dim = "icy",
-        color = {0.01, 0.66, 0.96},  -- Primary color for Icy Caves
-        background = {0.88, 0.96, 1.0},  -- Background color for Icy Caves
-        accent = {1.0, 1.0, 1.0, 0.5}  -- Accent color for Icy Caves
+        color = {0.01, 0.66, 0.96}, 
+        background = {0.88, 0.96, 1.0},
+        accent = {1.0, 1.0, 1.0, 0.5}  
+    },
+    {
+        name = "Skylands",
+        dim = "skylands",
+        color = {0.686, 0.761, 1.000},  
+        background = {0.686, 0.761, 1.000}, 
+        accent = {1.0, 1.0, 1.0, 0.5} 
     }
 }
 

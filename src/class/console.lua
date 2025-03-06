@@ -49,12 +49,6 @@ local commands = {
         self:clearHistory()
         self:addMessage("Chat cleared.", "system")
     end,
-    ["/all"] = function(self, message)
-        self:addMessage(message, "all")
-    end,
-    ["/l"] = function(self, message)
-        self:addMessage(message, "local")
-    end,
     ["/w"] = function(self, target, message)
         self:addMessage(message, "whisper", target)
     end,
@@ -75,7 +69,7 @@ local commands = {
     
         if _INVENTORY and _INVENTORY.giveItem then
             _INVENTORY:giveItem(item, quantity)
-            self:addMessage(truncateMessage("Gave " .. quantity .. " " .. item .. "(s).", maxMessageLength), "system")
+            self:addMessage(truncateMessage("Gave " .. quantity .. " " .. item..".", maxMessageLength), "system")
         else
             self:addMessage(truncateMessage("Inventory system not found or giveItem function not available.", maxMessageLength), "system")
         end
@@ -130,7 +124,7 @@ function console:addMessage(message, channel, from)
             prefix = prefix .. " " .. from
         end
         fullMessage.playerName = tostring(config.settings.playerName)
-        fullMessage.text = ": " .. truncatedMessage
+        fullMessage.text = ":" .. truncatedMessage
     end
 
     table.insert(self.messages, 1, fullMessage)
