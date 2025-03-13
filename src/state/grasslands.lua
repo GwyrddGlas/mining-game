@@ -358,10 +358,6 @@ end
 function grasslands:keypressed(key)
     local gameControls = config.settings.gameControls
 
-    if key == gameControls.save then
-        worldGen:saveWorld()
-    end
-
     if key == gameControls.conjure and not console.isOpen then
         UI:toggle("arcane", {})
     end

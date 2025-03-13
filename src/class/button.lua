@@ -2,16 +2,6 @@ local button = {}
 local button_meta = {__index = button}
 
 local lg = love.graphics
-local fs = love.filesystem
-local kb = love.keyboard
-local lm = love.mouse
-local lt = love.thread
-local random = math.random
-local noise = love.math.noise
-local sin = math.sin
-local cos = math.cos
-local f = string.format
-local floor = math.floor
 
 local hoverSound = love.audio.newSource("src/assets/audio/button-hover.wav", "static")
 
@@ -98,7 +88,7 @@ function button:mousepressed(x, y, k)
         self.isClicked = true
         if type(self.func) == "function" then
             self.func(self)
-            hoverSound:stop()  -- Stop any currently playing instance
+            hoverSound:stop()
             hoverSound:play()
         end
     end

@@ -184,6 +184,11 @@ function love.keypressed(key)
             end
         end
     end
+
+    if key == gameControls.save then
+        worldGen:saveWorld()
+        note:new("Saved the game.", "default", 3, true)
+    end
         
     if key == gameControls.pause then
         if console.isOpen then

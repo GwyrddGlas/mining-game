@@ -20,6 +20,7 @@ local menu = {
 }
 
 local logo
+local backgroundVideo
 local nightSkyImage
 local nightSkyImageScaleX, nightSkyImageScaleY
 local cloudSpeed = 11
@@ -101,6 +102,8 @@ local function load()
     
     colourPicker.load("src/assets/pallet.png", config.skinColour.colour)
     loadSkins()
+    backgroundVideo = love.graphics.newVideo("src/assets/tmp.ogv")
+
 end
 
 local function removeDirectory(dir)
@@ -301,6 +304,10 @@ function menu:update(dt)
     cloudOffset = cloudOffset + cloudSpeed * dt
     colourPicker.update(dt)
 
+    if backgroundVideo:isPlaying() then return end
+    backgroundVideo:rewind()
+    backgroundVideo:play()
+
     time = time + dt/10
 
     backgroundShader:send("time", time)           
@@ -362,11 +369,19 @@ function menu:drawCharacterEditor()
 end
 
 function menu:draw()
-    lg.setShader(backgroundShader)
+    --lg.setShader(backgroundShader)
+--
+    --love.graphics.draw(nightSkyImage, 0, 0, 0, nightSkyImageScaleX, nightSkyImageScaleY)  
+    --lg.setShader()
 
-    love.graphics.draw(nightSkyImage, 0, 0, 0, nightSkyImageScaleX, nightSkyImageScaleY)  
-    lg.setShader()
-    
+    local screenWidth, screenHeight = lg.getWidth(), lg.getHeight()
+    local videoWidth, videoHeight = backgroundVideo:getWidth(), backgroundVideo:getHeight()
+
+    local scaleX = screenWidth / videoWidth
+    local scaleY = screenHeight / videoHeight
+
+    lg.draw(backgroundVideo, 0, 0, 0, scaleX, scaleY)    
+
     if self.currentScreen == "skins" then
         self:drawCharacterEditor()
     end
@@ -410,26 +425,6 @@ function menu:resize(w, h)
                 element.width = w * (element.width / self.width)
                 element.height = h * (element.height / self.height)
             end
-        end
-    end
-
-    -- Update positions and dimensions of skins
-    if self.currentScreen == "skins" then
-        local skinWidth = 600
-        local skinHeight = 300
-        local skinSpacing = 10
-        local totalWidth = #skins * (skinWidth + skinSpacing) - skinSpacing
-        local startX = (w - totalWidth) / 2
-        local startY = (h - skinHeight) / 2
-
-        for i, skin in ipairs(skins) do
-            local x = startX + (i - 1) * (skinWidth + skinSpacing)
-            local y = startY
-
-            skin.x = x
-            skin.y = y
-            skin.width = skinWidth
-            skin.height = skinHeight
         end
     end
 end

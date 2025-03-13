@@ -45,6 +45,8 @@ local default_config = {
     },
     player = {
         health = 10,
+        time = 6,
+        days = 0,
         stamina = 10,
         magic = 2,
         magicCap = 10,

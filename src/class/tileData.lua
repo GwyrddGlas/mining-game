@@ -1,5 +1,3 @@
--- Contains all data relating to tiles
--- Wall, floor, coal, iron, gold, uranium, Diamond, Ruby, Tanzenite
 local tileData = {}
 local preset = {
     type = "type",
@@ -123,15 +121,15 @@ tileData[#tileData+1] = {
 }
 
 tileData[#tileData+1] = {
-    type = "Ruby",
+    type = "DimensionalShard",
     textureID = 18, 
     maxHP = 18,
     drop = {1, 1}, 
-    destructible = true, 
+    destructible = false, 
     solid = false,
-    item = "Ruby",
+    item = "DimensionalShard",
     placeable = false,
-    itemTextureID = 24,
+    itemTextureID = 6,
 }
 
 tileData[#tileData+1] = {

@@ -90,12 +90,14 @@ function game:load(data)
     self.inventory.highlightedItem = self.inventory.inventoryOrder[self.inventory.selectedIndex]
 
     self.fireflies = {}
-    for i = 1, 50 do 
+    for i = 1, 50 do
         table.insert(self.fireflies, {
-            x = math.random(self.player.x, self.player.x+50), 
-            y = math.random(self.player.y, self.player.y+50),
-            direction = math.random() * 2 * math.pi,      
-            speed = math.random(20, 50),                  
+            x = math.random(0, love.graphics.getWidth()),
+            y = math.random(0, love.graphics.getHeight()),
+            direction = math.random() * 2 * math.pi,
+            speed = math.random(20, 50),
+            brightness = math.random(),
+            size = math.random(2, 4),
         })
     end
 
@@ -106,7 +108,7 @@ function game:load(data)
         Gold = 3,
         Uranium = 4,
         Diamond = 5,
-        Ruby = 6,
+        DimensionalShard = 6,
         Tanzenite = 7,
         Copper = 8,
         Shrub = 9, --stick
@@ -114,7 +116,6 @@ function game:load(data)
         GoldIngot = 11, 
         EmeraldIngot = 12, 
         DiamondIngot = 13, 
-        RubyIngot = 14,
         TanzeniteIngot = 15, 
         CopperIngot = 16, 
         Wall = 18,
@@ -174,6 +175,17 @@ function game:load(data)
 
     self.inventory.inventoryOpen = false
 
+    self.fireflies = {}
+    for i = 1, 50 do
+        table.insert(self.fireflies, {
+            x = math.random(0, love.graphics.getWidth()),
+            y = math.random(0, love.graphics.getHeight()),
+            direction = math.random() * 2 * math.pi,
+            speed = math.random(20, 50),
+            brightness = math.random(),
+        })
+    end
+
     playBackgroundMusic()
 
     UI:register("arcane", require("src/lib/UI/arcane"))
@@ -219,19 +231,13 @@ function worldGen:centerPlayerOnTile(x, y)
 end
 
 local function spawnSlimes(playerX, playerY, world)
-    local spawnRadius = 16 
-    local spawnAttempts = 5
+    local spawnRadius = 16
+    local spawnX = playerX + math.random(-spawnRadius, spawnRadius)
+    local spawnY = playerY + math.random(-spawnRadius, spawnRadius)
 
-    for i = 1, spawnAttempts do
-        local spawnX = playerX + math.random(-spawnRadius, spawnRadius)
-        local spawnY = playerY + math.random(-spawnRadius, spawnRadius)
-
-        local slime = world:newEntity("src/entity/slime.lua", spawnX, spawnY, {x = spawnX, y = spawnY})
-
-        centerEntityOnTile(slime, spawnX, spawnY, worldGen.tileSize)
-
-        return slime
-    end
+    local slime = world:newEntity("src/entity/slime.lua", spawnX, spawnY, {x = spawnX, y = spawnY})
+    centerEntityOnTile(slime, spawnX, spawnY, worldGen.tileSize)
+    return slime
 end
 
 function game:update(dt)
@@ -257,6 +263,24 @@ function game:update(dt)
         if #self.slimes < 5 then
             self.slimes[#self.slimes+1] = spawnSlimes(self.player.gridX, self.player.gridY, self.world)
         end
+    end
+
+    for _, firefly in ipairs(self.fireflies) do
+        firefly.x = firefly.x + math.cos(firefly.direction) * firefly.speed * dt
+        firefly.y = firefly.y + math.sin(firefly.direction) * firefly.speed * dt
+
+        if math.random() < 0.01 then
+            firefly.direction = math.random() * 2 * math.pi
+        end
+
+        -- Flicker brightness and size
+        firefly.brightness = firefly.brightness + (math.random() - 0.5) * 0.1
+        firefly.brightness = math.max(0, math.min(1, firefly.brightness)) -- Clamp brightness
+
+        firefly.size = 2 + math.sin(self.time * 5) * 1 
+
+        firefly.x = firefly.x % love.graphics.getWidth()
+        firefly.y = firefly.y % love.graphics.getHeight()
     end
     
     --attempt for controller
@@ -320,9 +344,10 @@ function game:update(dt)
     self.time = self.time + dt
     if self.time > math.pi * 2 then self.time = 0 end
 
-    self.player.time = self.player.time + dt * 0.05
+    self.player.time = self.player.time + dt * 0.025 --1 day = 16min
     if self.player.time >= 24 then
         self.player.time = 0 
+        self.player.days = self.player.days + 1
     end
 
     -- Handle dying
@@ -409,6 +434,12 @@ function game:draw()
    
     self:drawHud()
 
+    love.graphics.setColor(1, 1, 0)
+    for _, firefly in ipairs(self.fireflies) do
+        love.graphics.setColor(1, 1, 0, firefly.brightness) 
+        love.graphics.circle("fill", firefly.x, firefly.y, firefly.size / 2)
+    end
+
     local all, all_len = self.world:query()
     if config.debug.enabled then
         lg.setColor(1, 0, 0)
@@ -449,14 +480,12 @@ function game:draw()
     local barsX = 30
     local barsY = 150
     statusBars.drawAllBars(self.player, barsX, barsY, barWidth, barSpacing)
+
+    lg.print("Day "..self.player.days, barsX, barsY - 50)
 end
 
 function game:keypressed(key)
     local gameControls = config.settings.gameControls
-
-    if key == gameControls.save then
-        worldGen:saveWorld()
-    end
 
     if key == gameControls.conjure and not console.isOpen then
         UI:toggle("arcane", {})

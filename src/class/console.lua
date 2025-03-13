@@ -214,7 +214,7 @@ function console:keypressed(key)
         return 
     end
 
-    if key == "t" and not self.isOpen then
+    if key == config.settings.gameControls.chat and not self.isOpen then
         self.isOpen = true
         love.keyboard.setTextInput(true)
         return 

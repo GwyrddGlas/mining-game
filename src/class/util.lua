@@ -70,7 +70,7 @@ function convertIconToDefinition(iconValue)
         ["Gold"] = 7,
         ["Uranium"] = 8,
         ["Diamond"] = 9,
-        ["Ruby"] = 10,
+        ["DimensionalShard"] = 10,
         ["Tanzenite"] = 11,
         ["Copper"] = 12,
         ["Furnace"] = 13,

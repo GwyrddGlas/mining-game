@@ -45,6 +45,7 @@ function entity:load(data, ecs)
     self.maxStamina = 10
     self.magic = config.player.magic
     self.time = config.player.time or 6
+    self.days = config.player.days or 0
     self.magicCap = config.player.magicCap
     self.inventory = data.inventory or {}
     self.craftingGrid = data.craftingGrid or {}
