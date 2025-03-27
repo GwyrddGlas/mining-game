@@ -310,11 +310,11 @@ function menu:update(dt)
 
     time = time + dt/10
 
-    backgroundShader:send("time", time)           
-    backgroundShader:send("contrast", 1.5)  
-    backgroundShader:send("colour_1", {0, 0, 0, 1.0})
-    backgroundShader:send("colour_2", {0, 0, 0, 1.0})
-    backgroundShader:send("colour_3", {0.7, 0.5, 0.9, 0.7})
+    --backgroundShader:send("time", time)           
+    --backgroundShader:send("contrast", 1.5)  
+    --backgroundShader:send("colour_1", {0, 0, 0, 1.0})
+    --backgroundShader:send("colour_2", {0, 0, 0, 1.0})
+    --backgroundShader:send("colour_3", {0.7, 0.5, 0.9, 0.7})
 
 
     local skinNameSave = self.screen.skins.characterName.text
@@ -324,47 +324,6 @@ function menu:update(dt)
         if type(v.update) == "function" then
             v:update(dt)
         end
-    end
-end
-
-function menu:drawCharacterEditor()
-    -- Background for skin stuff
-    local bgWidth = 500
-    local bgHeight = 500
-    local bgX = (self.width - bgWidth) / 2
-    local bgY = (self.height - bgHeight) / 2
-
-    -- Draw the darker outline layers to create a 3D effect
-    lg.setColor(self.color.darker2)
-    lg.rectangle("line", bgX - 5, bgY - 5, bgWidth + 10, bgHeight + 10, 5, 5)
-    lg.setLineWidth(6)
-    
-    lg.setColor(self.color.darker1)
-    lg.rectangle("line", bgX - 3, bgY - 3, bgWidth + 6, bgHeight + 6, 5, 5)
-    lg.setLineWidth(4)
-
-    -- Draw the centered background
-    lg.setColor(self.color.success)
-    lg.rectangle("fill", bgX, bgY, bgWidth, bgHeight)
-
-    local scale = 7
-    local spriteX = bgX - 150
-    local spriteY = bgY + 20
-    local spriteWidth = characterSprite:getWidth() * scale / 4
-    local spriteHeight = characterSprite:getHeight() * scale
-
-    -- Draw the outline around the character sprite
-    lg.setColor(self.color.darker2)
-    lg.rectangle("line", spriteX + spriteWidth + 45, spriteY - 5, spriteWidth + 10, spriteHeight + 10, 5, 5)
-    lg.setColor(1, 1, 1)
-    
-    -- Draw the character sprite
-    lg.setShader(replaceShader)
-    lg.draw(characterSprite, spriteX, spriteY, 0, scale, scale)
-    lg.setShader()
-
-    if skinColourToggle then
-        colourPicker.draw()
     end
 end
 
@@ -381,10 +340,6 @@ function menu:draw()
     local scaleY = screenHeight / videoHeight
 
     lg.draw(backgroundVideo, 0, 0, 0, scaleX, scaleY)    
-
-    if self.currentScreen == "skins" then
-        self:drawCharacterEditor()
-    end
 
     for i, v in pairs(self.screen[self.currentScreen]) do
         v:draw()

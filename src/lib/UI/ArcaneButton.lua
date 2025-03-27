@@ -134,7 +134,7 @@ function ArcaneButton:draw()
 
     lg.setColor(self.color)
     lg.rectangle("line", self.x, self.y, self.width, self.height, 5, 5)
-    lg.setShader()  -- Reset shader
+    lg.setShader()
 
     -- Text
     lg.setColor(self.textColor)

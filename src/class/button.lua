@@ -8,6 +8,7 @@ local hoverSound = love.audio.newSource("src/assets/audio/button-hover.wav", "st
 function button.new(text, color, textColor, x, y, width, height, func)
     return setmetatable({
         text = text,
+        type = "button",
         color = color,
         textColor = textColor,
         x = x,
@@ -32,9 +33,10 @@ function button:mouseOver()
 end
 
 function button:update(dt)
-    self.wasHovered = self.isHovered  -- Store the previous hover state
+    self.wasHovered = self.isHovered
     self.isHovered = self:mouseOver()
     
+    print("hovered")
     if self.isHovered then
         self.targetScale = 1.05
         if not self.wasHovered then

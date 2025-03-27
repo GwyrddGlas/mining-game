@@ -71,13 +71,19 @@ local function createGraphicsMenu(menu)
             function(value) config.graphics.ambientLight = value end
         ),
         
-        -- Color picker for light color (commented out for now)
-        -- colourPicker.new(
-        --     "Light Color", config.graphics.lightColor, 
-        --     menu.width * 0.3, menu.height * 0.55, menu.width * 0.4, menu.height * 0.05, 
-        --     {0.4, 0.4, 0.4}, {1, 1, 1}, 
-        --     function(r, g, b) config.graphics.lightColor = {r, g, b} end
-        -- ),
+        slider.new(
+            "Contrast", 0, 2, config.graphics.contrast, 
+            menu.width * 0.3, menu.height * 0.35, menu.width * 0.2, menu.height * 0.05, 
+            {0.4, 0.4, 0.4}, {1, 1, 1}, 
+            function(value) config.graphics.contrast = value end
+        ),
+        
+        slider.new(
+            "Saturation", 0, 2, config.graphics.saturation, 
+            menu.width * 0.5, menu.height * 0.35, menu.width * 0.2, menu.height * 0.05, 
+            {0.4, 0.4, 0.4}, {1, 1, 1}, 
+            function(value) config.graphics.saturation = value end
+        ),
         
         button.new(
             "Reset Graphics Settings", menu.color.white, menu.color.white, 
@@ -92,7 +98,9 @@ local function createGraphicsMenu(menu)
                     ambientLight = 0.3,
                     lightColor = {1, 0.9, 0.8},
                     tileSize = 40,
-                    assetSize = 16
+                    assetSize = 16,
+                    contrast = 1.2, 
+                    saturation = 1.2
                 }
     
                 for key, value in pairs(defaultGraphics) do
